@@ -1,0 +1,177 @@
+---
+title: "Data loading"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    highlight: textmate
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+  
+# Setup
+  
+Set chunk options:
+  
+```{r}
+knitr::opts_chunk$set(
+  dev = "png",
+  echo = TRUE, 
+  fig.align = "center", 
+  message = FALSE, 
+  warning = FALSE
+)
+```
+
+Set library path:
+  
+```{r}
+.libPaths(new = "/sbgenomics/project-files/library")
+```
+
+Load Bioconductor packages:
+  
+```{r, message = FALSE, warning = FALSE}
+library(Seurat)
+
+install.packages("hdf5r", repos='http://cran.us.r-project.org')
+
+```
+
+Source user-defined functions:
+
+```{r}
+source("scripts/loadInSpatial.R")
+```
+
+Enable multicore parallel evaluation:
+  
+```{r}
+library(BiocParallel)
+
+BPP <- MulticoreParam(
+  workers = 6,
+  stop.on.error = TRUE,
+  RNGseed = 0304
+)
+```
+
+## Meta data
+
+Read sample metadata:
+  
+```{r}
+metadata <- read.csv("/sbgenomics/project-files/Metadata/metadata.csv")
+```
+
+Define Samples of interest from metadata:
+
+```{r}
+samplename <- metadata$Sample
+```
+
+Define project folder location (10x output):
+
+```{r}
+prefix <- "/sbgenomics/project-files/"
+```
+
+## Reading in 
+
+Load in filtered experiment object with all samples as a list:
+  
+```{r}
+seuratfilt <- lapply(samplename, function(x, prefix, metadata, saveout) {
+                   loadInSpatial(x, prefix, metadata, saveout)
+                   }, prefix = prefix, metadata = metadata, saveout = F)
+
+names(seuratfilt) = samplename
+```
+
+Load in raw matrix
+
+```{r}
+seuratraw <- lapply(samplename, function(x, prefix, metadata, saveout, filename = filename) {
+                   loadInSpatial(x, prefix, metadata, saveout, filename = filename)
+                   }, prefix = prefix, metadata = metadata, filename = "raw_feature_bc_matrix.h5", saveout = F)
+
+names(seuratraw) = samplename
+```
+
+# Processing
+
+Take only cells within the filtered matrix
+
+```{r}
+seurat <- lapply(seuratraw, function(x) {x[,colnames(seuratfilt[[unique(x$Sample)]])]})
+```
+
+```{r}
+lapply(seuratfilt, function(x) {
+  stopifnot(colnames(x) == colnames(seurat[[unique(x$Sample)]]))
+  table(colnames(x) == colnames(seurat[[unique(x$Sample)]]))
+})
+```
+
+Take only genes with non zero counts across all samples
+
+```{r}
+seurat <- lapply(seurat, function(x) {x[rowSums(x) > 0, ]})
+```
+
+Remove "DEPRECATED-" genes
+
+```{r}
+seurat <- lapply(seurat, function(x) {x[!grepl("DEPRECATED", rownames(x)), ]})
+```
+
+Test genes of interest still in final expression matrix (remove first sample as will be filtered downstream due to low counts)
+
+```{r}
+geneint <- ""
+```
+
+```{r}
+print(lapply(seurat[2:8], function(x) {colSums(FetchData(x, vars = geneint))}))
+```
+
+# Output
+
+## RDS Output
+
+Save out seurat experiment object
+
+```{r}
+saveRDS(seurat, file = "/sbgenomics/output-files/01-data-loading.rds")
+```
+
+## HTML output
+
+Load in extra html output
+  
+```{r}
+metrics <- sapply(samplename, function(x, prefix) {collectMetrics(x, prefix)}, 
+                  prefix = prefix)
+
+metrics = as.data.frame(t(metrics))
+metrics[,1] = as.character(metrics[,1])
+metrics[,2:ncol(metrics)] = as.numeric(unlist(metrics[,2:ncol(metrics)]))
+
+```
+
+Save out html output
+
+```{r}
+write.csv(metrics, file = "/sbgenomics/output-files/metrics.csv", quote = F, row.names = F)
+```
+
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

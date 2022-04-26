@@ -1,0 +1,707 @@
+---
+title: "Marker gene detection"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    highlight: textmate
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+  
+# Setup
+  
+Set chunk options:
+  
+```{r}
+knitr::opts_chunk$set(echo = TRUE, dev = "png", message = FALSE, warning = FALSE, fig.align = "center")
+```
+
+Set library path:
+
+```{r}
+.libPaths(new = "/sbgenomics/project-files/library")
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(clustree)
+library(RColorBrewer)
+library(pheatmap)
+library(DT)
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(scater)
+library(scran)
+library(scuttle)
+library(Seurat)
+```
+
+Source user-defined functions:
+  
+```{r}
+source("scripts/parseCloupe.R")
+source("scripts/plotpHeatmap.R")
+source("scripts/reduceDims.R")
+```
+
+Parallelisation:
+  
+```{r}
+library(BiocParallel)
+
+BPP <- MulticoreParam(
+  workers = 6,
+  stop.on.error = TRUE,
+  RNGseed = 0304
+)
+```
+
+Read experiment data:
+  
+```{r}
+seurat <- readRDS("/sbgenomics/output-files/08-integrate-samples.rds")
+```
+
+Setup colour palette:
+  
+```{r}
+col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+```
+
+Define Cloupe annotation location
+
+```{r}
+cloupe_annotation <- "/sbgenomics/project-files/Loupe/Annotated_csv/"
+```
+
+Read in Cloupe annotation
+
+```{r, warning=FALSE, message=FALSE}
+cloupe <- readCloupe(cloupe_annotation)
+```
+
+# Processing
+
+## addCloupe
+
+Add Cloupe manual annotation to seurat object
+
+```{r, warning=FALSE, message=FALSE}
+seurat <- addCloupe(seurat, cloupe = cloupe)
+```
+
+## PrepSCTFindmarkers
+
+Prepare "data" slot of SCT assay for differential expression and downstream visualisation
+Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+
+```{r, warning=FALSE, message=FALSE}
+seuratprep <- PrepSCTFindMarkers(object = seurat)
+```
+
+## Subset
+
+Create subset of seurat object for differential testing and visualisation downstream
+
+```{r, warning=FALSE, message=FALSE}
+Idents(seuratprep) <- seuratprep$Loupe
+seuratsub <- subset(seuratprep, idents = c("Normal_Hepatocyte", "KRT7_Hepatocyte"))
+```
+
+We need to subset only 105546C and 105558B as these samples were the only ones
+to include both Normal and KRT7 hepatocytes together
+
+```{r, warning=FALSE, message=FALSE}
+Idents(seuratsub) <- seuratsub$Sample
+seuratsubsample <- subset(seuratsub, idents = c("105546C", "105558B"))
+```
+
+## ScaleData 
+
+Scale and center data and add ScaleData to seuratprep for heatmap visualisation
+
+```{r, warning=FALSE, message=FALSE}
+seuratscale <- ScaleData(seuratprep@assays$SCT)
+seuratprep[["ScaleData"]] <- seuratscale
+```
+
+Scale subset of data
+- also include regression variable "Sample" to remove effect of sample for visualisation purposes
+
+```{r, warning=FALSE, message=FALSE}
+seuratsubReg <- ScaleData(seuratsub, vars.to.regress = "Sample", assay = "SCT")
+seuratsub[["ScaleData"]] <- seuratsubReg@assays$SCT
+```
+
+Scale subset of data (105546C and 105558B) 
+- also include regression variable "Sample" to remove effect of sample for visualisation purposes
+
+```{r, warning=FALSE, message=FALSE}
+seuratsubsampleReg <- ScaleData(seuratsubsample, vars.to.regress = "Sample", assay = "SCT")
+seuratsubsample[["ScaleData"]] <- seuratsubsampleReg@assays$SCT
+```
+
+
+## Markers Cluster
+
+Find candidate marker genes between clusters:
+  
+```{r, warning=FALSE, message=FALSE}
+Idents(seuratprep) <- seuratprep$Cluster
+
+res <- FindAllMarkers(seuratprep, only.pos = TRUE, min.pct = 0.5, logfc.threshold = 0.25)
+
+rownames(res) <- NULL
+
+res <- res[res$p_val_adj < 0.1,]
+```
+
+### Write csv to file
+
+```{r, warning=FALSE, message=FALSE}
+write.csv(res, "FindMarkersClusters.csv")
+```
+
+### Interactive res
+
+```{r}
+DT::datatable(res, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+### Define genes interest
+
+```{r}
+top_0 <- head(res$gene[res$cluster == 0], 10)
+top_1 <- head(res$gene[res$cluster == 1], 10)
+top_2 <- head(res$gene[res$cluster == 2], 10)
+top_3 <- head(res$gene[res$cluster == 3], 10)
+top_4 <- head(res$gene[res$cluster == 4], 10)
+``` 
+
+Plot heatmap of top markers (Seurat)
+
+### DoHeatmap
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = c(top_0, top_1, top_2, top_3, top_4), assay = "ScaleData", slot = "scale.data") + NoLegend()
+```
+
+With legend
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = c(top_0, top_1, top_2, top_3, top_4), assay = "ScaleData", slot = "scale.data")
+```
+
+Cluster 0
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = top_0, assay = "ScaleData", slot = "scale.data")
+```
+
+Cluster 1
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = top_1, assay = "ScaleData", slot = "scale.data")
+```
+
+Cluster 2
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = top_2, assay = "ScaleData", slot = "scale.data")
+```
+
+Cluster 3
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = top_3, assay = "ScaleData", slot = "scale.data")
+```
+
+Cluster 4
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratprep, features = top_4, assay = "ScaleData", slot = "scale.data")
+```
+
+### pheatmap 
+
+```{r, fig.width = 5, fig.height = 7}
+plotpHeatmap(c(top_0, top_1, top_2, top_3, top_4), seuratprep, seuratprep, order = "Cluster", gaps_row = cumsum(c(10, 10, 10, 10)), min.exprs = -3, max.exprs = 3)
+```
+
+
+### UMAP - markers
+
+Split by cluster
+
+```{r, fig.width = 15, fig.height = 12}
+
+DefaultAssay(seuratprep) <- "SCT"
+
+fplot <- FeaturePlot(seuratprep, features = c("ALB", "COL3A1", "COL1A2"), split.by = "Cluster",order = T, slot = "data") 
+
+wrap_plots(fplot[[1]] + scale_color_viridis(),
+           fplot[[2]] + scale_color_viridis(),
+           fplot[[3]] + scale_color_viridis(),
+           fplot[[4]] + scale_color_viridis(),
+           fplot[[5]] + scale_color_viridis(),
+           fplot[[6]] + scale_color_viridis(),
+           fplot[[7]] + scale_color_viridis(),
+           fplot[[8]] + scale_color_viridis(),
+           fplot[[9]] + scale_color_viridis(),
+           fplot[[10]] + scale_color_viridis(),
+           fplot[[11]] + scale_color_viridis(),
+           fplot[[12]] + scale_color_viridis(),
+           fplot[[13]] + scale_color_viridis(),
+           fplot[[14]] + scale_color_viridis(),
+           fplot[[15]] + scale_color_viridis(),
+           ncol = 5)
+```
+
+Not split
+
+```{r, fig.width = 15, fig.height = 5}
+fplot <- FeaturePlot(seuratprep, features = c("ALB", "COL3A1", "COL1A2"), order = T, slot = "data") 
+
+wrap_plots(fplot[[1]] + scale_color_viridis(),
+           fplot[[2]] + scale_color_viridis(),
+           fplot[[3]] + scale_color_viridis(),
+           ncol = 3)
+```
+
+
+### Violin - markers
+
+Across clusters
+
+```{r, fig.width = 5, fig.height = 10}
+
+vplots <- VlnPlot(seuratprep, features = c("ALB", "VIM", "COL3A1", "COL1A2"), group.by = "Cluster", pt.size = 0, combine = FALSE)
+
+wrap_plots(plots = vplots, ncol = 1)
+
+```
+
+Across clusters split by annotation
+
+```{r, fig.width = 5, fig.height = 10}
+
+vplots <- VlnPlot(seuratprep, features = c("ALB", "VIM", "COL3A1", "COL1A2"), group.by = "Cluster", split.by = "Loupe", pt.size = 0, combine = FALSE)
+
+wrap_plots(plots = vplots, ncol = 1)
+
+```
+
+Across annotation split by clusters
+
+```{r, fig.width = 5, fig.height = 15}
+
+vplots <- VlnPlot(seuratprep, features = c("ALB", "VIM", "COL3A1", "COL1A2"), group.by = "Loupe", split.by = "Cluster", pt.size = 0, combine = FALSE)
+
+wrap_plots(plots = vplots, ncol = 1)
+
+```
+
+### Spatial - markers
+
+Run feature plot
+
+```{r, warning=FALSE, message=FALSE}
+spplot1 <- SpatialFeaturePlot(seuratprep, features = c("ALB"), alpha = c(0.1, 1))
+spplot2 <- SpatialFeaturePlot(seuratprep, features = c("VIM"), alpha = c(0.1, 1))
+spplot3 <- SpatialFeaturePlot(seuratprep, features = c("COL3A1"), alpha = c(0.1, 1))
+spplot4 <- SpatialFeaturePlot(seuratprep, features = c("COL1A2"), alpha = c(0.1, 1))
+```
+
+Please right click and copy into power point or other program for better viewing
+
+ALB
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot1[[1]],
+           spplot1[[2]],
+           spplot1[[3]],
+           spplot1[[4]],
+           spplot1[[5]],
+           spplot1[[6]],
+           ncol = 3)
+```
+
+VIM
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot2[[1]],
+           spplot2[[2]],
+           spplot2[[3]],
+           spplot2[[4]],
+           spplot2[[5]],
+           spplot2[[6]],
+           ncol = 3)
+```
+
+COL3A1
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot3[[1]],
+           spplot3[[2]],
+           spplot3[[3]],
+           spplot3[[4]],
+           spplot3[[5]],
+           spplot3[[6]],
+           ncol = 3)
+```
+
+COL1A2
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot4[[1]],
+           spplot4[[2]],
+           spplot4[[3]],
+           spplot4[[4]],
+           spplot4[[5]],
+           spplot4[[6]],
+           ncol = 3)
+```
+
+
+## Markers A priori
+
+### UMAP 
+
+Plot UMAP with Loupe annotation
+
+```{r, warning=FALSE, message=FALSE, fig.width = 7, fig.height = 5}
+dimplot(seurat, reduction = "umap", label = F, group.by = "Loupe", 
+        title = "UMAP-Loupe-Anno")
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 5}
+dimplot(seurat, reduction = "umap", label = F, group.by = "Loupe", 
+        title = "UMAP-Loupe-Anno", split.by = "Loupe")
+```
+
+### KRT7 Vs Normal
+
+#### Sample Subset
+
+Find candidate marker genes differentially expressed between KRT7+ and Normal Hepatocytes
+See for more details on choice of test: https://github.com/satijalab/seurat/issues/1224
+See for more details on recorrect_umi option choice: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+
+```{r}
+Idents(seuratsubsample) <- seuratsubsample$Loupe
+
+res <- FindMarkers(seuratsubsample, ident.1 = "Normal_Hepatocyte", 
+                   ident.2 = "KRT7_Hepatocyte", assay = "SCT",
+                   recorrect_umi = FALSE, 
+                   test.use = "LR", 
+                   latent.vars = "Sample")
+
+res <- res[res$p_val_adj < 0.1,]
+
+res$gene <- rownames(res)
+```
+
+#### Write csv to file
+
+```{r, warning=FALSE, message=FALSE}
+write.csv(res, "FindMarkersLoupe_KRT7-Normal.csv")
+```
+
+#### Interactive res
+
+```{r}
+DT::datatable(res, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+#### Define genes interest
+
+```{r}
+genes_int <- unique(res$gene)
+
+upgenes <- res$gene[res$avg_log2FC > 0]
+
+downgenes <- res$gene[res$avg_log2FC < 0]
+
+top50 <- head(genes_int, 50)
+
+top25 <- head(genes_int, 25)
+
+topup <- head(upgenes, 25)
+  
+topdown <- head(downgenes, 25)
+``` 
+
+#### DoHeatmap
+
+Plot heatmap of top markers
+
+Heatmap is of scaled data (data subset) - sample effect regressed out
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratsubsample, features = top50, assay = "ScaleData", slot = "scale.data", label = F)
+```
+
+Top up and down
+
+Heatmap is of scaled data (data subset) - sample effect regressed out
+
+```{r, fig.width = 5, fig.height = 7}
+DoHeatmap(seuratsubsample, features = c(topup, topdown), assay = "ScaleData", slot = "scale.data", label = F)
+```
+
+#### pheatmap up down
+
+Top up and down
+
+Heatmap is of scaled data (data subset) - sample effect regressed out
+
+```{r, fig.width = 5, fig.height = 7}
+plotpHeatmap(c(topup, topdown), seuratsubsample, seuratsubsample, order = "Loupe", 
+             gaps_row = 9, min.exprs = -3, max.exprs = 3,
+             assay = "ScaleData", slot = "scale.data")
+```
+
+Plot heatmap across all marked cells for all samples (105544D4, 105548A, 105546C, 105558B, 105557D)
+
+```{r, fig.width = 5, fig.height = 7}
+plotpHeatmap(c(topup, topdown), seuratsub, seuratsub, order = "Loupe", 
+             gaps_row = 9, min.exprs = -3, max.exprs = 3,
+             assay = "ScaleData", slot = "scale.data")
+```
+
+
+#### UMAP - markers
+
+Split by Annotation - only cells of interest across all samples (105544D4, 105548A, 105546C, 105558B, 105557D)
+
+```{r, fig.width = 5, fig.height = 8}
+
+DefaultAssay(seuratsub) <- "SCT"
+
+fplot <- FeaturePlot(seuratsub, features = c("ALB", "EEF1A1", "COL3A1", "COL1A2"), 
+                   split.by = "Loupe", order = T,slot = "data") 
+
+wrap_plots(fplot[[1]] + scale_color_viridis(),
+           fplot[[2]] + scale_color_viridis(),
+           fplot[[3]] + scale_color_viridis(),
+           fplot[[4]] + scale_color_viridis(),
+           fplot[[5]] + scale_color_viridis(),
+           fplot[[6]] + scale_color_viridis(),
+           fplot[[7]] + scale_color_viridis(),
+           fplot[[8]] + scale_color_viridis(),
+           ncol = 2)
+```
+
+Split by Annotation - all cells 
+
+```{r, fig.width = 8, fig.height = 8}
+
+DefaultAssay(seuratprep) <- "SCT"
+
+fplot <- FeaturePlot(seuratprep, features = c("ALB", "EEF1A1", "COL3A1", "COL1A2"), 
+                     split.by = "Loupe", order = T,slot = "data") 
+
+wrap_plots(fplot[[1]] + scale_color_viridis(),
+           fplot[[2]] + scale_color_viridis(),
+           fplot[[3]] + scale_color_viridis(),
+           fplot[[4]] + scale_color_viridis(),
+           fplot[[5]] + scale_color_viridis(),
+           fplot[[6]] + scale_color_viridis(),
+           fplot[[7]] + scale_color_viridis(),
+           fplot[[8]] + scale_color_viridis(),
+           fplot[[9]] + scale_color_viridis(),
+           fplot[[10]] + scale_color_viridis(),
+           fplot[[11]] + scale_color_viridis(),
+           fplot[[12]] + scale_color_viridis(),
+           ncol = 3)
+```
+
+Not split
+
+```{r, fig.width = 6, fig.height = 5}
+
+fplot <- FeaturePlot(seuratprep, features = c("ALB", "EEF1A1", "COL3A1", "COL1A2"), 
+                   order = T,slot = "data") 
+
+wrap_plots(fplot[[1]] + scale_color_viridis(),
+           fplot[[2]] + scale_color_viridis(),
+           fplot[[3]] + scale_color_viridis(),
+           fplot[[4]] + scale_color_viridis(),
+           ncol = 2)
+```
+
+
+#### Violin - markers
+
+Across Annotation
+
+```{r, fig.width = 5, fig.height = 15}
+
+vplots <- VlnPlot(seuratprep, features = c("ALB", "EEF1A1", "COL3A1", "COL1A2"), 
+                  group.by = "Loupe", pt.size = 0, combine = FALSE)
+
+wrap_plots(plots = vplots, ncol = 1)
+
+```
+
+#### Spatial - markers
+
+Run feature plot
+
+```{r}
+spplot1 <- SpatialFeaturePlot(seuratprep, features = c("ALB"), alpha = c(0.1, 1))
+spplot2 <- SpatialFeaturePlot(seuratprep, features = c("EEF1A1"), alpha = c(0.1, 1))
+spplot3 <- SpatialFeaturePlot(seuratprep, features = c("COL3A1"), alpha = c(0.1, 1))
+spplot4 <- SpatialFeaturePlot(seuratprep, features = c("COL1A2"), alpha = c(0.1, 1))
+```
+
+Please right click and copy into power point or other program for better viewing
+
+ALB
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot1[[1]],
+           spplot1[[2]],
+           spplot1[[3]],
+           spplot1[[4]],
+           spplot1[[5]],
+           spplot1[[6]],
+           ncol = 3)
+```
+
+EEF1A1
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot2[[1]],
+           spplot2[[2]],
+           spplot2[[3]],
+           spplot2[[4]],
+           spplot2[[5]],
+           spplot2[[6]],
+           ncol = 3)
+```
+
+COL3A1
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot3[[1]],
+           spplot3[[2]],
+           spplot3[[3]],
+           spplot3[[4]],
+           spplot3[[5]],
+           spplot3[[6]],
+           ncol = 3)
+```
+
+COL1A2
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot4[[1]],
+           spplot4[[2]],
+           spplot4[[3]],
+           spplot4[[4]],
+           spplot4[[5]],
+           spplot4[[6]],
+           ncol = 3)
+```
+
+#### Spatial annotation subset - markers
+
+Run feature plot
+
+```{r}
+DefaultAssay(seuratsub) <- "SCT"
+spplot1 <- SpatialFeaturePlot(seuratsub, features = c("ALB"), alpha = c(0.1, 1))
+spplot2 <- SpatialFeaturePlot(seuratsub, features = c("EEF1A1"), alpha = c(0.1, 1))
+spplot3 <- SpatialFeaturePlot(seuratsub, features = c("COL3A1"), alpha = c(0.1, 1))
+spplot4 <- SpatialFeaturePlot(seuratsub, features = c("COL1A2"), alpha = c(0.1, 1))
+```
+
+Please right click and copy into power point or other program for better viewing
+
+ALB
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot1[[1]],
+           spplot1[[2]],
+           spplot1[[3]],
+           spplot1[[4]],
+           spplot1[[5]],
+           spplot1[[6]],
+           ncol = 3)
+```
+
+EEF1A1
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot2[[1]],
+           spplot2[[2]],
+           spplot2[[3]],
+           spplot2[[4]],
+           spplot2[[5]],
+           spplot2[[6]],
+           ncol = 3)
+```
+
+COL3A1
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot3[[1]],
+           spplot3[[2]],
+           spplot3[[3]],
+           spplot3[[4]],
+           spplot3[[5]],
+           spplot3[[6]],
+           ncol = 3)
+```
+
+COL1A2
+
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(spplot4[[1]],
+           spplot4[[2]],
+           spplot4[[3]],
+           spplot4[[4]],
+           spplot4[[5]],
+           spplot4[[6]],
+           ncol = 3)
+```
+
+
+# Output
+
+Save experiment object:
+  
+```{r}
+saveRDS(seuratprep, file = "/sbgenomics/output-files/09-marker-detection.rds")
+```
+
+Copy out results csv:
+  
+```{r}
+file.copy(from = "/sbgenomics/workspace/FindMarkersClusters.csv",
+          to   = "/sbgenomics/output-files/FindMarkersClusters.csv")
+
+file.copy(from = "/sbgenomics/workspace/FindMarkersLoupe_KRT7-Normal.csv",
+          to   = "/sbgenomics/output-files/FindMarkersLoupe_KRT7-Normal.csv")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

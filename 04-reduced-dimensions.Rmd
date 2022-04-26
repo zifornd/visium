@@ -1,0 +1,357 @@
+---
+title: "Reduce Dimensions"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    highlight: textmate
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+  
+# Setup
+  
+Set chunk options:
+  
+```{r}
+knitr::opts_chunk$set(echo = TRUE, dev = "png", fig.align = "center")
+```
+
+Set library path:
+  
+```{r}
+.libPaths(new = "/sbgenomics/project-files/library")
+```
+
+Load Bioconductor packages:
+  
+```{r, warning=FALSE, message=FALSE}
+library(scater)
+library(scran)
+library(scuttle)
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, warning=FALSE, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(plyr)
+```
+
+Source user-defined functions:
+  
+```{r, warning=FALSE, message=FALSE}
+source("scripts/reduceDims.R")
+```
+
+Enable multicore parallel evaluation:
+  
+```{r, warning=FALSE, message=FALSE}
+library(BiocParallel)
+
+BPP <- MulticoreParam(
+  workers = 6,
+  stop.on.error = TRUE,
+  RNGseed = 0305
+
+)
+```
+
+# Processing
+
+Read experiment object:
+  
+```{r, warning=FALSE, message=FALSE}
+seurat <- readRDS("/sbgenomics/output-files/03-normalisation.rds")
+```
+
+## PCA
+
+PCA individual samples
+
+```{r, warning=FALSE, message=FALSE}
+seurat <- bplapply(seurat, pca, BPPARAM = BPP)
+```
+
+### Plot PCAs
+
+Individual PCA - dimplot
+
+```{r, warning=FALSE, message=FALSE}
+pca_plots_dim <- lapply(seurat, dimplot, reduction = "pca", label = FALSE, group.by = "Group")
+```
+
+Wrap plot PCAs dimplots
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(pca_plots_dim, ncol = 2)
+```
+
+Individual PCA - featureplot ncount
+
+```{r, warning=FALSE, message=FALSE}
+pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca", label = FALSE, feature = "nCount_Spatial")
+```
+
+Wrap plot PCAs featureplot ncount
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(pca_plots_feature, ncol = 2)
+```
+
+Individual PCA - featureplot nfeature
+
+```{r, warning=FALSE, message=FALSE}
+pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca", label = FALSE, feature = "nFeature_Spatial")
+```
+
+Wrap plot PCAs featureplot nfeature
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(pca_plots_feature, ncol = 2)
+```
+
+## Finding dimensionality of dataset
+
+Find ncomponents for downstream dimensionality reduction
+
+### Elbow plot
+
+```{r, warning=FALSE, message=FALSE}
+elbows <- lapply(seurat, elbow)
+```
+
+```{r, fig.width = 8, fig.height = 10}
+wrap_plots(elbows, ncol = 2)
+```
+
+Take number of PCs from visual inspection - better to go higher
+
+Define elbow vector:
+
+```{r, warning=FALSE}
+elbow_vector <- c("1:10", "1:10", "1:10", "1:10", "1:10", "1:10")
+
+names(elbow_vector) <- names(seurat)
+
+print(elbow_vector)
+```
+
+Add PC elbow to object
+
+```{r, warning=FALSE, message=FALSE}
+seurat <- lapply(seurat, addElbow, elbow_vector = elbow_vector)
+```
+
+## UMAP
+
+### Test stability of UMAP params
+n.neighbors should be in the range 5 to 50.
+min.dist sensible values are in the range 0.001 to 0.5.
+```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE}
+seurat_1 <- bplapply(seurat, umap, n.neighbors = 30, min.dist = 0.3, BPPARAM = BPP)
+
+seurat_2 <- bplapply(seurat, umap, n.neighbors = 5, min.dist = 0.25, BPPARAM = BPP)
+
+seurat_3 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.1, BPPARAM = BPP)
+
+seurat_4 <- bplapply(seurat, umap, n.neighbors = 20, min.dist = 0.1, BPPARAM = BPP)
+
+seurat_5 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.001, BPPARAM = BPP)
+```
+
+UMAP n.neighbors = 30, min.dist = 0.3
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+UMAP n.neighbors = 5, min.dist = 0.25
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+UMAP n.neighbors = 10, min.dist = 0.1
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+UMAP n.neighbors = 20, min.dist = 0.1
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+UMAP n.neighbors = 10, min.dist = 0.001
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+Clean up workspace
+```{r}
+rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
+gc()
+```
+
+Run UMAP individual samples for choice of params (standard seems fine)
+
+```{r, warning=FALSE, message=FALSE}
+seurat <- bplapply(seurat, umap, BPPARAM = BPP)
+```
+
+### Plot UMAP
+
+Individual UMAPs
+
+```{r, warning=FALSE, message=FALSE}
+umap_plots <- lapply(seurat, dimplot, reduction = "umap", label = FALSE, group.by = "Group")
+```
+
+Wrap plot UMAP
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(umap_plots, ncol = 2)
+```
+
+Individual UMAP - featureplot ncounts
+
+```{r, warning=FALSE, message=FALSE}
+umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = "nCount_Spatial")
+```
+
+Wrap plot UMAP featureplot ncounts
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(umap_plots_feature, ncol = 2)
+```
+
+Individual UMAP - featureplot nfeatures
+
+```{r, warning=FALSE, message=FALSE}
+umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = "nFeature_Spatial")
+```
+
+Wrap plot UMAP featureplot nfeatures
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(umap_plots_feature, ncol = 2)
+```
+
+## TSNE
+
+### Test stability of TSNE params
+
+perplexity parameter (should not be bigger than 3 * perplexity < nrow(X) - 1)
+NB: Try N^1/2 as rule of thumb
+
+```{r, Explore-Features-TSNE-N1-2, warning=FALSE, message=FALSE}
+seurat_1 <- bplapply(seurat, tsne, perplexity = NULL, BPPARAM = BPP)
+```
+
+```{r, Explore-Features-TSNE, warning=FALSE, message=FALSE}
+seurat_2 <- bplapply(seurat, tsne, perplexity = 5, BPPARAM = BPP)
+
+seurat_3 <- bplapply(seurat, tsne, perplexity = 10, BPPARAM = BPP)
+
+seurat_4 <- bplapply(seurat, tsne, perplexity = 20, BPPARAM = BPP)
+
+seurat_5 <- bplapply(seurat, tsne, perplexity = 100, BPPARAM = BPP)
+```
+
+perplexity = N^1/2
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_1, dimplot, reduction = "tsne", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+perplexity = 5
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+perplexity = 10
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_3, dimplot, reduction = "tsne", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+perplexity = 20
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+perplexity = 100
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat_5, dimplot, reduction = "tsne", label = FALSE, group.by = "Group"), ncol = 2)
+```
+
+Clean up workspace
+```{r}
+rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
+gc()
+```
+
+Run tsne individual samples for choice of params (perplexity = N^1/2)
+
+```{r, warning=FALSE, message=FALSE}
+seurat <- bplapply(seurat, tsne, perplexity = NULL, BPPARAM = BPP)
+```
+
+### Plot TSNE
+
+Individual TSNEs
+
+```{r, warning=FALSE, message=FALSE}
+tsne_plots <- lapply(seurat, dimplot, reduction = "tsne", label = FALSE, group.by = "Group")
+```
+
+Wrap plot TSNE
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(tsne_plots, ncol = 2)
+```
+
+Individual TSNE - featureplot ncounts
+
+```{r, warning=FALSE, message=FALSE}
+tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = "nCount_Spatial")
+```
+
+Wrap plot TSNE featureplot ncounts
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(tsne_plots_feature, ncol = 2)
+```
+
+Individual TSNE - featureplot nfeatures
+
+```{r, warning=FALSE, message=FALSE}
+tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = "nFeature_Spatial")
+```
+
+Wrap plot TSNE featureplot nfeatures
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(tsne_plots_feature, ncol = 2)
+```
+
+# Output
+
+Save experiment object:
+
+```{r}
+saveRDS(seurat, file = "/sbgenomics/output-files/04-reduced-dimensions.rds")
+```  
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```
+
+

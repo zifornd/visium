@@ -38,7 +38,7 @@ Load Bioconductor packages:
 ```{r, message = FALSE, warning = FALSE}
 library(Seurat)
 
-install.packages("hdf5r", repos='http://cran.us.r-project.org')
+# install.packages("hdf5r", repos='http://cran.us.r-project.org')
 
 ```
 

@@ -1,4 +1,9 @@
-data/*/outs/*h5
-data/*/*.jpg
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
 
 /.quarto/
+
+data/*/outs/*h5
+data/*/*.jpg

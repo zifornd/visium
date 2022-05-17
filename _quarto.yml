@@ -34,11 +34,7 @@ format:
     css: styles.css
     highlight: textmate
     df_print: paged
-  # editor_options:
-  #   chunk_output_type: console
 editor: visual
-# author: "Ben Southgate"
-# date: "`r format(Sys.time(), '%d %B, %Y')`
 
 website:
   title: "Visium Spatial Transcriptomics"

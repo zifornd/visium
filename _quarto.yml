@@ -6,7 +6,7 @@ project:
     - about.qmd
     - index.qmd
     - license.qmd
-    - analysis/01-data-loading.html
+    - analysis/01-data-loading.qmd
     - analysis/02-quality-control.html
     - analysis/03-normalisation.html
     - analysis/04-reduced-dimensions.html

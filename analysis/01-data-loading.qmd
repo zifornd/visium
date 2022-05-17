@@ -4,7 +4,7 @@ author: "Ben Southgate"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
     prefix:
-      - "../data/"
+      - "data/"
     files:
       - "Visium_FFPE_Mouse_Brain_filtered_feature_bc_matrix.h5"
     metrics:
@@ -42,7 +42,7 @@ library(Seurat)
 Source user-defined functions:
 
 ```{r}
-source("../scripts/loadInSpatial.R")
+source("scripts/loadInSpatial.R")
 ```
 
 ## Meta data
@@ -86,7 +86,7 @@ lapply(seurat, function(x) {stopifnot(colSums(FetchData(x, vars = params$marker)
 Save out seurat experiment object
 
 ```{r}
-saveRDS(seurat, file = "../output/01-data-loading.rds")
+saveRDS(seurat, file = "output/01-data-loading.rds")
 ```
 
 ## HTML output
@@ -110,7 +110,7 @@ metrics[,2:ncol(metrics)] = as.numeric(unlist(metrics[,2:ncol(metrics)]))
 Save out html output
 
 ```{r}
-write.csv(metrics, file = "../output/metrics.csv", quote = F, row.names = F)
+write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 ```
 
 

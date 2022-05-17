@@ -1,0 +1,150 @@
+---
+title: "Normalisation"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    highlight: textmate
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+  
+## Setup
+
+Set chunk options:
+  
+```{r}
+knitr::opts_chunk$set(echo = TRUE, dev = "png", fig.align = "center")
+```
+
+Set library path:
+  
+```{r}
+.libPaths(new = "/sbgenomics/project-files/library")
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(scater)
+library(scran)
+library(scuttle)
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+```
+
+Source user-defined functions:
+
+```{r}
+source("scripts/normalise.R")
+```
+
+Enable multicore parallel evaluation:
+  
+```{r, message=FALSE}
+library(BiocParallel)
+
+BPP <- MulticoreParam(
+  workers = 6,
+  stop.on.error = TRUE,
+  RNGseed = 0305
+)
+```
+
+## Processing
+
+Read experiment object:
+  
+```{r}
+seurat <- readRDS("/sbgenomics/output-files/02-quality-control.rds")
+```
+
+### Feature selection
+
+#### VST approach
+
+Top 2000 HVGs
+
+```{r, message = FALSE, warning = FALSE, Find-features-2000}
+features_2000 <- bplapply(seurat, findFeatures, nfeatures = 2000, BPPARAM = BPP) 
+```
+
+Feature plot 2000 features
+
+```{r, message = FALSE, warning = FALSE, fig.width = 16, fig.height = 14, warning=FALSE}
+wrap_plots(lapply(features_2000, plotVariableGenes, selection.method = "vst"), ncol = 2)
+```
+
+### Normalisation
+
+Using SCT transform
+
+See https://satijalab.org/seurat/reference/sctransform for more details.
+
+Seurat authors advice each sample to be normalised separately prior to merging
+See https://github.com/satijalab/seurat/discussions/4430 GitHub for more details.
+
+Here we normalise each sample alone and do not merge.
+
+Set min cells to 2 (cannot be lower than 2)  - as key marker is being filtered downstream
+
+```{r, Normalise-SCT-features-2000, message = FALSE, warning=FALSE}
+seurat <- lapply(seurat, normalise, variable.features.n = 2000, min_cells = 2) 
+```
+
+Plot detailed steps of sctransform
+
+Details of sct transform from sctransform::vst vignette
+See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
+
+```{r, message = FALSE, warning=FALSE}
+vst_out <- lapply(seurat, normaliseSctransform) 
+```
+
+Plot model params
+
+```{r, fig.width = 25, fig.height = 15, message = FALSE, warning=FALSE}
+wrap_plots(lapply(vst_out, sctransform::plot_model_pars, show_theta = TRUE))
+```
+
+Plot model for example gene 
+
+```{r, message = FALSE, warning=FALSE, fig.show="hide"}
+modl <- lapply(seurat, plotModelSctransform, features = c("ALB"), vst_outlist = vst_out)
+```
+
+```{r, fig.width = 15, fig.height = 15, message = FALSE, warning=FALSE}
+wrap_plots(modl)
+```
+
+Feature plot as per SCT
+
+```{r, fig.width = 16, fig.height = 14, message = FALSE, warning=FALSE}
+wrap_plots(lapply(seurat, plotVariableGenes, selection.method = "sct"), ncol = 2)
+```
+
+## Output
+
+Save experiment object:
+
+```{r}
+saveRDS(seurat, file = "/sbgenomics/output-files/03-normalisation.rds")
+```  
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

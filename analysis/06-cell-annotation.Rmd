@@ -1,0 +1,506 @@
+---
+title: "Cell annotation"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+    highlight: textmate
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+  
+# Setup
+  
+Set chunk options:
+  
+```{r}
+knitr::opts_chunk$set(echo = TRUE, dev = "png", fig.align = "center")
+```
+
+Set library path:
+  
+```{r}
+.libPaths(new = "/sbgenomics/project-files/library")
+```
+
+Load Bioconductor packages:
+  
+```{r, warning=FALSE, message=FALSE}
+library(scater)
+library(scran)
+library(scuttle)
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, warning=FALSE, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(clustree)
+library(pheatmap)
+library(RColorBrewer)
+```
+
+Source user-defined functions:
+  
+```{r, warning=FALSE, message=FALSE}
+source("scripts/reduceDims.R")
+source("scripts/cluster.R")
+source("scripts/annotate.R")
+```
+
+Enable multicore parallel evaluation:
+  
+```{r}
+library(BiocParallel)
+
+BPP <- MulticoreParam(
+  workers = 6,
+  stop.on.error = TRUE,
+  RNGseed = 0304
+)
+```
+
+# Processing
+
+Read experiment object:
+  
+```{r}
+seurat <- readRDS("/sbgenomics/output-files/05-clustering.rds")
+```
+
+## Highlight marker genes
+
+Maker gene supplied as follows:
+
+```{r}
+marker1 <- "ARG1"
+marker2 <- "ASGR1"
+marker3 <- "KRT7"
+marker4 <- "KRT19"
+```
+
+Hepatocytes: ARG1 and ASGR1 positive
+Cholangiocytes: KRT7 and KRT19 positive
+
+The special hepatocytes that we are interested in is 
+KRT7 high, 
+ARG1 positive (sometimes low), 
+KRT19 negative (or low), 
+we have not tested if they express ASGR1
+
+```{r}
+label1 <- "Hepatocyte_AA"
+label2 <- "Hepatocyte_KA"
+label3 <- "Cholangiocyte"
+label4 <- "Other"
+```
+### Plot expression of markers
+
+#### UMAP
+
+Hepatocytes: ARG1 and ASGR1 positive
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = c(marker1)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = c(marker2)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = c(marker1)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = c(marker2)), ncol = 2)
+```
+
+Cholangiocytes: KRT7 and KRT19 positive
+NB: KRT19 is being filtered by seurat as it is not expressed in any samples
+ - 0 count spots need to be filtered for notmalisation
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = c(marker3)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = c(marker3)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "umap", label = FALSE, feature = c(marker4)), ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, featureplot, reduction = "tsne", label = FALSE, feature = c(marker4)), ncol = 2)
+```
+
+The special hepatocytes that we are interested in is 
+KRT7 high, 
+ARG1 positive (sometimes low)
+
+(see above)
+
+#### Tissue
+
+Hepatocytes: ARG1 and ASGR1 positive
+
+```{r, warning=FALSE, message=FALSE}
+tissue_plots_feature1 <- lapply(seurat, SpatialFeaturePlot, features = c(marker1, marker2), alpha = c(0.1, 1))
+```
+
+```{r, fig.width = 12, fig.height = 15}
+wrap_plots(tissue_plots_feature1, ncol = 2)
+```
+
+Cholangiocytes: KRT7 and KRT19 positive
+NB: KRT19 was previously being filtered by spaceranger due to being on their "high off-target" list of probes
+ - We have now re-added it although it has low expression
+ 
+```{r, warning=FALSE, message=FALSE}
+tissue_plots_feature2 <- lapply(seurat, SpatialFeaturePlot, features = c(marker3,marker4), alpha = c(0.1, 1))
+```
+
+```{r, fig.width = 12, fig.height = 15}
+wrap_plots(tissue_plots_feature2, ncol = 2)
+```
+
+The special hepatocytes that we are interested:
+
+KRT7 high, 
+ARG1 positive (sometimes low)
+
+```{r, warning=FALSE, message=FALSE}
+tissue_plots_feature3 <- lapply(seurat, SpatialFeaturePlot, features = c(marker3, marker1), alpha = c(0.1, 1))
+```
+
+```{r, fig.width = 12, fig.height = 15}
+wrap_plots(tissue_plots_feature3, ncol = 2)
+```
+
+### Plot expression of markers across clusters
+
+#### Label possible clusters based on marker genes
+
+Hepatocytes: ARG1 and ASGR1 positive
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature1 <- lapply(seurat, featurevln, features = c(marker1), group.by = "Cluster")
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(cluster_plots_feature1, ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature12 <- lapply(seurat, featurevln, features = c(marker2), group.by = "Cluster")
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(cluster_plots_feature12, ncol = 2)
+```
+
+Cholangiocytes: KRT7 and KRT19 positive
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature2 <- lapply(seurat, featurevln, features = c(marker3), group.by = "Cluster")
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(cluster_plots_feature2, ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature2 <- lapply(seurat, featurevln, features = c(marker4), group.by = "Cluster")
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(cluster_plots_feature2, ncol = 2)
+```
+
+The special hepatocytes that we are interested in is 
+KRT7 high,  (see above)
+ARG1 positive (see above)
+
+Remind ourselves what the clusters look like on the tissue slide
+
+```{r, warning=FALSE, message=FALSE}
+spatial_dim2 <- lapply(seurat, SpatialDimPlot, label = TRUE, label.size = 3, 
+group.by = "Cluster")
+```
+
+```{r, fig.width = 10, fig.height = 15}
+wrap_plots(spatial_dim2, ncol = 2)
+```
+
+## Annotate based on markers
+
+### Define what level of marker is "Expressed"
+
+#### ARG1
+
+```{r, warning=FALSE, message=FALSE}
+density_plots1 <- lapply(seurat, defineExpressed, features = c(marker1))
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots1, ncol = 2)
+```
+
+Low counts - less stringent threshold 0.5 
+
+```{r, warning=FALSE, message=FALSE}
+density_plots12 <- lapply(seurat, defineExpressed, features = c(marker1), threshold = 0.5)
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots12, ncol = 2)
+```
+
+#### ASGR1
+
+```{r, warning=FALSE, message=FALSE}
+density_plots2 <- lapply(seurat, defineExpressed, features = c(marker2))
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots2, ncol = 2)
+```
+
+Low counts - less stringent threshold 0.5 
+
+```{r, warning=FALSE, message=FALSE}
+density_plots22 <- lapply(seurat, defineExpressed, features = c(marker2), threshold = 0.5)
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots22, ncol = 2)
+```
+
+#### KRT7
+
+```{r, warning=FALSE, message=FALSE}
+density_plots3 <- lapply(seurat, defineExpressed, features = c(marker3))
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots3, ncol = 2)
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+density_plots33 <- lapply(seurat, defineExpressed, features = c(marker3), threshold = 0.5)
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots33, ncol = 2)
+```
+
+#### KRT19
+
+```{r, warning=FALSE, message=FALSE}
+density_plots4 <- lapply(seurat, defineExpressed, features = c(marker4))
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots4, ncol = 2)
+```
+
+
+```{r, warning=FALSE, message=FALSE}
+density_plots44 <- lapply(seurat, defineExpressed, features = c(marker4), threshold = 0.5)
+```
+
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(density_plots44, ncol = 2)
+```
+
+### Annotate based on defined thresholds
+
+Hepatocyte ARG1 positive, ASGR1 positive
+
+```{r}
+seurat <- lapply(seurat, annotate, features = c(marker1, marker2), anno = label1, threshold = 0.5)
+```
+
+Hepatocyte KRT7 high, ARG1 positive and KRT19 low
+
+```{r}
+seurat <- lapply(seurat, annotate_highlow, features_high = c(marker3, marker2), features_low = c(marker4), anno = label2, threshold = 0.5)
+```
+
+Cholangiocyte  KRT7 high and KRT19 positive
+
+```{r}
+seurat <- lapply(seurat, annotate, features = c(marker3, marker4), anno = label3, threshold = 0.5)
+```
+
+Combine annotation
+
+```{r}
+seurat <- lapply(seurat, combineAnno, anno = c(label1, label2, label3))
+```
+
+## Plot spatial feautures with annotation
+
+```{r, warning=FALSE, message=FALSE}
+spatial_hepaa <- lapply(seurat, SpatialDimPlot, label = F, label.size = 2,
+group.by = label1)
+ 
+spatial_hepka <- lapply(seurat, SpatialDimPlot, label = F, label.size = 2,
+group.by = label2)
+
+# seurat$`105546C`$Cholangiocyte <- factor(seurat$`105546C`$Cholangiocyte, levels = c(label3, label4))
+
+# seurat$`105548A`$Cholangiocyte <- factor(seurat$`105548A`$Cholangiocyte, levels = c(label3, label4))
+
+spatial_chol <- lapply(seurat, SpatialDimPlot, label = F, label.size = 2,
+group.by = label3)
+
+spatial_combined <- lapply(seurat, SpatialDimPlot, label = F, label.size = 2,
+group.by = "Annotation")
+
+```
+
+Hepatocyte_AA
+
+```{r, fig.width = 10, fig.height = 15}
+wrap_plots(spatial_hepaa, ncol = 2)
+```
+
+Hepatocyte_KA
+
+```{r, fig.width = 10, fig.height = 15}
+wrap_plots(spatial_hepka, ncol = 2)
+```
+
+Cholangiocyte
+
+```{r, fig.width = 10, fig.height = 15}
+wrap_plots(spatial_chol, ncol = 2)
+```
+
+Combined
+
+```{r, fig.width = 18, fig.height = 15}
+wrap_plots(spatial_combined, ncol = 2)
+```
+
+
+## Plot marker genes across new labels
+
+Hepatocytes: ARG1 and ASGR1 positive
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature1 <- lapply(seurat, featurevln, features = c(marker1), group.by = "Annotation", xlabs = F)
+```
+
+```{r, fig.width = 18, fig.height = 10}
+wrap_plots(cluster_plots_feature1, ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature12 <- lapply(seurat, featurevln, features = c(marker2), group.by = "Annotation", xlabs = F)
+```
+
+```{r, fig.width = 18, fig.height = 10}
+wrap_plots(cluster_plots_feature12, ncol = 2)
+```
+
+Cholangiocytes: KRT7 and KRT19 positive
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature2 <- lapply(seurat, featurevln, features = c(marker3), group.by = "Annotation", xlabs = F)
+```
+
+```{r, fig.width = 18, fig.height = 10}
+wrap_plots(cluster_plots_feature2, ncol = 2)
+```
+
+```{r, warning=FALSE, message=FALSE}
+cluster_plots_feature2 <- lapply(seurat, featurevln, features = c(marker4), group.by = "Annotation", xlabs = F)
+```
+
+```{r, fig.width = 18, fig.height = 10}
+wrap_plots(cluster_plots_feature2, ncol = 2)
+```
+
+
+### UMAP
+
+Hepatocyte_AA
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = F, group.by = label1), ncol = 2)
+```
+
+Hepatocyte_KA
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = F, group.by = label2), ncol = 2)
+```
+
+Cholangiocyte
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = F, group.by = label3), ncol = 2)
+```
+
+Combined
+```{r, fig.width = 15, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = F, group.by = "Annotation"), ncol = 2)
+```
+
+Combined split
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = F, group.by = "Annotation", split.by = "Annotation"), ncol = 2)
+```
+
+### TSNE
+
+Hepatocyte_AA
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "tsne", label = F, group.by = label1), ncol = 2)
+```
+
+Hepatocyte_KA
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "tsne", label = F, group.by = label2), ncol = 2)
+```
+
+Cholangiocyte
+```{r, fig.width = 10, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "tsne", label = F, group.by = label3), ncol = 2)
+```
+
+Combined
+```{r, fig.width = 15, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "tsne", label = F, group.by = "Annotation"), ncol = 2)
+```
+
+Combined split
+```{r, fig.width = 25, fig.height = 10}
+wrap_plots(lapply(seurat, dimplot, reduction = "tsne", label = F, group.by = "Annotation", split.by = "Annotation"), ncol = 2)
+```
+
+
+# Output
+
+Save experiment object:
+
+```{r}
+saveRDS(seurat, file = "/sbgenomics/output-files/06-cell-annotation.rds")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```
+

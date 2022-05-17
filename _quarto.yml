@@ -1,0 +1,100 @@
+project:
+  type: website
+  output-dir: docs
+  execute-dir: project
+  render:
+    - about.qmd
+    - index.qmd
+    - license.qmd
+    - analysis/01-data-loading.html
+    - analysis/02-quality-control.html
+    - analysis/03-normalisation.html
+    - analysis/04-reduced-dimensions.html
+    - analysis/05-clustering.html
+    - analysis/06-cell-annotation.html
+    - analysis/07-merge-samples.html
+    - analysis/08-integrate-samples.html
+    - analysis/09-marker-detection.html
+  execute:
+    message: false
+    warning: false
+
+knitr:
+  opts_chunk: 
+    message: false
+    warning: false
+    dev: "png"
+    echo: true
+    fig.align: "center"
+
+format:
+  html:
+    toc: true
+    theme: cosmo
+    css: styles.css
+    highlight: textmate
+    df_print: paged
+  # editor_options:
+  #   chunk_output_type: console
+editor: visual
+# author: "Ben Southgate"
+# date: "`r format(Sys.time(), '%d %B, %Y')`
+
+website:
+  title: "Visium Spatial Transcriptomics"
+  image: ""
+  favicon: ""
+  twitter-card: true
+  site-url: https://quarto.org
+  repo-url: https://github.com/zifornd/quarto-web
+  page-footer:
+    right:
+      - icon: twitter
+        href: https://twitter.com/zifornd
+        aria-label: Zifo Twitter
+      - icon: github
+        href: https://github.com/zifornd
+        aria-label: Zifo GitHub  
+  navbar:
+    background: light
+    logo: quarto.png
+    collapse-below: lg
+    left:
+      - text: "Overview"
+        href: index.qmd
+      - text: "Analysis"
+        menu:
+          - text: "Data loading"
+            href: analysis/data-loading.qmd
+          - text: "Quality control"
+            href: analysis/quality-control.qmd
+          - text: "Normalization"
+            href: analysis/normalization.qmd
+      - text: "Help"
+        menu:
+          - text: "Report an Issue"
+            icon: "bug"
+          - text: "FAQ"
+            icon: "question-circle"
+    right:
+      - icon: twitter
+        href: https://twitter.com/zifornd
+        aria-label: Zifo Twitter
+      - icon: github
+        href: https://github.com/zifornd
+        aria-label: Zifo GitHub
+
+#bibliography: references.bib
+
+# format:
+#   html:
+#     toc: true
+#     theme: cosmo
+#     css: styles.css
+#     highlight: textmate
+#     df_print: paged
+# author: "Ben Southgate"
+# date: "`r format(Sys.time(), '%d %B, %Y')`"
+# editor: visual
+# message: false
+# warning: false

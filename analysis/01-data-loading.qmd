@@ -1,0 +1,121 @@
+---
+title: "Data loading"
+author: "Ben Southgate"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+params:
+    prefix:
+      - "../data/"
+    files:
+      - "Visium_FFPE_Mouse_Brain_filtered_feature_bc_matrix.h5"
+    metrics:
+      - "Visium_FFPE_Mouse_Brain_metrics_summary.csv"
+    sample:
+      - "Visium_FFPE_Mouse_Brain"
+    image:
+      - "Visium_FFPE_Mouse_Brain_image"
+    slide:
+      - "V11J26-127-B1"
+    group:
+      - "group1"
+    area:
+      - "B1"
+    index:
+      - "SI-TS-B7"
+    marker:
+    - "Foxg1"
+---
+  
+# Setup
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+  
+```{r, message = FALSE, warning = FALSE}
+library(Seurat)
+```
+
+Source user-defined functions:
+
+```{r}
+source("../scripts/loadInSpatial.R")
+```
+
+## Meta data
+
+Test sample metadata - see https://www.10xgenomics.com/resources/datasets/adult-mouse-brain-ffpe-1-standard-1-3-0:
+
+## Reading in 
+
+Load in experiment object with all samples as a list:
+  
+```{r}
+seurat <- lapply(params$sample, function(x, prefix, metadata, saveout, filename) {
+                   loadInSpatial(x, prefix, metadata, saveout, filename)
+                   }, prefix = params$prefix, metadata = params, saveout = F, filename = params$files)
+
+names(seurat) = params$sample
+```
+
+Take only genes with non zero counts across all samples
+
+```{r, eval=T}
+seurat <- lapply(seurat, function(x) {x[rowSums(x) > 0, ]})
+```
+
+Remove "DEPRECATED-" genes
+
+```{r, eval=T}
+seurat <- lapply(seurat, function(x) {x[!grepl("DEPRECATED", rownames(x)), ]})
+```
+
+Test genes of interest still in final expression matrix (remove first sample as will be filtered downstream due to low counts)
+
+```{r, results=F}
+lapply(seurat, function(x) {stopifnot(colSums(FetchData(x, vars = params$marker)) > 0)})
+```
+
+# Output
+
+## RDS Output
+
+Save out seurat experiment object
+
+```{r}
+saveRDS(seurat, file = "../output/01-data-loading.rds")
+```
+
+## HTML output
+
+Load in extra html output
+  
+```{r}
+metrics <- sapply(params$sample, function(x, prefix, filename) {collectMetrics(x, prefix, filename)}, 
+                  prefix = params$prefix, filename = params$metrics)
+
+# Transpose following collection of metrics
+metrics = as.data.frame(t(metrics))
+
+# Make Sample id col character (column 1)
+metrics[,"Sample.ID"] = as.character(metrics[,"Sample.ID"])
+
+# Make all other cols numeric
+metrics[,2:ncol(metrics)] = as.numeric(unlist(metrics[,2:ncol(metrics)]))
+```
+
+Save out html output
+
+```{r}
+write.csv(metrics, file = "../output/metrics.csv", quote = F, row.names = F)
+```
+
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

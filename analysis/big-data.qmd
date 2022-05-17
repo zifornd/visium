@@ -1,0 +1,31 @@
+Restore project dependencies:
+
+```{r}
+renv::restore()
+```
+
+Nearest neighbor detection:
+
+```{r}
+library(BiocNeighbors)
+BNPARAM <- AnnoyParam()
+```
+
+Singular value decomposition:
+
+```{r}
+library(BiocSingular)
+BSPARAM <- RandomParam()
+```
+
+Parallel evaluation:
+
+```{r}
+library(BiocParallel)
+
+# BPP
+BPPARAM <- MulticoreParam(
+    workers = 6,
+    stop.on.error = TRUE,
+    RNGseed = 9999)
+```

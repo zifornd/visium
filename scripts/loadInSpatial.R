@@ -1,5 +1,3 @@
-
-
 ### RScript for loading in Spatial Transcriptomic data
 
 ## Load in Spatial data via Seurat helper functions
@@ -16,7 +14,7 @@ loadInSpatial <- function(samplename, prefix, metadata, saveout = T,
   
   image <- Read10X_Image(image.dir = paste0(samplefolder, path))
   
-  slice <- metadata$Image[metadata$Sample == samplename]
+  slice <- metadata$image[metadata$sample == samplename]
 
   seurat <- Load10X_Spatial(
     data.dir = paste0(samplefolder, "/outs/"),
@@ -33,13 +31,13 @@ loadInSpatial <- function(samplename, prefix, metadata, saveout = T,
   # save out
   if(saveout){
     
-    saveRDS(seurat, file = paste0("/sbgenomics/output-files/01-data-loading-",
+    saveRDS(seurat, file = paste0("../output/01-data-loading-",
                                   samplename ,".rds"))
     
-    print(paste0("Saved out as: ", "/sbgenomics/output-files/01-data-loading-",
+    print(paste0("Saved out as: ", "../output/01-data-loading-",
                  samplename ,".rds"))
   
-  }else{
+  } else {
     
     return(seurat)
     
@@ -55,16 +53,16 @@ addMeta <- function(seurat, metadata, samplename){
   
   seurat@meta.data$Sample = rep(samplename, nrow(seurat@meta.data))
   
-  seurat@meta.data$Image = rep(metadata$Image[metadata$Sample == samplename], 
+  seurat@meta.data$Image = rep(metadata$image[metadata$sample == samplename], 
                                nrow(seurat@meta.data))
   
   seurat@meta.data$Slide = as.character(sapply(seurat@meta.data$Image, 
                                                function(x) {unlist(strsplit(x, "_"))[[1]]}))
   
-  seurat@meta.data$Group = rep(metadata$Group[metadata$Sample == samplename], 
+  seurat@meta.data$Group = rep(metadata$group[metadata$sample == samplename], 
                                nrow(seurat@meta.data))
   
-  seurat@meta.data$Area = rep(metadata$Area[metadata$Sample == samplename], 
+  seurat@meta.data$Area = rep(metadata$area[metadata$sample == samplename], 
                               nrow(seurat@meta.data))
   
   return(seurat)
@@ -86,7 +84,6 @@ collectMetrics <- function(samplename, prefix,
   metrics <- read.csv(datadir)
   
   # Rename last column to original 
-  
   colnames(metrics)[colnames(metrics) == 'Number.of.Panel.Genes....10.UMIs'] <- 'Number.of.Panel.Genes.Greater.Or.Equal.10.UMIs'
   
   return(metrics)
@@ -98,13 +95,14 @@ collectMetrics <- function(samplename, prefix,
 collectQC <- function(seuratList){
   
   meta <- lapply(seuratList, function(seurat){
+
     meta <- seurat@meta.data
-    #rownames(meta) <- paste0(meta$Sample, "_", rownames(meta))
-    #print(class(meta))
+
     meta
   })
   
   meta <- do.call("rbind.data.frame", meta)
+
   return(meta)
 }
 

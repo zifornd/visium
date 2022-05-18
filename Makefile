@@ -1,9 +1,10 @@
 WORKSPACE = $(realpath analysis)
 OUTPUT = $(realpath output)
 
-all: $(OUTPUT)/01-data-loading.html
-
-#  $(OUTPUT)/02-quality-control.html \
+all: index.html \
+about.html \
+$(OUTPUT)/01-data-loading.html \
+$(OUTPUT)/02-quality-control.html
 #  $(OUTPUT)/03-normalisation.html \
 #  $(OUTPUT)/04-reduced-dimensions.html \
 #  $(OUTPUT)/05-clustering.html \
@@ -12,9 +13,18 @@ all: $(OUTPUT)/01-data-loading.html
 #  $(OUTPUT)/08-integrate-samples.html \
 #  $(OUTPUT)/09-marker-detection.html \
 
+index.html: index.qmd
+	quarto render $<
+
+about.html: about.qmd
+	quarto render $<
+
 $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
 	quarto render $<
 
+$(OUTPUT)/02-quality-control.html: $(WORKSPACE)/02-quality-control.qmd $(OUTPUT)/01-data-loading.html
+	quarto render $<
+	 
 # $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
 # 	Rscript -e 'quarto::quarto_render("$<", output_file = "$@")'
 

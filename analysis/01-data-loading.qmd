@@ -1,7 +1,5 @@
 ---
 title: "Data loading"
-author: "Ben Southgate"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
 params:
     prefix:
       - "data/"
@@ -73,7 +71,7 @@ Remove "DEPRECATED-" genes
 seurat <- lapply(seurat, function(x) {x[!grepl("DEPRECATED", rownames(x)), ]})
 ```
 
-Test genes of interest still in final expression matrix (remove first sample as will be filtered downstream due to low counts)
+Test genes of interest still in final expression matrix
 
 ```{r, results=F}
 lapply(seurat, function(x) {stopifnot(colSums(FetchData(x, vars = params$marker)) > 0)})

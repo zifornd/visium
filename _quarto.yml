@@ -5,16 +5,14 @@ project:
   render:
     - about.qmd
     - index.qmd
-    - license.qmd
     - analysis/01-data-loading.qmd
-    - analysis/02-quality-control.html
+    - analysis/02-quality-control.qmd
     - analysis/03-normalisation.html
     - analysis/04-reduced-dimensions.html
     - analysis/05-clustering.html
     - analysis/06-cell-annotation.html
     - analysis/07-merge-samples.html
     - analysis/08-integrate-samples.html
-    - analysis/09-marker-detection.html
   execute:
     message: false
     warning: false
@@ -57,15 +55,15 @@ website:
     collapse-below: lg
     left:
       - text: "Overview"
-        href: index.qmd
+        href: index.html
       - text: "Analysis"
         menu:
           - text: "Data loading"
-            href: analysis/data-loading.qmd
+            href: analysis/01-data-loading.html
           - text: "Quality control"
-            href: analysis/quality-control.qmd
+            href: analysis/02-quality-control.html
           - text: "Normalization"
-            href: analysis/normalization.qmd
+            href: analysis/03-normalization.html
       - text: "Help"
         menu:
           - text: "Report an Issue"
@@ -89,8 +87,8 @@ website:
 #     css: styles.css
 #     highlight: textmate
 #     df_print: paged
-# author: "Ben Southgate"
-# date: "`r format(Sys.time(), '%d %B, %Y')`"
+author: "Ben Southgate"
+date: now
 # editor: visual
 # message: false
 # warning: false

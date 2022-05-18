@@ -56,8 +56,10 @@ addMeta <- function(seurat, metadata, samplename){
   seurat@meta.data$Image = rep(metadata$image[metadata$sample == samplename], 
                                nrow(seurat@meta.data))
   
-  seurat@meta.data$Slide = as.character(sapply(seurat@meta.data$Image, 
-                                               function(x) {unlist(strsplit(x, "_"))[[1]]}))
+  # seurat@meta.data$Slide = as.character(sapply(seurat@meta.data$Image, 
+  #                                              function(x) {unlist(strsplit(x, "_"))[[1]]}))
+  seurat@meta.data$Slide = rep(metadata$slide[metadata$sample == samplename], 
+                               nrow(seurat@meta.data))
   
   seurat@meta.data$Group = rep(metadata$group[metadata$sample == samplename], 
                                nrow(seurat@meta.data))

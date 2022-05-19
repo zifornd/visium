@@ -43,21 +43,25 @@ Source user-defined functions:
 source("scripts/loadInSpatial.R")
 ```
 
-## Meta data
-
-Test sample metadata - see https://www.10xgenomics.com/resources/datasets/adult-mouse-brain-ffpe-1-standard-1-3-0:
+# Processing
 
 ## Reading in 
 
 Load in experiment object with all samples as a list:
-  
+
+For details on test data set please see https://www.10xgenomics.com/resources/datasets/adult-mouse-brain-ffpe-1-standard-1-3-0:
+
 ```{r}
 seurat <- lapply(params$sample, function(x, prefix, metadata, saveout, filename) {
+
                    loadInSpatial(x, prefix, metadata, saveout, filename)
+
                    }, prefix = params$prefix, metadata = params, saveout = F, filename = params$files)
 
 names(seurat) = params$sample
 ```
+
+## Filtering
 
 Take only genes with non zero counts across all samples
 
@@ -77,24 +81,18 @@ Test genes of interest still in final expression matrix
 lapply(seurat, function(x) {stopifnot(colSums(FetchData(x, vars = params$marker)) > 0)})
 ```
 
-# Output
-
-## RDS Output
-
-Save out seurat experiment object
-
-```{r}
-saveRDS(seurat, file = "output/01-data-loading.rds")
-```
-
-## HTML output
+## Reading in metrics
 
 Load in extra html output
   
 ```{r}
 metrics <- sapply(params$sample, function(x, prefix, filename) {collectMetrics(x, prefix, filename)}, 
                   prefix = params$prefix, filename = params$metrics)
+```
 
+Ready df
+
+```{r}
 # Transpose following collection of metrics
 metrics = as.data.frame(t(metrics))
 
@@ -105,12 +103,23 @@ metrics[,"Sample.ID"] = as.character(metrics[,"Sample.ID"])
 metrics[,2:ncol(metrics)] = as.numeric(unlist(metrics[,2:ncol(metrics)]))
 ```
 
-Save out html output
+# Output
+
+## RDS Output
+
+Save out seurat experiment object
+
+```{r}
+saveRDS(seurat, file = "output/01-data-loading.rds")
+```
+
+## Metrics output
+
+Save out metrics output
 
 ```{r}
 write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 ```
-
 
 Print session information:
   

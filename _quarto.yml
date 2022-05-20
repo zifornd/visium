@@ -7,9 +7,9 @@ project:
     - index.qmd
     - analysis/01-data-loading.qmd
     - analysis/02-quality-control.qmd
-    - analysis/03-normalisation.html
-    - analysis/04-reduced-dimensions.html
-    - analysis/05-clustering.html
+    - analysis/03-normalisation.qmd
+    - analysis/04-reduced-dimensions.qmd
+    - analysis/05-clustering.qmd
     - analysis/06-cell-annotation.html
     - analysis/07-merge-samples.html
     - analysis/08-integrate-samples.html
@@ -62,8 +62,12 @@ website:
             href: analysis/01-data-loading.html
           - text: "Quality control"
             href: analysis/02-quality-control.html
-          - text: "Normalization"
-            href: analysis/03-normalization.html
+          - text: "Normalisation"
+            href: analysis/03-normalisation.html
+          - text: "Reduced Dimensions"
+            href: analysis/04-reduced-dimensions.html
+          - text: "Clustering"
+            href: analysis/05-clustering.html
       - text: "Help"
         menu:
           - text: "Report an Issue"

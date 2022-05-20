@@ -1,29 +1,25 @@
-Restore project dependencies:
 
-```{r}
-renv::restore()
-```
+```{r, echo=FALSE}
+# Nearest neighbor detection:
 
-Nearest neighbor detection:
-
-```{r}
 library(BiocNeighbors)
+
 BNPARAM <- AnnoyParam()
 ```
 
-Singular value decomposition:
+```{r, echo=FALSE}
+# Singular value decomposition:
 
-```{r}
 library(BiocSingular)
+
 BSPARAM <- RandomParam()
 ```
 
-Parallel evaluation:
-
 ```{r}
+# Parallel evaluation:
+
 library(BiocParallel)
 
-# BPP
 BPPARAM <- MulticoreParam(
     workers = 6,
     stop.on.error = TRUE,

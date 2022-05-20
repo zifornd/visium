@@ -1,0 +1,132 @@
+---
+title: "Normalisation"
+params:
+  nfeatures:
+    - 2000
+  min_cells:
+    - 2
+  example:
+    - "Foxj1"
+---
+  
+## Setup
+
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+```
+
+Source user-defined functions:
+
+```{r}
+source("scripts/normalise.R")
+```
+
+## Processing
+
+Read experiment object:
+  
+```{r}
+seurat <- readRDS("output/02-quality-control.rds")
+```
+
+### Feature selection
+
+#### VST approach
+
+Top n HVGs
+
+```{r, message = FALSE, warning = FALSE, Find-features-n}
+features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures, BPPARAM = BPPARAM) 
+```
+
+Feature plot n features
+
+```{r, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 5, warning=FALSE}
+wrap_plots(lapply(features_n, plotVariableGenes, selection.method = "vst"), ncol = 2)
+```
+
+### Normalisation
+
+Using SCT transform
+
+See https://satijalab.org/seurat/reference/sctransform for more details.
+
+Seurat authors advice each sample to be normalised separately prior to merging
+See https://github.com/satijalab/seurat/discussions/4430 GitHub for more details.
+
+Here we normalise each sample alone and do not merge.
+
+Set min cells as per params
+
+```{r, Normalise-SCT-features-n, message = FALSE, warning=FALSE}
+seurat <- lapply(seurat, normalise, variable.features.n = params$nfeatures, min_cells = params$min_cells) 
+```
+
+Plot detailed steps of sctransform
+
+Details of sct transform from sctransform::vst vignette
+See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
+
+```{r, message = FALSE, warning=FALSE}
+vst_out <- lapply(seurat, normaliseSctransform) 
+```
+
+Plot model params
+
+```{r, fig.width = 10, fig.height = 5, message = FALSE, warning=FALSE}
+wrap_plots(lapply(vst_out, sctransform::plot_model_pars, show_theta = TRUE))
+```
+
+Plot model for example gene 
+
+```{r, message = TRUE, warning=FALSE, fig.show="hide"}
+print(params$example)
+modl <- lapply(seurat, plotModelSctransform, features = c(params$example), vst_outlist = vst_out)
+```
+
+```{r, fig.width = 5, fig.height = 10, message = FALSE, warning=FALSE}
+wrap_plots(modl)
+```
+
+Feature plot as per SCT
+
+```{r, fig.width = 10, fig.height = 5, message = FALSE, warning=FALSE}
+wrap_plots(lapply(seurat, plotVariableGenes, selection.method = "sct"), ncol = 2)
+```
+
+## Output
+
+Save experiment object:
+
+```{r}
+saveRDS(seurat, file = "output/03-normalisation.rds")
+```  
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

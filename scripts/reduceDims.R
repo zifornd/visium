@@ -102,12 +102,17 @@ dimplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
   
   if(!is.null(groups)){
+
     cols <- cols
+
     names(cols) <- groups  
+
   } 
   
   if(is.null(title)){
+
     title <- unique(seurat$Sample)
+
   }
   
   seuratdim <- DimPlot(seurat, reduction = reduction, 
@@ -127,7 +132,9 @@ featureplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
   
   if(is.null(title)){
+
     title <- unique(seurat$Sample)
+
   }
   
   seuratfeature <- FeaturePlot(seurat, reduction = reduction, 
@@ -147,9 +154,13 @@ featurevln <- function(seurat, features = "nCount_Spatial", slot = NULL, log = T
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
   
   if(is.null(title)){
+
     title <- paste0(unique(seurat$Sample), " ", features)
+
   } else {
+
     title <- paste0(title, " ", features)
+
   }
   
   if (is.null(slot)){
@@ -181,7 +192,9 @@ elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5, vline2 = 10
                   title = NULL){
   
   if(is.null(title)){
+
     title <- unique(seurat$Sample)
+    
   }
   
   

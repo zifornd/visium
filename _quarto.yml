@@ -10,6 +10,8 @@ project:
     - analysis/03-normalisation.qmd
     - analysis/04-reduced-dimensions.qmd
     - analysis/05-clustering.qmd
+    - analysis/06-merge-samples.qmd
+    - analysis/07-integrate-samples.qmd
     - analysis/06-cell-annotation.html
     - analysis/07-merge-samples.html
     - analysis/08-integrate-samples.html
@@ -32,6 +34,7 @@ format:
     css: styles.css
     highlight: textmate
     df_print: paged
+    code-fold: show
 editor: visual
 
 website:
@@ -68,6 +71,10 @@ website:
             href: analysis/04-reduced-dimensions.html
           - text: "Clustering"
             href: analysis/05-clustering.html
+          - text: "Merge-samples"
+            href: analysis/06-merge-samples.html
+          - text: "Integrate-samples"
+            href: analysis/07-integrate-samples.html
       - text: "Help"
         menu:
           - text: "Report an Issue"

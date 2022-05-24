@@ -3,11 +3,14 @@ OUTPUT = $(realpath output)
 
 all: index.html \
 about.html \
-$(OUTPUT)/01-data-loading.html \
-$(OUTPUT)/02-quality-control.html \
-$(OUTPUT)/03-normalisation.html \
-$(OUTPUT)/04-reduced-dimensions.html \
 $(OUTPUT)/05-clustering.html \
+$(OUTPUT)/06-merge-samples.html \
+$(OUTPUT)/07-integrate-samples.html
+# $(OUTPUT)/01-data-loading.html \
+# $(OUTPUT)/02-quality-control.html \
+# $(OUTPUT)/03-normalisation.html \
+# $(OUTPUT)/04-reduced-dimensions.html
+
 #  $(OUTPUT)/06-cell-annotation.html \
 #  $(OUTPUT)/07-merge-samples.html \
 #  $(OUTPUT)/08-integrate-samples.html \
@@ -19,23 +22,32 @@ index.html: index.qmd
 about.html: about.qmd
 	quarto render $<
 
-$(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+$(OUTPUT)/05-clustering.html: $(WORKSPACE)/05-clustering.qmd
 	quarto render $<
 
-$(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+$(OUTPUT)/06-merge-samples.html: $(WORKSPACE)/06-merge-samples.qmd $(OUTPUT)/05-clustering.html
 	quarto render $<
 
-$(OUTPUT)/02-quality-control.html: $(WORKSPACE)/02-quality-control.qmd $(OUTPUT)/01-data-loading.html
+$(OUTPUT)/07-integrate-samples.html: $(WORKSPACE)/07-integrate-samples.qmd $(OUTPUT)/06-merge-samples.html
 	quarto render $<
 
-$(OUTPUT)/03-normalisation.html: $(WORKSPACE)/03-normalisation.qmd $(OUTPUT)/02-quality-control.html
-	quarto render $<
+# $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+# 	quarto render $<
 
-$(OUTPUT)/04-reduced-dimensions.html: $(WORKSPACE)/04-reduced-dimensions.qmd $(OUTPUT)/03-normalisation.html
-	quarto render $<
+# $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+# 	quarto render $<
 
-$(OUTPUT)/05-clustering.html: $(WORKSPACE)/05-clustering.qmd $(OUTPUT)/04-reduced-dimensions.html
-	quarto render $<
+# $(OUTPUT)/02-quality-control.html: $(WORKSPACE)/02-quality-control.qmd $(OUTPUT)/01-data-loading.html
+# 	quarto render $<
+
+# $(OUTPUT)/03-normalisation.html: $(WORKSPACE)/03-normalisation.qmd $(OUTPUT)/02-quality-control.html
+# 	quarto render $<
+
+# $(OUTPUT)/04-reduced-dimensions.html: $(WORKSPACE)/04-reduced-dimensions.qmd $(OUTPUT)/03-normalisation.html
+# 	quarto render $<
+
+# $(OUTPUT)/05-clustering.html: $(WORKSPACE)/05-clustering.qmd $(OUTPUT)/04-reduced-dimensions.html
+# 	quarto render $<
 
 # $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
 # 	Rscript -e 'quarto::quarto_render("$<", output_file = "$@")'

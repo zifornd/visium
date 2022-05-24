@@ -56,6 +56,16 @@ snnCluster <- function(seurat, k.param = NULL, resolution = NULL, clusters = "se
   
 }
 
+plotSpatialCluster <- function(seurat, group, label = TRUE, label.size = 3){
+
+  Idents(seurat) <- group
+
+  sdimplot <- SpatialDimPlot(seurat, label = TRUE, label.size = 3)
+
+  return(sdimplot)
+}
+
+
 # addClusAnno <- function(seurat, prefix = "seurat_clusters", new = "res.0.6"){
 #   
 #   seurat[[new]] <- seurat[[prefix]]

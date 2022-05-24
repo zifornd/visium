@@ -113,12 +113,19 @@ collectQC <- function(seuratList){
 
 seuratMerge <- function(seuratList, project = "SeuratProject"){
   
-  seurat <- merge(seuratList[[1]], y = seuratList[2:length(seuratList)], 
-                  add.cell.ids = names(seuratList), project = project,
-                  merge.data = TRUE)
-  
-  VariableFeatures(seurat) <- unique(unlist(lapply(seuratList, VariableFeatures)))
-  
+  if(length(seuratList) > 1) {
+
+    seurat <- merge(seuratList[[1]], y = seuratList[2:length(seuratList)], 
+                    add.cell.ids = names(seuratList), project = project,
+                    merge.data = TRUE)
+    
+    VariableFeatures(seurat) <- unique(unlist(lapply(seuratList, VariableFeatures)))
+
+  } else {
+
+    seurat <- seuratList[[1]]
+
+  }
   
   return(seurat)
 }
@@ -127,23 +134,30 @@ seuratMerge <- function(seuratList, project = "SeuratProject"){
 
 seuratIntegrate <- function(seuratList, nfeatures = 2000, normalization.method = "SCT"){
   
+  if(length(seuratList) > 1) {
+
+    features <- SelectIntegrationFeatures(object.list = seuratList, nfeatures = nfeatures)
+    
+    seuratList <- PrepSCTIntegration(object.list = seuratList, anchor.features = features)
+    
+    anchors <- FindIntegrationAnchors(object.list = seuratList, normalization.method = normalization.method,
+                                            anchor.features = features)
+    
+    combined.sct <- IntegrateData(anchorset = anchors, normalization.method = normalization.method)
   
-  features <- SelectIntegrationFeatures(object.list = seuratList, nfeatures = nfeatures)
-  
-  seuratList <- PrepSCTIntegration(object.list = seuratList, anchor.features = features)
-  
-  anchors <- FindIntegrationAnchors(object.list = seuratList, normalization.method = normalization.method,
-                                           anchor.features = features)
-  
-  combined.sct <- IntegrateData(anchorset = anchors, normalization.method = normalization.method)
-  
-  # Reset variable features from individual ones...not sure if this is correct or not
-  # But this is what we were doing for the simple merge above
-  # Other option is to use the features variable as specified above ^
-  # VariableFeatures(combined.sct) <- unique(unlist(lapply(seuratList, VariableFeatures)))
-  
-  # VariableFeatures(combined.sct) <- features
-  
+    # Reset variable features from individual ones...not sure if this is correct or not
+    # But this is what we were doing for the simple merge above
+    # Other option is to use the features variable as specified above ^
+    # VariableFeatures(combined.sct) <- unique(unlist(lapply(seuratList, VariableFeatures)))
+    
+    # VariableFeatures(combined.sct) <- features
+
+  } else {
+
+    combined.sct <- seuratList[[1]]
+
+  }
+
   return(combined.sct)
   
 }

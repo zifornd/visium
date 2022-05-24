@@ -1,6 +1,7 @@
 ---
 title: "Clustering"
 params:
+  cluster: "res.0.3"
   plot_width:
     - 8
   plot_height:
@@ -219,12 +220,13 @@ wrap_plots(silhouette_plots_5, ncol = 2)
 
 #### Res 0.2 and 0.3
 
-```{r, warning=FALSE, message=FALSE}
-spatial_dim1 <- lapply(seurat, SpatialDimPlot, label = TRUE, label.size = 3, 
-group.by = "res.0.2")
+SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason.
+Can get around this by setting identity of object prior to plotting.
+See plotSpatialCluster for more details.
 
-spatial_dim2 <- lapply(seurat, SpatialDimPlot, label = TRUE, label.size = 3, 
-group.by = "res.0.3")
+```{r}
+spatial_dim1 <- lapply(seurat, plotSpatialCluster, group = "res.0.2")
+spatial_dim2 <- lapply(seurat, plotSpatialCluster, group = "res.0.3")
 ```
 
 res.0.2
@@ -239,7 +241,7 @@ wrap_plots(spatial_dim2, ncol = 2)
 ## Apply chosen cluster labels
 
 ```{r}
-seurat <- lapply(seurat, addLabel, chosenCluster = "res.0.3")
+seurat <- lapply(seurat, addLabel, chosenCluster = params$cluster)
 ```
 
 ### UMAP

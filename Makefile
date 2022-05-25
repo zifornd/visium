@@ -2,19 +2,15 @@ WORKSPACE = $(realpath analysis)
 OUTPUT = $(realpath output)
 
 all: index.html \
-about.html \
-$(OUTPUT)/01-data-loading.html \
-$(OUTPUT)/02-quality-control.html \
-$(OUTPUT)/03-normalisation.html \
-$(OUTPUT)/04-reduced-dimensions.html \
-$(OUTPUT)/05-clustering.html \
-$(OUTPUT)/06-merge-samples.html \
-$(OUTPUT)/07-integrate-samples.html
-
-#  $(OUTPUT)/06-cell-annotation.html \
-#  $(OUTPUT)/07-merge-samples.html \
-#  $(OUTPUT)/08-integrate-samples.html \
-#  $(OUTPUT)/09-marker-detection.html \
+     about.html \
+     $(OUTPUT)/01-data-loading.html \
+     $(OUTPUT)/02-quality-control.html \
+     $(OUTPUT)/03-normalisation.html \
+     $(OUTPUT)/04-reduced-dimensions.html \
+     $(OUTPUT)/05-clustering.html \
+     $(OUTPUT)/06-merge-samples.html \
+     $(OUTPUT)/07-integrate-samples.html \
+     $(OUTPUT)/08-marker-detection.html
 
 index.html: index.qmd
 	quarto render $<
@@ -43,6 +39,17 @@ $(OUTPUT)/06-merge-samples.html: $(WORKSPACE)/06-merge-samples.qmd $(OUTPUT)/05-
 $(OUTPUT)/07-integrate-samples.html: $(WORKSPACE)/07-integrate-samples.qmd $(OUTPUT)/06-merge-samples.html
 	quarto render $<
 
+$(OUTPUT)/08-marker-detection.html: $(WORKSPACE)/08-marker-detection.qmd $(OUTPUT)/07-integrate-samples.html
+	quarto render $<
+
+# $(OUTPUT)/06-merge-samples.html: $(WORKSPACE)/06-merge-samples.qmd
+# 	quarto render $<
+
+# $(OUTPUT)/07-integrate-samples.html: $(WORKSPACE)/07-integrate-samples.qmd
+# 	quarto render $<
+
+# $(OUTPUT)/08-marker-detection.html: $(WORKSPACE)/08-marker-detection.qmd
+# 	quarto render $<
 
 # $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
 # 	Rscript -e 'quarto::quarto_render("$<", output_file = "$@")'

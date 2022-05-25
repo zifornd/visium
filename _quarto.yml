@@ -12,9 +12,7 @@ project:
     - analysis/05-clustering.qmd
     - analysis/06-merge-samples.qmd
     - analysis/07-integrate-samples.qmd
-    - analysis/06-cell-annotation.html
-    - analysis/07-merge-samples.html
-    - analysis/08-integrate-samples.html
+    - analysis/08-marker-detection.qmd
   execute:
     message: false
     warning: false
@@ -75,6 +73,8 @@ website:
             href: analysis/06-merge-samples.html
           - text: "Integrate-samples"
             href: analysis/07-integrate-samples.html
+          - text: "Marker-detection"
+            href: analysis/08-marker-detection.html
       - text: "Help"
         menu:
           - text: "Report an Issue"
@@ -90,16 +90,5 @@ website:
         aria-label: Zifo GitHub
 
 #bibliography: references.bib
-
-# format:
-#   html:
-#     toc: true
-#     theme: cosmo
-#     css: styles.css
-#     highlight: textmate
-#     df_print: paged
 author: "Ben Southgate"
 date: now
-# editor: visual
-# message: false
-# warning: false

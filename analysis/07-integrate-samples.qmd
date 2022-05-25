@@ -122,7 +122,7 @@ seurat$Elbow <- rep(elbow_vector, length(seurat$Sample))
 n.neighbors should be in the range 5 to 50.
 min.dist sensible values are in the range 0.001 to 0.5.
 
-```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE}
+```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE, results='hide'}
 seurat_1 <- umap(seurat, n.neighbors = 30, min.dist = 0.3)
 seurat_2 <- umap(seurat, n.neighbors = 5, min.dist = 0.25)
 seurat_3 <- umap(seurat, n.neighbors = 10, min.dist = 0.1)
@@ -166,7 +166,7 @@ gc()
 Run UMAP individual samples for choice of params (standard seems fine)
 UMAP n.neighbors = 30, min.dist = 0.3
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat <- umap(seurat)
 ```
 
@@ -179,7 +179,7 @@ NB: Try N^1/2 as rule of thumb
 
 perplexity = N^1/2
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat <- tsne(seurat)
 ```
 
@@ -217,7 +217,7 @@ featureplot(seurat, reduction = "tsne", label = FALSE, feature = "nFeature_Spati
 
 ### SNN
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat_1 <- snnCluster(seurat, k.param = 5, resolution = 0.1)
 seurat_2 <- snnCluster(seurat, k.param = 10, resolution = 0.3)
 seurat_3 <- snnCluster(seurat, k.param = 15, resolution = 0.5)
@@ -256,7 +256,7 @@ gc()
 
 #### Keeping k stable (saving into seurat object for clustree)
 
-```{r, warning=FALSE, message=FALSE}
+```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.1)
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.2)
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.3)
@@ -379,7 +379,7 @@ if(length(seuratList) > 1){
 Save experiment object:
   
 ```{r}
-saveRDS(seurat, file = "output/08-integrate-samples.rds")
+saveRDS(seurat, file = "output/07-integrate-samples.rds")
 ```
 
 Print session information:

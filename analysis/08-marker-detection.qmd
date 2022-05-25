@@ -1,0 +1,183 @@
+---
+title: "Marker gene detection"
+params:
+  seurat:
+    - "06-merge-samples.rds"
+  regress:
+    - FALSE
+  min.pct:
+    - 0.5
+  logfc.threshold:
+    - 0.25
+  only.pos:
+    - TRUE
+  pval.adj.thres:
+    - 0.1
+  plot_width:
+    - 5
+  plot_height:
+    - 7
+---
+  
+# Setup
+  
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(clustree)
+library(RColorBrewer)
+library(pheatmap)
+library(DT)
+```
+
+Source user-defined functions:
+  
+```{r}
+source("scripts/parseCloupe.R")
+source("scripts/plotpHeatmap.R")
+source("scripts/reduceDims.R")
+source("scripts/findMarkers.R")
+```
+
+Read experiment data:
+  
+```{r}
+seurat <- readRDS(paste0("output/", params$seurat))
+```
+
+Setup colour palette:
+  
+```{r}
+col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+```
+
+
+# Processing
+
+## PrepSCTFindmarkers
+
+Prepare "data" slot of SCT assay for differential expression and downstream visualisation
+Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+
+```{r, warning=FALSE, message=FALSE}
+
+if(class(seurat) == "Seurat"){ 
+
+  seuratList <- list(seurat)
+
+  names(seuratList) <- unique(seurat@meta.data$Sample)
+
+}
+
+seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
+```
+
+## ScaleData 
+
+Scale and center data and add ScaleData to seuratprep for heatmap visualisation
+
+```{r, warning=FALSE, message=FALSE}
+seuratprep <- lapply(seuratprep, scaleData, params = params)
+```
+
+## Markers Cluster
+
+Find candidate marker genes between clusters:
+  
+```{r, warning=FALSE, message=FALSE}
+res <- lapply(seuratprep, findAllMarkers, params = params)
+```
+
+### Write csv to file
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), "-FindMarkersClusters.csv"))})
+```
+
+### Interactive results 
+
+```{r}
+resbind <- bind_rows(res)
+DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+### Define genes interest
+
+Get topgenes from each cluster per seurat object and results table
+
+```{r}
+topgenes <- lapply(seuratprep, topFeatClustList, res = res, head_num = 5)
+``` 
+
+Plot heatmap of top markers
+
+### DoHeatmap
+
+```{r}
+doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = FALSE)
+```
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+wrap_plots(doheatmaps)
+```
+
+With legend
+
+```{r}
+doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = TRUE)
+```
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+wrap_plots(doheatmapslegend)
+```
+
+### pheatmap 
+
+```{r, fig.show='hide'}
+pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "pheatmap", head_num = 5)
+```
+
+```{r, fig.width = (params$plot_width + 5), fig.height = params$plot_height}
+wrap_plots(pheatmaps)
+```
+
+# Output
+
+Save experiment object:
+  
+```{r}
+saveRDS(seuratprep, file = "output/09-marker-detection.rds")
+```
+
+```{r}
+saveRDS(res, file = "output/09-marker-detection-res.rds")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

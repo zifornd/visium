@@ -32,7 +32,6 @@ params:
       - "SI-TS-B7"
     marker:
     - "Foxg1"
-
 ---
   
 # Setup

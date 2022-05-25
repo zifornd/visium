@@ -1,0 +1,122 @@
+---
+title: "FEA annotation"
+params:
+  res:
+    - "08-marker-detection-res.rds"
+  species:
+    - "Homo Sapiens"
+  sample:
+    - TRUE
+  group:
+    - "Cluster"
+  pval.adj.thres:
+    - 0.1
+  only.pos:
+    - TRUE
+  pval.adj.thres:
+    - 0.1
+  plot_width:
+    - 5
+  plot_height:
+    - 7
+---
+  
+# Setup
+  
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(Seurat)
+library(limma)
+library(AnnotationDbi)
+library(S4Vectors)
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(msigdbr)
+
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(clustree)
+library(RColorBrewer)
+library(pheatmap)
+library(DT)
+```
+
+Source user-defined functions:
+  
+```{r}
+source("scripts/parseCloupe.R")
+source("scripts/plotpHeatmap.R")
+source("scripts/reduceDims.R")
+source("scripts/findMarkers.R")
+source("scripts/annotate.R")
+```
+
+Read experiment data:
+  
+```{r}
+res <- readRDS(paste0("output/", params$res))
+```
+
+
+```{r}
+cells_genesets = msigdbr(species = params$species, category = "C8")
+hallmarks_genesets = msigdbr(species = params$species, category = "H")
+```
+
+```{r}
+cells_genesets_t2g = cells_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
+hallmarks_genesets_t2g = hallmarks_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
+```
+
+# Prepare results table
+
+Rank by lfc
+
+Output named vector ranked by lfc
+
+
+Perform hypergeometric Samplewise and per param$group
+```{r}
+enricher(gene = gene_ids_vector, TERM2GENE = cells_genesets_t2g, ...)
+enricher(gene = gene_ids_vector, TERM2GENE = hallmarks_genesets_t2g, ...)
+```
+
+Perform GSEA Samplewise and per param$group
+```{r}
+GSEA(gene = gene_ids_vector, TERM2GENE = cells_genesets_t2g)
+GSEA(gene = gene_ids_vector, TERM2GENE = hallmarks_genesets_t2g)
+```
+
+
+```{r}
+org <- OrgDb(params$species)
+
+key <- Reduce(intersect, lapply(res, rownames))
+    
+ann <- mapIds(org, keys = key, column = "ENTREZID", keytype = "ENSEMBL")
+
+sig <- lapply(res, subset, FDR < params$FDR)
+
+ids <- lapply(sig, function(x) ann[rownames(x)])
+
+out <- lapply(ids, goana, species = params$species, universe = ann)
+```

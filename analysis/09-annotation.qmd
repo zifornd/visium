@@ -4,11 +4,17 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Homo Sapiens"
-  sample:
-    - TRUE
+    - "Mus musculus"
+  feature:
+    - "gene"
   group:
-    - "Cluster"
+    - "cluster"
+  custom.anno:
+    - FALSE
+  lfc.col.name:
+    - "avg_log2FC"
+  padj.col.name:
+    - "p_val_adj"
   pval.adj.thres:
     - 0.1
   only.pos:
@@ -39,9 +45,10 @@ Load Bioconductor packages:
   
 ```{r, message=FALSE}
 library(Seurat)
-library(limma)
 library(AnnotationDbi)
-library(S4Vectors)
+# library(limma)
+# library(AnnotationDbi)
+# library(S4Vectors)
 ```
 
 Load CRAN packages:
@@ -68,6 +75,7 @@ source("scripts/plotpHeatmap.R")
 source("scripts/reduceDims.R")
 source("scripts/findMarkers.R")
 source("scripts/annotate.R")
+source("scripts/functionalEnrichment.R")
 ```
 
 Read experiment data:
@@ -76,47 +84,314 @@ Read experiment data:
 res <- readRDS(paste0("output/", params$res))
 ```
 
-
 ```{r}
-cells_genesets = msigdbr(species = params$species, category = "C8")
-hallmarks_genesets = msigdbr(species = params$species, category = "H")
+cells_genesets <- msigdbr(species = params$species, category = "C8")
+hallmarks_genesets <- msigdbr(species = params$species, category = "H")
 ```
 
 ```{r}
-cells_genesets_t2g = cells_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
-hallmarks_genesets_t2g = hallmarks_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
+cells_genesets_t2g <- cells_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
+hallmarks_genesets_t2g <- hallmarks_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
 ```
 
-# Prepare results table
+```{r}
+custom_genesets_t2g <- NULL
 
-Rank by lfc
+if(params$custom.anno != FALSE){
 
-Output named vector ranked by lfc
+  custom_genesets <- read.table(params$custom.anno, header = TRUE, sep = ",", quote = F)
+  custom_genesets_t2g <- custom_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
+}
+```
 
+# Processing
+
+## Prepare results table
+
+Filter table for overrep and output vector gene names
+
+```{r}
+vector_res_overrep <- lapply(res, parse_res, group = "cluster", p_adj = 0.05, lfc = 1, type= "overrep", 
+                               lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature)
+```
+
+Rank table for gsea and output named vector ranked by lfc
+
+```{r}
+vector_res_gsea <- lapply(res, parse_res, group = "cluster", type= "gsea", 
+                            lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature)
+```
+
+## Run FEA
+
+### Enricher
+
+Get Org species
+
+```{r}
+if(params$species == "Mus musculus"){org_species <- "Mm"}
+if(params$species == "Homo sapiens"){org_species <- "Hs"}
+```
 
 Perform hypergeometric Samplewise and per param$group
+
 ```{r}
-enricher(gene = gene_ids_vector, TERM2GENE = cells_genesets_t2g, ...)
-enricher(gene = gene_ids_vector, TERM2GENE = hallmarks_genesets_t2g, ...)
+res_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = cells_genesets_t2g, 
+                           species = org_species,
+                           analysis_type = "overrep", 
+                           pval = 0.01, padj = 0.05, pmethod = "BH")
 ```
+
+```{r}
+res_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = hallmarks_genesets_t2g, 
+                           species = org_species, 
+                           analysis_type = "overrep", 
+                           pval = 0.01, padj = 0.05, pmethod = "BH")
+```
+
+```{r}
+if(!is.null(custom_genesets_t2g)){
+  res_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = custom_genesets_t2g, 
+                            species = org_species, 
+                            analysis_type = "overrep", 
+                            pval = 0.01, padj = 0.05, pmethod = "BH")
+}
+```
+
+#### Interactive results 
+
+```{r}
+# Only take final level of results table from list
+res_overrep_cells <- unlist(res_overrep_cells, recursive = FALSE)
+
+# remove empty elements for clusters without any significant results
+res_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
+
+# bind into single results table
+resbind_overrep_cells <- bind_rows(res_overrep_cells, .id = params$group)
+
+# Plot as interactive table
+DT::datatable(resbind_overrep_cells, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+```{r}
+# Only take final level of results table from list
+res_overrep_hallmarks <- unlist(res_overrep_hallmarks, recursive = FALSE)
+
+# remove empty elements for clusters without any significant results
+res_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks, nrow) > 0]
+
+# bind into single results table
+resbind_overrep_hallmarks <- bind_rows(res_overrep_hallmarks, .id = params$group)
+
+# Plot as interactive table
+DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+```{r}
+if(!is.null(custom_genesets_t2g)){
+
+  # Only take final level of results table from list
+  res_overrep_custom <- unlist(res_overrep_custom, recursive = FALSE)
+
+  # remove empty elements for clusters without any significant results
+  res_overrep_custom <- res_overrep_custom[sapply(res_overrep_custom, nrow) > 0]
+
+  # bind into single results table
+  resbind_overrep_custom <- bind_rows(res_overrep_custom, .id = params$group)
+
+  # Plot as interactive table
+  DT::datatable(resbind_overrep_custom, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+}
+```
+
+#### Save out as CSV
+ 
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_overrep_cells), function(x, res_overrep_cells) {write.csv(res_overrep_cells[[x]], file = paste0("output/", x, "-Cells-Overrep_Clusters.csv"))}, res_overrep_cells = res_overrep_cells)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks) {write.csv(res_overrep_hallmarks[[x]], file = paste0("output/", x, "-Hallmarks-Overrep_Clusters.csv"))}, res_overrep_hallmarks = res_overrep_hallmarks)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_overrep_custom), function(x, res_overrep_custom) {write.csv(res_overrep_custom[[x]], file = paste0("output/", x, "-Custom-Overrep_Clusters.csv"))}, res_overrep_custom = res_overrep_custom)
+```
+
+### GSEA
 
 Perform GSEA Samplewise and per param$group
+
 ```{r}
-GSEA(gene = gene_ids_vector, TERM2GENE = cells_genesets_t2g)
-GSEA(gene = gene_ids_vector, TERM2GENE = hallmarks_genesets_t2g)
+res_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = cells_genesets_t2g, 
+                           analysis_type = "gsea", 
+                           pval = 0.01, padj = 0.05, pmethod = "BH")
+```
+
+```{r}
+res_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = hallmarks_genesets_t2g, 
+                           analysis_type = "gsea", 
+                           pval = 0.01, padj = 0.05, pmethod = "BH")
+```
+
+```{r}
+if(!is.null(custom_genesets_t2g)){
+  res_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = custom_genesets_t2g, 
+                            analysis_type = "gsea", 
+                            pval = 0.01, padj = 0.05, pmethod = "BH")
+}
+```
+
+#### Interactive results 
+
+```{r}
+# Only take final level of results table from list
+res_gsea_cells <- unlist(res_gsea_cells, recursive = FALSE)
+
+# remove empty elements for clusters without any significant results
+res_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
+
+# bind into single results table
+resbind_gsea_cells <- bind_rows(res_gsea_cells, .id = params$group)
+
+DT::datatable(resbind_gsea_cells, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+```{r}
+# Only take final level of results table from list
+res_gsea_hallmarks <- unlist(res_gsea_hallmarks, recursive = FALSE)
+
+# remove empty elements for clusters without any significant results
+res_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 0]
+
+# bind into single results table
+resbind_gsea_hallmarks <- bind_rows(res_gsea_hallmarks, .id = params$group)
+
+DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+```
+
+```{r}
+if(!is.null(custom_genesets_t2g), .id = params$group){
+
+  # Only take final level of results table from list
+  res_gsea_custom <- unlist(res_gsea_custom, recursive = FALSE)
+
+  # remove empty elements for clusters without any significant results
+  res_gsea_custom <- res_gsea_custom[sapply(res_gsea_custom, nrow) > 0]
+
+  # bind into single results table
+  resbind_gsea_custom <- bind_rows(res_gsea_custom, .id = params$group)
+
+  DT::datatable(resbind_gsea_custom, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+
+}
+```
+
+#### Save out as CSV
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_gsea_cells), function(x, res_gsea_cells) {write.csv(res_gsea_cells[[x]], file = paste0("output/", x, "-Cells-GSEA_Clusters.csv"))}, res_gsea_cells = res_gsea_cells)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks) {write.csv(res_gsea_hallmarks[[x]], file = paste0("output/", x, "-Hallmarks-GSEA_Clusters.csv"))}, res_gsea_hallmarks = res_gsea_hallmarks)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+lapply(names(res_gsea_custom), function(x, res_gsea_custom) {write.csv(res_gsea_custom[[x]], file = paste0("output/", x, "-Custom-GSEA_Clusters.csv"))}, res_gsea_custom = res_gsea_custom)
+```
+
+### Plot output
+
+For Overrep
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_overrep_cells, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot Overrep Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_overrep_hallmarks, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot Overrep Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_overrep_custom, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot Overrep Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+For GSEA
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_gsea_cells, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot GSEA Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_gsea_hallmarks, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot GSEA Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+barplots <- lapply(res_gsea_custom, plot_barplot, colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", 
+             title = "Barplot GSEA Analysis", x = "-log10(Adjusted P.value)", y = "Term", height=5, width=5)
+```
+
+```{r}
+wrap_plots(barplots)
+```
+
+# Output
+
+Save experiment object:
+```{r}
+if(!is.null(custom_genesets_t2g)){
+
+  res_anno <- list(res_overrep_cells = res_overrep_cells, 
+                   res_overrep_hallmarks = res_overrep_hallmarks, 
+                   res_overrep_custom = res_overrep_custom, 
+                   res_gsea_cells = res_gsea_cells, 
+                   res_gsea_hallmarks = res_gsea_hallmarks, 
+                   res_gsea_custom = res_gsea_custom)
+
+} else {
+
+  res_anno <- list(res_overrep_cells = res_overrep_cells, 
+                   res_overrep_hallmarks = res_overrep_hallmarks 
+                   res_gsea_cells = res_gsea_cells, 
+                   res_gsea_hallmarks = res_gsea_hallmarks)
+}
+```
+
+```{r}
+saveRDS(res_anno, file = "output/09-annotation.rds")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
 ```
 
 
-```{r}
-org <- OrgDb(params$species)
-
-key <- Reduce(intersect, lapply(res, rownames))
-    
-ann <- mapIds(org, keys = key, column = "ENTREZID", keytype = "ENSEMBL")
-
-sig <- lapply(res, subset, FDR < params$FDR)
-
-ids <- lapply(sig, function(x) ann[rownames(x)])
-
-out <- lapply(ids, goana, species = params$species, universe = ann)
-```

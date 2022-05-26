@@ -169,11 +169,11 @@ wrap_plots(pheatmaps)
 Save experiment object:
   
 ```{r}
-saveRDS(seuratprep, file = "output/09-marker-detection.rds")
+saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 ```
 
 ```{r}
-saveRDS(res, file = "output/09-marker-detection-res.rds")
+saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
 Print session information:

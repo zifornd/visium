@@ -13,6 +13,7 @@ project:
     - analysis/06-merge-samples.qmd
     - analysis/07-integrate-samples.qmd
     - analysis/08-marker-detection.qmd
+    - analysis/09-annotation.qmd
   execute:
     message: false
     warning: false
@@ -75,6 +76,8 @@ website:
             href: analysis/07-integrate-samples.html
           - text: "Marker-detection"
             href: analysis/08-marker-detection.html
+          - text: "Annotation"
+            href: analysis/09-annotation.html
       - text: "Help"
         menu:
           - text: "Report an Issue"

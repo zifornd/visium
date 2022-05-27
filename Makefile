@@ -10,7 +10,8 @@ all: index.html \
      $(OUTPUT)/05-clustering.html \
      $(OUTPUT)/06-merge-samples.html \
      $(OUTPUT)/07-integrate-samples.html \
-     $(OUTPUT)/08-marker-detection.html
+     $(OUTPUT)/08-marker-detection.html \
+	 $(OUTPUT)/09-annotation.html
 
 index.html: index.qmd
 	quarto render $<
@@ -40,6 +41,9 @@ $(OUTPUT)/07-integrate-samples.html: $(WORKSPACE)/07-integrate-samples.qmd $(OUT
 	quarto render $<
 
 $(OUTPUT)/08-marker-detection.html: $(WORKSPACE)/08-marker-detection.qmd $(OUTPUT)/07-integrate-samples.html
+	quarto render $<
+
+$(OUTPUT)/09-annotation.html: $(WORKSPACE)/09-annotation.qmd $(OUTPUT)/08-marker-detection.html
 	quarto render $<
 
 # $(OUTPUT)/06-merge-samples.html: $(WORKSPACE)/06-merge-samples.qmd

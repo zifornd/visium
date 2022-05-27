@@ -134,14 +134,3 @@ defineExpressed <- function(seurat, features, assay = "Spatial", slot = "data", 
   # ? gaussian mixture?
 }
 
-
-OrgDb <- function(x) {
-
-    # Load OrgDb package
-    # e.g. x = "Hs"
-    
-    pkg <- paste0("org.", x, ".eg.db")
-
-    obj <- getFromNamespace(pkg, pkg)
-
-}

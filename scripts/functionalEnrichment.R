@@ -1,4 +1,15 @@
 
+# Load OrgDb package
+# e.g. x = "Hs"
+
+OrgDb <- function(x) {
+
+    pkg <- paste0("org.", x, ".eg.db")
+
+    obj <- getFromNamespace(pkg, pkg)
+
+}
+
 # Parses results table
 # Splits results table by group e.g. cluster annotation
 # Filters results with filter_df function ready for downstream ovverep or gsea
@@ -8,7 +19,7 @@ parse_res <- function(res, group = "cluster", p_adj = Inf, lfc = 0, type= "overr
                       lfc_name = "avg_log2FC", padj_name = "p_val_adj", gene_id_name = "gene"){
 
     resList <- split_res(res, group = group)
-    print(resList)
+
     filtered_res <- lapply(resList, filter_df, p_adj = p_adj, lfc = lfc, type= type, 
                            lfc_name = lfc_name, padj_name = padj_name, gene_id_name = gene_id_name)
     
@@ -127,7 +138,6 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
 
         gene_ids_vector <- gene_ids_vector[complete.cases(gene_ids_vector)] 
 
-        print(head(term2gene))
         cp_obj <- enricher(gene = as.character(gene_ids_vector), TERM2GENE = term2gene)
 
     }
@@ -153,17 +163,236 @@ wrap_cp_custom <- function(gene_ids_vector, term2gene,
                            analysis_type = "overrep", 
                            pval = 0.01, padj = 0.05, pmethod = "BH"){
     
-    org <- OrgDb(species)
+    org <-  OrgDb(species)
 
     cp_obj_list <- lapply(gene_ids_vector, run_clusterprofiler_custom, term2gene, 
                            species = species, org = org,
                            analysis_type = analysis_type, 
                            pval = pval, padj = padj, pmethod = pmethod)
     
-    cp_df_list <- lapply(cp_obj_list, parse_cp_object, type = analysis_type, db = "Custom", org = org)
+    return(cp_obj_list)
+
+}
+
+
+# Wrap clusterprofiler calling and parse output 
+
+wrap_parse_cp_obj <- function(cp_obj_list, type = "overrep", db = "Custom", species = "Mm"){
+    
+    cp_df_list <- lapply(cp_obj_list, parse_cp_object, type = type, db = db, species = species)
 
     return(cp_df_list)
 
+}
+
+#############################################
+####  Parse clusterprofiler object ##########
+#############################################
+
+# Input: clusterprofiler object
+# Output: Df of clusterprofiler results
+
+parse_cp_object <- function(cp_obj, type = "overrep", db = "GO", species = "Mm"){
+  
+  org <-  OrgDb(species)
+
+  cp_df = as.data.frame(cp_obj)
+  
+  #remove NA
+
+  cp_df = cp_df[complete.cases(cp_df),]
+  
+  # parse clusterprofiler object 
+
+  if(type == "overrep"){
+
+    if(db != "GO"){
+
+      cp_df$gene_name  = sapply(cp_df$geneID, parse_entrez_col, map=T, org.db = org)
+
+     }
+  }
+  if(type == "gsea"){
+
+    if(db != "GO"){
+
+      cp_df$gene_name = sapply(cp_df$core_enrichment, parse_entrez_col, map=T, org.db = org)
+      
+     }
+    
+  }
+
+  return(cp_df)
+}
+
+
+parse_entrez_col <- function(entrez_id_str, map=F, org.db = org.Hs.eg.db){
+  
+  symbol_str = strsplit(entrez_id_str, "/")[[1]]
+  
+  if(map){
+
+    symbol_str = suppressMessages(mapIds(x = org.db, keys = symbol_str, 
+                      keytype = "ENTREZID", column = "SYMBOL", 
+                      multiVals = "first"))
+
+    symbol_str = symbol_str[complete.cases(symbol_str)] 
+
+  }
+  
+  symbol_str_for_csv = gsub(pattern = ", ", replacement="/", toString(symbol_str))
+  
+  return(symbol_str_for_csv)
+}
+  
+#############################################
+####  Write clusterprofiler object ##########
+#############################################
+
+# Input: Df of clusterprofiler results
+# Output: Text file of enriched go/pathways/terms 
+
+write_fea_results <- function(cp_df, filename, file = "csv"){
+  
+  # This includes both the terms themselves which are ranked
+  # But also the genes of interest
+  
+  if(file == "csv"){separator = ","}
+  if(file == "tsv"){separator = "\t"}
+  
+  write.table(x=cp_df, file = filename, quote = F, sep = separator, col.names = T, row.names = F)
+  
+}
+
+###########################################
+####  Plot clusterprofiler object #########
+###########################################
+
+# Input: Df of clusterprofiler results following parsing
+# Output: User specified plot
+
+plot_fea_results <- function(cp_obj, title, plot_type = "barplot", top_num=15, x_axis="GeneRatio", 
+                             row_gsea = 1, toptable=25, size="Count", color = "p.adjust", width=5, height=10){
+  library(enrichplot)
+  
+  if(plot_type == "barplot"){
+    
+        if(nrow(cp_obj@result) > 0){
+
+            # From clusterprofiler
+            p <- barplot(cp_obj, showCategory=toptable)  + ggtitle(title)
+
+        } else {
+
+            # return a null ggplot if no results
+            p <- ggplot() +
+                theme_void() +
+                geom_text(aes(0,0,label='N/A')) +
+                xlab(NULL)
+        }
+  }
+
+  if(plot_type == "dotplot"){
+    
+    if(nrow(cp_obj@result) > 0){
+
+        # From clusterprofiler
+        p <- dotplot(cp_obj, showCategory=toptable, x = x_axis, size =size, color=color ) + ggtitle(title)
+
+    } else {
+
+        # return a null ggplot if no results
+        p <- ggplot() +
+            theme_void() +
+            geom_text(aes(0,0,label='N/A')) +
+            xlab(NULL)
+    }
+  }
+
+  if(plot_type == "gsea_enrichment"){
+    
+    # From clusterprofiler
+    if(nrow(cp_obj@result) > 0){
+
+        title <- paste0(title, "\n", trim_label(cp_obj@result[row_gsea,"ID"]))
+        
+        p <- gseaplot2(cp_obj, geneSetID = row_gsea, title = title) 
+
+    } else {
+
+        # return a null ggplot if no results
+        p <- ggplot() +
+             theme_void() +
+             geom_text(aes(0,0,label='N/A')) +
+             xlab(NULL)
+    }
+
+  }
+  return(p)
+}
+
+######### Generic barplot function
+
+plot_barplot <- function(cp_df, colnames_select = c("Description", "padj", "GeneRatio"), colour = "steelblue", 
+                         title = "Barplot GO Analysis", x_log = T, z_log=F,
+                         x = "-log10(Adjusted P.value)", y = "GO Term", 
+                         x_thres=0.05, top = 10){
+  
+  suppressMessages(library(ggplot2))
+  
+  df = cp_df[,c(colnames_select)]
+  
+  df <- head(df, top)
+
+  colnames(df)  = c("y", "x", "z")
+  
+  if(x_log){df$x = -log10(df$x)}
+  if(x_log){x_thres = -log10(x_thres)}
+  if(z_log){df$z = -log10(df$z)}
+  
+  if(class(df$z) == "numeric"){
+
+      df$z <- round(df$z, 2)
+
+  }
+
+  df$y = factor(df$y, levels = rev(df$y))
+
+  p = ggplot(data=df, aes(x=x, y= y)) +
+    geom_bar(stat="identity", fill=colour)+
+    geom_text(aes(label=z), hjust=1.6, color="white", size=3.5)+
+    theme_minimal() + labs(title=title, x=x, y = y) + 
+    geom_vline(xintercept = x_thres, linetype="dashed", color = "red") +
+    theme_classic() + labs(fill=colour, x = trim_label(x), y = trim_label(y)) +
+    scale_y_discrete(labels = function(y) trim_label(y))
+    
+    #scale_fill_continuous(low="#fee0d2", high="#de2d26")
+  
+  return(p)
+
+}
+
+# Try and deal with long labels by trimming them
+# Returns original where delim = NA
+
+trim_label <- function(lab, width = 20, delim = NULL){
+
+  if(!is.null(delim)){
+
+    if(is.na(delim)){
+      
+      return(lab)
+    
+    }
+  } 
+  
+  if(nchar(lab) > width){
+
+    lab <- paste0(substring(lab, 1, width), "...")
+
+  }
+
+  return(lab)
 }
 
 ##########################################################################
@@ -318,153 +547,4 @@ run_clusterprofiler <- function(deseq_df, filtered_df, col_name = "gene_name",
   }
   
   return(cp_obj)
-}
-
-#############################################
-####  Parse clusterprofiler object ##########
-#############################################
-
-# Input: clusterprofiler object
-# Output: Df of clusterprofiler results
-
-parse_cp_object <- function(cp_obj, type = "overrep", db = "GO", org = org.Hs.eg.db){
-  
-  cp_df = as.data.frame(cp_obj)
-  
-  #remove NA
-  cp_df = cp_df[complete.cases(cp_df),]
-  
-  # parse clusterprofiler object 
-  if(type == "overrep"){
-
-    if(db != "GO"){
-      cp_df$gene_name  = sapply(cp_df$geneID, parse_entrez_col, map=T, org.db = org)
-
-    # }else{
-    #   #cp_df$gene_symbol = cp_df$geneID 
-    #   ### how to put it into each row...? 
-    #   cp_df$gene_name   = sapply(cp_df$geneID, parse_entrez_col)
-     }
-  }
-  if(type == "gsea"){
-
-    if(db != "GO"){
-      cp_df$gene_name = sapply(cp_df$core_enrichment, parse_entrez_col, map=T, org.db = org)
-      
-    # }else{
-    #   cp_df$gene_name  = sapply(cp_df$core_enrichment, parse_entrez_col)
-    #   
-     }
-    
-  }
-
-  return(cp_df)
-}
-
-
-parse_entrez_col <- function(entrez_id_str, map=F, org.db = org.Hs.eg.db){
-  
-  symbol_str = strsplit(entrez_id_str, "/")[[1]]
-  
-  if(map){
-    symbol_str = suppressMessages(mapIds(x = org.db, keys = symbol_str, 
-                      keytype = "ENTREZID", column = "SYMBOL", 
-                      multiVals = "first"))
-    symbol_str = symbol_str[complete.cases(symbol_str)] 
-  }
-  
-  symbol_str_for_csv = gsub(pattern = ", ", replacement="/", toString(symbol_str))
-  
-  return(symbol_str_for_csv)
-}
-  
-#############################################
-####  Write clusterprofiler object ##########
-#############################################
-
-# Input: Df of clusterprofiler results
-# Output: Text file of enriched go/pathways/terms 
-
-write_fea_results <- function(cp_df, filename, file = "csv"){
-  
-  # This includes both the terms themselves which are ranked
-  # But also the genes of interest
-  
-  if(file == "csv"){separator = ","}
-  if(file == "tsv"){separator = "\t"}
-  
-  write.table(x=cp_df, file = filename, quote = F, sep = separator, col.names = T, row.names = F)
-  
-}
-
-###########################################
-####  Plot clusterprofiler object #########
-###########################################
-
-# Input: Df of clusterprofiler results following parsing
-# Output: User specified plot
-
-plot_fea_results <- function(cp_obj, plot_name, title, plot_type = "barplot", top_num=15, x_axis="GeneRatio", 
-                             row_gsea = 1, toptable=25, size="Count", color = "p.adjust", width=5, height=10){
-  library(enrichplot)
-  
-  if(plot_type == "barplot"){
-    
-    # see below from ggplot2
-    pdf(paste0("barplot_", plot_name, ".pdf"), width=width, height=height)  
-    p = barplot(cp_obj, showCategory=toptable)  + ggtitle(title)
-    # p = mutate(cp_obj, p.adjust = -log(p.adjust, base=10)) %>% 
-    #   barplot(x="-log10(p.adjust)")
-    plot(p)
-    dev.off()
-  }
-  if(plot_type == "dotplot"){
-    
-    # From clusterprofiler
-    pdf(paste0("dot_", plot_name, ".pdf"), width=width, height=height)
-    p = dotplot(cp_obj, showCategory=toptable, x = x_axis, size =size, color=color ) + ggtitle(title)
-    plot(p)
-    dev.off()
-  }
-  if(plot_type == "gsea_enrichment"){
-    
-    # From clusterprofiler
-    pdf(paste0("gsea_", plot_name, ".pdf"), width=width, height=height)
-    p = gseaplot2(cp_obj, geneSetID = row_gsea, title = title) 
-    plot(p)
-    dev.off()
-  }
-}
-
-######### Generic barplot function
-
-plot_barplot <- function(cp_df, colnames_select = c("Description", "padj", "GeneRatio"), colour = "steelblue", 
-                         title = "Barplot GO Analysis", x_log = T, z_log=F,
-                         x = "-log10(Adjusted P.value)", y = "GO Term", 
-                         width = 5, height=10,
-                         x_thres=0.05){
-  
-  suppressMessages(library(ggplot2))
-  
-  df = cp_df[,c(colnames_select)]
-  print(head(df))
-  colnames(df)  = c("y", "x", "z")
-  if(x_log){df$x = -log10(df$x)}
-  if(x_log){x_thres = -log10(x_thres)}
-  
-  if(z_log){df$z = -log10(df$z)}
-  
-  df$y = factor(df$y, levels = rev(df$y))
-
-  p = ggplot(data=df, aes(x=x, y= y)) +
-    geom_bar(stat="identity", fill=colour)+
-    geom_text(aes(label=z), hjust=1.6, color="white", size=3.5)+
-    theme_minimal() + labs(title=title, x=x, y = y) + 
-    geom_vline(xintercept = x_thres, linetype="dashed", color = "red") +
-    theme_classic()
-    
-    #scale_fill_continuous(low="#fee0d2", high="#de2d26")
-  
-  return(p)
-
 }

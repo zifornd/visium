@@ -1,0 +1,223 @@
+---
+title: "Spatially variable feature detection"
+params:
+  seurat:
+    - "07-integrate-samples.rds"
+  nfeatures:
+    - 100
+  spatial.method:
+    - "markvariogram"
+  top.features:
+    - 5
+  r.metric:
+    - 5 # standard given by Seurat
+  regress:
+    - FALSE
+  plot_width:
+    - 5
+  plot_height:
+    - 7
+---
+
+# Setup
+
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "nfeatures",
+Value = params$nfeatures,
+Description = "Number of features used for variable spatial feature analysis."
+),
+list(
+Parameter = "spatial.method",
+Value = params$spatial.method,
+Description = "Method used for variable spatial feature analysis. Choice of markvariogram (Trendseek) or moransi"
+),
+list(
+Parameter = "top.features",
+Value = params$top.features,
+Description = "Number of spatially variable features to plot onto tissue images."
+),
+list(
+Parameter = "r.metric",
+Value = params$r.metric,
+Description = "r value at which to report the trans value of the mark variogram. Seurat advised to leave at 5."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+
+```{r, message=FALSE}
+library(Seurat)
+```
+
+Load CRAN packages:
+
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(clustree)
+library(RColorBrewer)
+library(pheatmap)
+library(DT)
+```
+
+Source user-defined functions:
+
+```{r}
+source("scripts/plotpHeatmap.R")
+source("scripts/findMarkers.R")
+```
+
+Read experiment data:
+
+```{r}
+seurat <- readRDS(paste0("output/", params$seurat))
+```
+
+Setup colour palette:
+
+```{r}
+col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+```
+
+## PrepSCTFindmarkers
+
+Prepare "data" slot of SCT assay for differential expression and downstream visualisation Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+
+Parse seurat object into list if not already
+
+```{r, warning=FALSE, message=FALSE}
+
+# If running on single seurat object or output from merged or integrated qmd
+if(class(seurat) == "Seurat"){ 
+
+  seuratList <- list(seurat)
+
+  # If merged or combined will have multiple samples in meta data so save into list as combined seurat
+  if(length(unique(seurat@meta.data$Sample)) > 1){
+      
+    names(seuratList) <- "Combined.Seurat"
+
+    # Run PrepSCTFindMarkers
+    seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
+
+  }
+
+  # If single sample save into list as sample name
+  if(length(unique(seurat@meta.data$Sample)) == 1){
+
+    names(seuratList) <- unique(seurat@meta.data$Sample)
+
+    # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
+    seuratprep <- seuratList
+
+  }
+
+} else {
+
+    # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
+    seuratprep <- seuratList
+}
+```
+
+## Run Spatially variable features (Trendseek)
+
+Please see https://satijalab.org/seurat/articles/spatial_vignette.html for more details and https://www.nature.com/articles/nmeth.4634
+
+```{r}
+samples <- names(seuratprep)
+seuratprep <- lapply(samples, function(x, seuratprep, selection.method, nfeatures, r.metric){
+    sv <- FindSpatiallyVariableFeatures(seuratprep[[x]], assay = "SCT", features = VariableFeatures(seuratprep[[x]])[1:nfeatures], selection.method = selection.method, r.metric = r.metric)
+}, seuratprep = seuratprep, selection.method = params$spatial.method, nfeatures = params$nfeatures, r.metric = params$r.metric)
+names(seuratprep) <- samples
+```
+
+### Define genes interest
+
+Get top SpatiallyVariableFeatures
+
+```{r}
+top.features <- lapply(seuratprep, SpatiallyVariableFeatures, selection.method = params$spatial.method)
+```
+
+```{r, message = FALSE, warning = FALSE}
+spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, top) { 
+
+  SpatialFeaturePlot(seuratprep[[x]], features = head(top.features[[x]],top), alpha = c(0.1, 1))  + labs(title=x)
+  }, seuratprep = seuratprep, top.features = top.features, top = params$top.features)
+```
+
+```{r, message = FALSE, warning = FALSE, fig.width = (params$plot_width + 10), fig.height = (params$plot_height + 13)}
+wrap_plots(spatialPlots)
+```
+
+## ScaleData 
+
+Scale and center data and add ScaleData to seuratprep for heatmap visualisation
+
+```{r, warning=FALSE, message=FALSE}
+seuratprep <- lapply(seuratprep, scaleData, params = params)
+```
+
+Plot heatmap of top markers
+
+### DoHeatmap
+
+```{r}
+doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = FALSE)
+```
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+wrap_plots(doheatmaps)
+```
+
+With legend
+
+```{r}
+doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = TRUE)
+```
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+wrap_plots(doheatmapslegend)
+```
+
+# Output
+
+Save experiment object:
+  
+```{r}
+saveRDS(seuratprep, file = "output/10-spatial-features.rds")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```

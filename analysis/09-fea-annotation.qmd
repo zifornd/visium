@@ -7,6 +7,8 @@ params:
     - "Mus musculus"
   feature:
     - "gene"
+  split.res:
+    - FALSE
   group:
     - "cluster"
   custom.anno:
@@ -47,6 +49,11 @@ list(
 Parameter = "feature",
 Value = params$feature,
 Description = "Name of feature of interest used as input for downstream functional enrichment."
+),
+list(
+Parameter = "split.res",
+Value = params$split.res,
+Description = "Boolean whether results table should be split further prior to running functional enrichment analysis."
 ),
 list(
 Parameter = "group",
@@ -171,15 +178,17 @@ if(params$custom.anno != FALSE){
 Filter table for overrep and output vector gene names
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-vector_res_overrep <- lapply(res, parse_res, group = "cluster", p_adj = params$pval.adj.thres.filter, lfc = params$lfc.thres.filter, type= "overrep", 
-                               lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature)
+vector_res_overrep <- lapply(res, parse_res, group = params$group, p_adj = params$pval.adj.thres.filter, lfc = params$lfc.thres.filter, type= "overrep", 
+                               lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature, split.res = params$split.res)
+
 ```
 
 Rank table for gsea and output named vector ranked by lfc
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
-vector_res_gsea <- lapply(res, parse_res, group = "cluster", type= "gsea", 
-                            lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature)
+vector_res_gsea <- lapply(res, parse_res, group = params$group, type= "gsea", 
+                              lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature, split.res = params$split.res)
+
 ```
 
 ## Run FEA
@@ -502,7 +511,7 @@ wrap_plots(barplots, ncol = 2)
 barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks){ plot_barplot(res_overrep_hallmarks[[x]], colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_overrep_hallmarks = res_overrep_hallmarks)
 ```
 
-```{r, fig.width = (params$plot_width + 5), fig.height = params$plot_height + 1}
+```{r, fig.width = (params$plot_width + 1), fig.height = (params$plot_height - 5)}
 wrap_plots(barplots, ncol = 2)
 ```
 
@@ -532,7 +541,7 @@ wrap_plots(barplots, ncol = 2)
 barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){ plot_barplot(res_gsea_hallmarks[[x]], colnames_select = c("Description", "p.adjust", "NES"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_gsea_hallmarks = res_gsea_hallmarks)
 ```
 
-```{r, fig.width = (params$plot_width + 5), fig.height = (params$plot_height + 1)}
+```{r, fig.width = (params$plot_width + 2), fig.height = (params$plot_height - 3)}
 wrap_plots(barplots, ncol = 2)
 ```
 
@@ -543,7 +552,7 @@ if(!is.null(custom_genesets_t2g)){
 }
 ```
 
-```{r, fig.width = (params$plot_width + 5), fig.height = (params$plot_height + 1)}
+```{r, fig.width = (params$plot_width), fig.height = (params$plot_height)}
 if(!is.null(custom_genesets_t2g)){
 
 wrap_plots(barplots, ncol = 2)

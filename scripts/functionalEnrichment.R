@@ -16,9 +16,13 @@ OrgDb <- function(x) {
 # Then outputs vector of gene names or ranked named vector 
 
 parse_res <- function(res, group = "cluster", p_adj = Inf, lfc = 0, type= "overrep", 
-                      lfc_name = "avg_log2FC", padj_name = "p_val_adj", gene_id_name = "gene"){
-
-    resList <- split_res(res, group = group)
+                      lfc_name = "avg_log2FC", padj_name = "p_val_adj", gene_id_name = "gene",
+                      split.res = TRUE){
+    if(split.res){
+        resList <- split_res(res, group = group)
+    } else {
+        resList <- list(res)
+    }                     
 
     filtered_res <- lapply(resList, filter_df, p_adj = p_adj, lfc = lfc, type= type, 
                            lfc_name = lfc_name, padj_name = padj_name, gene_id_name = gene_id_name)

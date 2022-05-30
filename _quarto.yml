@@ -13,7 +13,8 @@ project:
     - analysis/06-merge-samples.qmd
     - analysis/07-integrate-samples.qmd
     - analysis/08-marker-detection.qmd
-    - analysis/09-annotation.qmd
+    - analysis/09-fea-annotation.qmd
+    - analysis/10-spatial-features.qmd
   execute:
     message: false
     warning: false
@@ -76,8 +77,10 @@ website:
             href: analysis/07-integrate-samples.html
           - text: "Marker-detection"
             href: analysis/08-marker-detection.html
-          - text: "Annotation"
-            href: analysis/09-annotation.html
+          - text: "FEA Annotation"
+            href: analysis/09-fea-annotation.html
+          - text: "Spatially variable features"
+            href: analysis/10-spatial-features
       - text: "Help"
         menu:
           - text: "Report an Issue"

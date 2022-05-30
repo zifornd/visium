@@ -74,7 +74,6 @@ Setup colour palette:
 col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
 ```
 
-
 # Processing
 
 ## PrepSCTFindmarkers
@@ -82,17 +81,41 @@ col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
 Prepare "data" slot of SCT assay for differential expression and downstream visualisation
 Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
 
+
+Parse seurat object into list if not already
+
 ```{r, warning=FALSE, message=FALSE}
 
+# If running on single seurat object or output from merged or integrated qmd
 if(class(seurat) == "Seurat"){ 
 
   seuratList <- list(seurat)
 
-  names(seuratList) <- unique(seurat@meta.data$Sample)
+  # If merged or combined will have multiple samples in meta data so save into list as combined seurat
+  if(length(unique(seurat@meta.data$Sample)) > 1){
+      
+    names(seuratList) <- "Combined.Seurat"
 
+    # Run PrepSCTFindMarkers
+    seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
+
+  }
+
+  # If single sample save into list as sample name
+  if(length(unique(seurat@meta.data$Sample)) == 1){
+
+    names(seuratList) <- unique(seurat@meta.data$Sample)
+
+    # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
+    seuratprep <- seuratList
+
+  }
+
+} else {
+
+    # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
+    seuratprep <- seuratList
 }
-
-seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
 ```
 
 ## ScaleData 

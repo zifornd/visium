@@ -1,0 +1,359 @@
+---
+title: "Cell Atlas annotation"
+params:
+  seurat:
+    - "07-integrate-samples.rds" # So far only for merged, integrated, or single objects
+  atlas:
+    - "data/allen_cortex.rds"
+  min_cells:
+    - 2
+  elbow_range:
+    - "1:30"
+  nfeatures.sct:
+    - 2000
+  ncells.sct:
+    - 3000
+  feature.example:
+    - ["Astro", "L2/3 IT", "L4", "L5 PT", "L5 IT", "L6 CT", "L6 IT", "L6b", "Oligo"]
+  nfeatures.spatial:
+    - 100
+  spatial.method:
+    - "markvariogram"
+  top.features:
+    - 5
+  r.metric:
+    - 5 # standard given by Seurat
+  plot_width:
+    - 5
+  plot_height:
+    - 7
+---
+  
+# Setup
+  
+Parameter description 
+
+```{r}
+#| code-fold: true
+
+par <- list(
+list(
+Parameter = "seurat",
+Value = params$seurat,
+Description = "Seurat object of choice (as .rds object)."
+),
+list(
+Parameter = "atlas",
+Value = params$atlas,
+Description = "Cell atlas location (as .rds object)."
+),
+list(
+Parameter = "min_cells",
+Value = params$min_cells,
+Description = "Minimum number of cells (spots) required for feature to be expressed in to be included in SCT normalisation. See ?sctransform::vst"
+),
+list(
+Parameter = "elbow_range",
+Value = params$elbow_range,
+Description = "Number of principle components for dimensionality reduction."
+),
+list(
+Parameter = "nfeatures.sct",
+Value = params$nfeatures.sct,
+Description = "Number of variable features for SCT normalisation."
+),
+list(
+Parameter = "ncells.sct",
+Value = params$ncells.sct,
+Description = "Number of cells for SCT normalisation."
+),
+list(
+Parameter = "feature.example",
+Value = params$feature.example,
+Description = "Name of Cell Atlas annotation feature examples for plotting."
+),
+list(
+Parameter = "nfeatures.spatial",
+Value = params$nfeatures.spatial,
+Description = "Number of features used for variable spatial feature analysis."
+),
+list(
+Parameter = "spatial.method",
+Value = params$spatial.method,
+Description = "Method used for variable spatial feature analysis. Choice of markvariogram (Trendseek) or moransi"
+),
+list(
+Parameter = "top.features",
+Value = params$top.features,
+Description = "Number of spatially variable features to plot onto tissue images."
+),
+list(
+Parameter = "r.metric",
+Value = params$r.metric,
+Description = "r value at which to report the trans value of the mark variogram. Seurat advised to leave at 5."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
+Restore project dependencies:
+
+```{r}
+#renv::restore()
+```
+
+Load Bioconductor packages:
+  
+```{r, message=FALSE}
+library(Seurat)
+```
+
+Load CRAN packages:
+  
+```{r, message=FALSE}
+library(patchwork)
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(viridis)
+library(clustree)
+library(RColorBrewer)
+library(pheatmap)
+library(DT)
+```
+
+Source user-defined functions:
+  
+```{r}
+source("scripts/reduceDims.R")
+```
+
+Read experiment data:
+  
+```{r}
+seurat <- readRDS(paste0("output/", params$seurat))
+```
+
+Read in cell atlas:
+
+```{r}
+atlas <- readRDS(params$atlas)
+```
+
+Setup colour palette:
+  
+```{r}
+col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+```
+
+
+## Processing
+
+### Process Cell Atlas
+
+Normalise
+ncells = 2000 speeds up normalisation
+
+```{r}
+atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE) 
+```
+
+PCA
+
+```{r, warning=FALSE, message=FALSE}
+atlas <- pca(atlas)
+```
+
+Individual PCA - dimplot
+
+```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas, reduction = "pca", label = FALSE, group.by = "Group", title = "PCA-Atlas")
+```
+
+Individual PCA - featureplot ncount
+
+```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+featureplot(atlas, reduction = "pca", label = FALSE, feature = "nCount", title = "PCA-Atlas")
+```
+
+Individual PCA - featureplot nfeature
+
+```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature", title = "PCA-Atlas")
+```
+
+### Elbow
+
+```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
+```
+
+From visual inspection it looks like the PCs for merged samples should be between 10-20 
+
+Define elbow vector:
+
+```{r, warning=FALSE}
+elbow_vector <- params$elbow_range
+
+print(elbow_vector)
+```
+
+Add PC elbow to object
+
+```{r, warning=FALSE, message=FALSE}
+atlas$Elbow <- rep(elbow_vector, length(atlas$Sample))
+```
+
+### UMAP
+
+n.neighbors should be in the range 5 to 50.
+min.dist sensible values are in the range 0.001 to 0.5.
+
+```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE, results='hide'}
+atlas_1 <- umap(atlas, n.neighbors = 30, min.dist = 0.3)
+
+atlas_2 <- umap(atlas, n.neighbors = 5, min.dist = 0.25)
+
+atlas_3 <- umap(atlas, n.neighbors = 10, min.dist = 0.1)
+
+atlas_4 <- umap(atlas, n.neighbors = 20, min.dist = 0.1)
+
+atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
+```
+
+UMAP n.neighbors = 30, min.dist = 0.3
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas_1, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
+```
+
+UMAP n.neighbors = 5, min.dist = 0.25
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas_2, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
+```
+
+UMAP n.neighbors = 10, min.dist = 0.1
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas_3, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
+```
+
+UMAP n.neighbors = 20, min.dist = 0.1
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas_4, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
+```
+
+UMAP n.neighbors = 10, min.dist = 0.001
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+dimplot(atlas_5, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
+```
+
+Clean up workspace
+```{r}
+rm(atlas_1, atlas_2, atlas_3, atlas_4, atlas_5)
+gc()
+```
+
+### Chosen params UMAP
+
+Run UMAP individual samples for choice of params (standard seems fine)
+UMAP n.neighbors = 30, min.dist = 0.3
+
+```{r, warning=FALSE, message=FALSE, results='hide'}
+atlas <- umap(atlas)
+```
+
+### Plot Cell Atlas QC
+
+nCount
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+featureplot(atlas, reduction = "umap", label = FALSE, feature = "nCount", title = "UMAP-Atlas")
+```
+
+nFeature
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature", title = "UMAP-Atlas")
+```
+
+
+### Plot Cell Atlas by Class
+
+```{r}
+# the annotation is stored in the 'subclass' column of object metadata
+DimPlot(atlas, group.by = "subclass", label = TRUE)
+```
+
+
+## Find Anchors
+
+Find Transfer Anchors
+```{r}
+anchors <- FindTransferAnchors(reference = atlas, query = seurat, normalization.method = "SCT")
+```
+
+Transfer Anchors
+
+```{r}
+predictions.assay <- TransferData(anchorset = anchors, refdata = atlas$subclass, prediction.assay = TRUE,
+    weight.reduction = seurat[["pca"]], dims = 1:30)
+```
+
+Save new assay
+
+```{r}
+seurat[["predictions"]] <- predictions.assay
+```
+
+
+## Plot Cell Atlas Annotations
+
+Example:
+```{r}
+DefaultAssay(seurat) <- "predictions"
+SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), pt.size.factor = 1.6, ncol = 2, crop = TRUE)
+```
+
+## Find Spatially variable Cell Atlas Annotations
+
+```{r}
+seurat <- FindSpatiallyVariableFeatures(seurat, assay = "predictions", selection.method = params$spatial.method,
+    features = rownames(seurat), r.metric = params$r.metric, slot = "data")
+
+top.clusters <- head(SpatiallyVariableFeatures(seurat), params$top.features)
+
+sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
+```
+
+```{r, fig.width = (params$plot_width + 5), fig.height = (params$plot_height + 5)}
+wrap_plots(sp)
+```
+
+Full plot
+
+```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1, ncol = 2, crop = FALSE, alpha = c(0.1, 1))
+```
+
+# Output
+
+Save experiment object:
+  
+```{r}
+saveRDS(seurat, file = "output/11-cell-atlas.rds")
+```
+
+Print session information:
+  
+```{r}
+sessionInfo()
+```
+

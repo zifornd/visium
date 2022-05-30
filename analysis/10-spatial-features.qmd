@@ -81,11 +81,7 @@ library(patchwork)
 library(ggplot2)
 library(dplyr)
 library(reshape2)
-library(viridis)
-library(clustree)
 library(RColorBrewer)
-library(pheatmap)
-library(DT)
 ```
 
 Source user-defined functions:

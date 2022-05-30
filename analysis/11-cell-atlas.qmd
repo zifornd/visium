@@ -12,9 +12,8 @@ params:
   nfeatures.sct:
     - 2000
   ncells.sct:
-    - 3000
-  feature.example:
-    - ["Astro", "L2/3 IT", "L4", "L5 PT", "L5 IT", "L6 CT", "L6 IT", "L6b", "Oligo"]
+    - 100
+  feature.example: ["Astro", "L2/3 IT", "L4", "L5 PT", "L5 IT", "L6 CT", "L6 IT", "L6b", "Oligo"]
   nfeatures.spatial:
     - 100
   spatial.method:
@@ -28,10 +27,10 @@ params:
   plot_height:
     - 7
 ---
-  
+
 # Setup
-  
-Parameter description 
+
+Parameter description
 
 ```{r}
 #| code-fold: true
@@ -105,6 +104,10 @@ Add child documents
 #| child = "analysis/big-data.qmd"
 ```
 
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "C:/Users/Benjamin.S/Documents/GitHub/visium/visium")
+```
+
 Restore project dependencies:
 
 ```{r}
@@ -112,33 +115,28 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
+
 ```{r, message=FALSE}
 library(Seurat)
 ```
 
 Load CRAN packages:
-  
+
 ```{r, message=FALSE}
 library(patchwork)
 library(ggplot2)
 library(dplyr)
 library(reshape2)
-library(viridis)
-library(clustree)
-library(RColorBrewer)
-library(pheatmap)
-library(DT)
 ```
 
 Source user-defined functions:
-  
+
 ```{r}
 source("scripts/reduceDims.R")
 ```
 
 Read experiment data:
-  
+
 ```{r}
 seurat <- readRDS(paste0("output/", params$seurat))
 ```
@@ -149,19 +147,11 @@ Read in cell atlas:
 atlas <- readRDS(params$atlas)
 ```
 
-Setup colour palette:
-  
-```{r}
-col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
-```
-
-
 ## Processing
 
 ### Process Cell Atlas
 
-Normalise
-ncells = 2000 speeds up normalisation
+Normalise ncells = 2000 speeds up normalisation
 
 ```{r}
 atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE) 
@@ -197,7 +187,7 @@ featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature", title
 elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
 ```
 
-From visual inspection it looks like the PCs for merged samples should be between 10-20 
+From visual inspection it looks like the PCs for merged samples should be between 10-20
 
 Define elbow vector:
 
@@ -215,8 +205,7 @@ atlas$Elbow <- rep(elbow_vector, length(atlas$Sample))
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50.
-min.dist sensible values are in the range 0.001 to 0.5.
+n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
 
 ```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE, results='hide'}
 atlas_1 <- umap(atlas, n.neighbors = 30, min.dist = 0.3)
@@ -231,31 +220,37 @@ atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 ```
 
 UMAP n.neighbors = 30, min.dist = 0.3
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(atlas_1, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(atlas_2, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(atlas_3, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(atlas_4, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(atlas_5, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace
+
 ```{r}
 rm(atlas_1, atlas_2, atlas_3, atlas_4, atlas_5)
 gc()
@@ -263,8 +258,7 @@ gc()
 
 ### Chosen params UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine)
-UMAP n.neighbors = 30, min.dist = 0.3
+Run UMAP individual samples for choice of params (standard seems fine) UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 atlas <- umap(atlas)
@@ -284,7 +278,6 @@ nFeature
 featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature", title = "UMAP-Atlas")
 ```
 
-
 ### Plot Cell Atlas by Class
 
 ```{r}
@@ -292,10 +285,10 @@ featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature", titl
 DimPlot(atlas, group.by = "subclass", label = TRUE)
 ```
 
-
 ## Find Anchors
 
 Find Transfer Anchors
+
 ```{r}
 anchors <- FindTransferAnchors(reference = atlas, query = seurat, normalization.method = "SCT")
 ```
@@ -313,10 +306,10 @@ Save new assay
 seurat[["predictions"]] <- predictions.assay
 ```
 
-
 ## Plot Cell Atlas Annotations
 
 Example:
+
 ```{r}
 DefaultAssay(seurat) <- "predictions"
 SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), pt.size.factor = 1.6, ncol = 2, crop = TRUE)
@@ -346,14 +339,13 @@ SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1
 # Output
 
 Save experiment object:
-  
+
 ```{r}
 saveRDS(seurat, file = "output/11-cell-atlas.rds")
 ```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```
-

@@ -183,7 +183,7 @@ atlas <- pca(atlas)
 Individual PCA - dimplot
 
 ```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas, reduction = "pca", label = FALSE, group.by = "Group", title = "PCA-Atlas")
+dimplot(atlas, reduction = "pca", label = FALSE, group.by = params$atlas.group, title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot ncount
@@ -257,31 +257,31 @@ atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_1, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
+dimplot(atlas_1, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_2, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
+dimplot(atlas_2, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_3, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
+dimplot(atlas_3, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_4, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
+dimplot(atlas_4, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_5, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
+dimplot(atlas_5, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace

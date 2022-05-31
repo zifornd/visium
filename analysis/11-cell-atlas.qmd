@@ -5,6 +5,9 @@ params:
     - "07-integrate-samples.rds" # So far only for merged, integrated, or single objects
   atlas:
     - "data/allen_cortex.rds"
+  atlas.group:
+    - "subclass"
+  vars.to.regress: ["nFeature_RNA", "nCount_RNA"]
   min_cells:
     - 2
   elbow_range:
@@ -12,7 +15,7 @@ params:
   nfeatures.sct:
     - 2000
   ncells.sct:
-    - 100
+    - 3000
   feature.example: ["Astro", "L2/3 IT", "L4", "L5 PT", "L5 IT", "L6 CT", "L6 IT", "L6b", "Oligo"]
   nfeatures.spatial:
     - 100
@@ -45,6 +48,16 @@ list(
 Parameter = "atlas",
 Value = params$atlas,
 Description = "Cell atlas location (as .rds object)."
+),
+list(
+Parameter = "atlas.group",
+Value = params$atlas.group,
+Description = "Name of group column in atlas meta.data."
+),
+list(
+Parameter = "vars.to.regress",
+Value = params$vars.to.regress,
+Description = "Variables to regress if required as part of SCT normalisation."
 ),
 list(
 Parameter = "min_cells",
@@ -104,10 +117,6 @@ Add child documents
 #| child = "analysis/big-data.qmd"
 ```
 
-```{r, setup, include=FALSE}
-knitr::opts_knit$set(root.dir = "C:/Users/Benjamin.S/Documents/GitHub/visium/visium")
-```
-
 Restore project dependencies:
 
 ```{r}
@@ -127,11 +136,13 @@ library(patchwork)
 library(ggplot2)
 library(dplyr)
 library(reshape2)
+library(viridis)
 ```
 
 Source user-defined functions:
 
 ```{r}
+print(getwd())
 source("scripts/reduceDims.R")
 ```
 
@@ -151,10 +162,16 @@ atlas <- readRDS(params$atlas)
 
 ### Process Cell Atlas
 
-Normalise ncells = 2000 speeds up normalisation
+Normalise ncells = 3000 speeds up normalisation
 
 ```{r}
 atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE) 
+```
+
+Add Group to meta.data
+
+```{r}
+atlas@meta.data$Group = atlas@meta.data[[params$atlas.group]]
 ```
 
 PCA
@@ -172,13 +189,31 @@ dimplot(atlas, reduction = "pca", label = FALSE, group.by = "Group", title = "PC
 Individual PCA - featureplot ncount
 
 ```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
-featureplot(atlas, reduction = "pca", label = FALSE, feature = "nCount", title = "PCA-Atlas")
+featureplot(atlas, reduction = "pca", label = FALSE, feature = "nCount_RNA", title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot nfeature
 
 ```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
-featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature", title = "PCA-Atlas")
+featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature_RNA", title = "PCA-Atlas")
+```
+
+### Process Cell Atlas
+
+Add in variables to regress
+
+```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+
+if(params$vars.to.regress != FALSE){
+  
+  atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE, vars.to.regress = params$vars.to.regress)  
+  
+  atlas <- pca(atlas)
+  
+  featureplot(atlas, reduction = "pca", label = FALSE, feature = params$vars.to.regress, title = paste0("PCA-Atlas ", params$vars.to.regress))
+  
+}
+ 
 ```
 
 ### Elbow
@@ -200,7 +235,7 @@ print(elbow_vector)
 Add PC elbow to object
 
 ```{r, warning=FALSE, message=FALSE}
-atlas$Elbow <- rep(elbow_vector, length(atlas$Sample))
+atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
 ```
 
 ### UMAP
@@ -222,31 +257,31 @@ atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_1, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
+dimplot(atlas_1, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_2, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
+dimplot(atlas_2, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_3, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
+dimplot(atlas_3, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_4, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
+dimplot(atlas_4, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-dimplot(atlas_5, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
+dimplot(atlas_5, reduction = "umap", label = TRUE, group.by = "Group", title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace
@@ -269,20 +304,20 @@ atlas <- umap(atlas)
 nCount
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-featureplot(atlas, reduction = "umap", label = FALSE, feature = "nCount", title = "UMAP-Atlas")
+featureplot(atlas, reduction = "umap",label =  FALSE, feature = "nCount_RNA", title = "UMAP-Atlas")
 ```
 
 nFeature
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature", title = "UMAP-Atlas")
+featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature_RNA", title = "UMAP-Atlas")
 ```
 
 ### Plot Cell Atlas by Class
 
 ```{r}
 # the annotation is stored in the 'subclass' column of object metadata
-DimPlot(atlas, group.by = "subclass", label = TRUE)
+DimPlot(atlas, group.by = params$atlas.group, label = TRUE)
 ```
 
 ## Find Anchors
@@ -296,7 +331,7 @@ anchors <- FindTransferAnchors(reference = atlas, query = seurat, normalization.
 Transfer Anchors
 
 ```{r}
-predictions.assay <- TransferData(anchorset = anchors, refdata = atlas$subclass, prediction.assay = TRUE,
+predictions.assay <- TransferData(anchorset = anchors, refdata = atlas@meta.data[[params$atlas.group]], prediction.assay = TRUE,
     weight.reduction = seurat[["pca"]], dims = 1:30)
 ```
 
@@ -330,10 +365,10 @@ sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
 wrap_plots(sp)
 ```
 
-Full plot
+## Plot labels of interest
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
-SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1, ncol = 2, crop = FALSE, alpha = c(0.1, 1))
+SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1,  crop = FALSE, alpha = c(0.1, 1))
 ```
 
 # Output

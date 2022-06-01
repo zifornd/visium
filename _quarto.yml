@@ -26,6 +26,8 @@ knitr:
     dev: "png"
     echo: true
     fig.align: "center"
+    number-sections: true
+    number-depth: 3
 
 format:
   html:

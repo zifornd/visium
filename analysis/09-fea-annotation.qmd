@@ -120,6 +120,7 @@ Load Bioconductor packages:
 library(Seurat)
 library(AnnotationDbi)
 library(clusterProfiler)
+library(enrichplot)
 ```
 
 Load CRAN packages:

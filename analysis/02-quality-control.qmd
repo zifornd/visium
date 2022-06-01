@@ -1,9 +1,13 @@
 ---
 title: "Quality control"
 ---
-  
+
 ## Setup
-  
+
+```{r, setup, include=FALSE}
+# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium")
+```
+
 Restore project dependencies:
 
 ```{r}
@@ -11,14 +15,20 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
-```{r, message = FALSE, warning = FALSE}
+
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
-  
-```{r, message = FALSE, warning = FALSE}
+
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -36,7 +46,7 @@ source("scripts/filterCells.R")
 ## Processing
 
 Read experiment object:
-  
+
 ```{r}
 seurat <- readRDS("output/01-data-loading.rds")
 ```
@@ -46,7 +56,6 @@ Read in metrics csv:
 ```{r}
 metrics <- read.csv("output/metrics.csv")
 ```
-
 
 ### QC Metrics
 
@@ -63,68 +72,104 @@ Violin plots for nCounts metric from 10x output (sum in OSCA):
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
-vlns <- lapply(meta, function(x, combinedQC, ylab, show_median) {
+vlns <- lapply(meta, function(x, combinedQC, clean_label) {
 
-  violingg(combinedQC, ylab = ylab, colour_by = x, show_median = show_median, clean = 15, delim = "_", clean_label = wrap_label)
+  violingg(combinedQC, ylab = "nCount_Spatial", colour_by = x, show_median = T, 
+           clean = 15, delim = "_", clean_label = clean_label)
 
-  }, combinedQC = combinedQC, ylab = "nCount_Spatial", show_median = T )
+  }, combinedQC = combinedQC, clean_label = wrap_label)
 ```
 
-Plot combined nCounts Violin plots:
+@fig-ncountsviolin Plot combined nCounts Violin plots:
 
-```{r, fig.width = 10, fig.height = 8}
+```{r}
+#| fig.width: 10
+#| fig.height: 8
+#| label: fig-ncountsviolin
+#| fig-cap: nCounts across samples labelled by possible confounders.
+#| warning: false
+#| message: false
+
 wrap_plots(vlns)
 ```
 
 Image map plots for nCounts:
 
-```{r, message = FALSE, warning = FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 spatialPlots <- lapply(names(seurat), function(x, seuratList) { 
 
   SpatialFeaturePlot(seuratList[[x]], features = "nCount_Spatial") + 
-    theme(legend.position = "right") + labs(title=x)
+    theme(legend.position = "right") + labs(title = x)
 
   }, seuratList = seurat)
 ```
 
-Plot Image map plots for nCounts
+@fig-ncountsimage Plot Image map plots for nCounts
 
-```{r, message = FALSE, warning = FALSE, fig.width = 15, fig.height = 20}
+```{r}
+#| fig.width: 15
+#| fig.height: 20
+#| label: fig-ncountsimage
+#| fig-cap: nCounts across sample images.
+#| warning: false
+#| message: false
+
 wrap_plots(spatialPlots)
 ```
 
 #### nFeatures
 
-Violin plots for nFeatures metric from 10x output (detected in OSCA): 
+Violin plots for nFeatures metric from 10x output (detected in OSCA):
 
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
-vlns <- lapply(meta, function(x, combinedQC, ylab, show_median) {
+vlns <- lapply(meta, function(x, combinedQC, clean_label) {
 
-  violingg(combinedQC, ylab = ylab, colour_by = x, show_median = show_median, clean = 15, delim = "_", clean_label = wrap_label)
+  violingg(combinedQC, ylab = "nFeature_Spatial", colour_by = x, 
+           show_median = T, clean = 15, delim = "_", clean_label = clean_label)
 
-  }, combinedQC = combinedQC, ylab = "nFeature_Spatial", show_median = T )
+  }, combinedQC = combinedQC, clean_label = wrap_label)
 ```
 
-Plot combined nFeatures plots:
+@fig-nfeaturesviolin Plot combined nFeatures plots:
 
-```{r, fig.width = 10, fig.height = 8}
+```{r}
+#| fig.width: 10
+#| fig.height: 8
+#| label: fig-nfeaturesviolin
+#| fig-cap: nFeatures across sample images.
+#| warning: false
+#| message: false
+
 wrap_plots(vlns)
 ```
 
-Image map nFeatures:
+@fig-nfeaturesimage Image map nFeatures:
 
-```{r, message = FALSE, warning = FALSE}
+```{r}
+#| warning: false
+#| message: false
+
 spatialPlots <- lapply(names(seurat), function(x, seuratList) { 
 
-  SpatialFeaturePlot(seuratList[[x]], features = "nFeature_Spatial") + 
-    theme(legend.position = "right") + labs(title=x)
+  SpatialFeaturePlot(seuratList[[x]], features = "nFeature_Spatial") +
+    theme(legend.position = "right") + labs(title = x)
 
   }, seuratList = seurat)
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = 15, fig.height = 20}
+```{r}
+#| fig.width: 15
+#| fig.height: 20
+#| label: fig-nfeaturesimage
+#| fig-cap: nFeatures across sample images.
+#| warning: false
+#| message: false
+
 wrap_plots(spatialPlots)
 ```
 
@@ -133,110 +178,170 @@ wrap_plots(spatialPlots)
 ##### Sequencing:
 
 ```{r}
-metricscols <- c("Number.of.Reads", "Valid.Barcodes", "Valid.UMIs", "Q30.Bases.in.Barcode", 
-                 "Q30.Bases.in.Probe.Read", "Q30.Bases.in.UMI")
+metricscols <- c("Number.of.Reads", "Valid.Barcodes", "Valid.UMIs", 
+                 "Q30.Bases.in.Barcode", "Q30.Bases.in.Probe.Read", 
+                 "Q30.Bases.in.UMI")
 
-bars <- lapply(metricscols, function(x, metrics, xlab, colour_by) {
+bars <- lapply(metricscols, function(x, metrics, clean_label) {
   
-  barplotgg(metrics, ylab = x, xlab = xlab, colour_by = colour_by, clean = 11, delim = "_", xdelim = ".", ydelim = ".", clean_label = wrap_label)
+  barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID", 
+            clean = 11, delim = "_", xdelim = ".", ydelim = ".", 
+            clean_label = clean_label)
 
-  }, metrics = metrics, xlab = "Sample.ID", colour_by = "Sample.ID" )
+  }, metrics = metrics, clean_label = wrap_label)
 ```
 
-Plot all Sequencing:
+@fig-qcseq and @fig-qcseqviolin Plot all Sequencing:
 
-```{r, fig.width = 12, fig.height = 8}
+```{r}
+#| fig.width: 12
+#| fig.height: 8
+#| label: fig-qcseq
+#| fig-cap: Sequencing QC values.
+
 wrap_plots(bars)
 ```
 
 Summary Violin plot
 
 ```{r}
-seq_metr <- metrics[,c("Sample.ID","Valid.Barcodes", "Valid.UMIs", "Q30.Bases.in.Barcode", 
-                       "Q30.Bases.in.Probe.Read", "Q30.Bases.in.UMI")]
+seq_metr <- metrics[,c("Sample.ID","Valid.Barcodes", "Valid.UMIs", 
+                       "Q30.Bases.in.Barcode", "Q30.Bases.in.Probe.Read", 
+                       "Q30.Bases.in.UMI")]
+
 seq_metr <- melt(seq_metr)
+
 seq_metr$Percentage <- seq_metr$value
+
 seq_metr$QC <- seq_metr$variable
 ```
 
 ```{r}
-v1 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", colour_by = "Sample.ID", show_median = T)
-v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", colour_by = "Sample.ID", show_median = T, ylim = c(0,1))
+v1 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", 
+               colour_by = "Sample.ID", show_median = T)
+
+v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", 
+               colour_by = "Sample.ID", show_median = T, ylim = c(0,1))
 ```
 
-```{r , fig.width = 4, fig.height = 6}
+```{r}
+#| fig.width: 4
+#| fig.height: 6
+#| label: fig-qcseqviolin
+#| fig-cap: Sequencing QC values summary violin.
+
 wrap_plots(v1, v2, nrow = 2)
 ```
 
 ##### Mapping:
 
 ```{r}
-metricscols <- c("Reads.Mapped.to.Probe.Set", "Reads.Mapped.Confidently.to.Probe.Set", 
+metricscols <- c("Reads.Mapped.to.Probe.Set", 
+                 "Reads.Mapped.Confidently.to.Probe.Set", 
                  "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set")
 
-bars <- lapply(metricscols, function(x, metrics, xlab, colour_by) {
+bars <- lapply(metricscols, function(x, metrics, clean_label) {
   
-  barplotgg(metrics, ylab = x, xlab = xlab, colour_by = colour_by, clean = 15, delim = "_", xdelim = ".", ydelim = ".", clean_label = wrap_label)
+  barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID", 
+            clean = 15, delim = "_", xdelim = ".", ydelim = ".", 
+            clean_label = clean_label)
 
-  }, metrics = metrics, xlab = "Sample.ID", colour_by = "Sample.ID" )
+  }, metrics = metrics, clean_label = wrap_label)
 ```
 
 Add Warning values if mapping poor
 
 ```{r}
-metrics$Warning <- ifelse(metrics$Reads.Mapped.Confidently.to.Probe.Set <= 0.5, "Red","Green") 
+metrics$Warning <- ifelse(metrics$Reads.Mapped.Confidently.to.Probe.Set <= 0.5, 
+                          "Red","Green") 
 
 metrics$Warning <- factor(metrics$Warning, levels = c("Red", "Green"))
 
-warningplot <- barplotgg(metrics, ylab = "Reads.Mapped.Confidently.to.Probe.Set", xlab = "Sample.ID", colour_by = "Warning", 
-                          clean = 15, delim = "_", xdelim = ".", ydelim = ".", clean_label = wrap_label)
+warningplot <- barplotgg(metrics, ylab = "Reads.Mapped.Confidently.to.Probe.Set", 
+                         xlab = "Sample.ID", colour_by = "Warning", 
+                          clean = 15, delim = "_", xdelim = ".", 
+                         ydelim = ".", clean_label = wrap_label)
 
 bars[[4]] <- warningplot
 ```
 
-Plot all mapping:
+@fig-qcmapping and @fig-qcmappingviolin Plot all mapping:
 
-```{r, fig.width = 8, fig.height = 6}
+```{r}
+#| fig.width: 8
+#| fig.height: 6
+#| label: fig-qcmapping
+#| fig-cap: Mapping QC values.
+
 wrap_plots(bars, nrow = 2)
 ```
 
 Summary Violin plot
 
-```{r, message = FALSE, warning = FALSE}
-map_metr <- metrics[,c("Sample.ID","Reads.Mapped.to.Probe.Set", "Reads.Mapped.Confidently.to.Probe.Set", 
-                       "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set", "Warning")]
+```{r}
+#| message: false
+#| warning: false
+#| label: fig-qcmappingviolin
+#| fig-cap: Mapping QC values summary violin.
+
+map_metr <- metrics[,c("Sample.ID","Reads.Mapped.to.Probe.Set", 
+                       "Reads.Mapped.Confidently.to.Probe.Set", 
+                       "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set", 
+                       "Warning")]
+
 map_metr <- melt(map_metr)
+
 map_metr$Percentage <- map_metr$value
+
 map_metr$QC <- map_metr$variable
 ```
 
 ```{r}
-v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", colour_by = "Sample.ID", show_median = T, clean = 20)
-v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", colour_by = "Sample.ID", show_median = T, ylim = c(0,1), clean = 20)
-v3 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", colour_by = "Warning", show_median = T, clean = 20)
+v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
+               colour_by = "Sample.ID", show_median = T, clean = 20)
+
+v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
+               colour_by = "Sample.ID", show_median = T, ylim = c(0,1), 
+               clean = 20)
+
+v3 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
+               colour_by = "Warning", show_median = T, clean = 20)
 ```
 
 With warning label
 
-```{r , fig.width = 8, fig.height = 8}
+```{r}
+#| fig.width: 8
+#| fig.height: 8
+#| label: fig-qcmappingwarning
+#| fig-cap: Mapping QC values violin with mapping warnings.
+
 wrap_plots(v1, v2, v3, nrow = 2)
 ```
 
 ##### Spots:
 
 ```{r}
-metricscols <- c("Number.of.Spots.Under.Tissue", "Mean.Reads.per.Spot", "Median.Genes.per.Spot")
+metricscols <- c("Number.of.Spots.Under.Tissue", "Mean.Reads.per.Spot", 
+                 "Median.Genes.per.Spot")
 
-bars <- lapply(metricscols, function(x, metrics, xlab, colour_by) {
+bars <- lapply(metricscols, function(x, metrics, clean_label) {
 
-  barplotgg(metrics, ylab = x, xlab = xlab, colour_by = colour_by, clean = 11, delim = "_", xdelim = ".", ydelim = ".", clean_label = wrap_label)
+  barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID",
+            clean = 11, delim = "_", xdelim = ".", ydelim = ".",
+            clean_label = clean_label)
 
-  }, metrics = metrics, xlab = "Sample.ID", colour_by = "Sample.ID" )
+  }, metrics = metrics, clean_label = wrap_label)
 ```
 
-Plot all spot:
+@fig-qcspot Plot all spot:
 
-```{r, fig.width = 12, fig.height = 4}
+```{r}
+#| fig.width: 12
+#| fig.height: 4
+#| label: fig-qcspot
+#| fig-cap: Spot QC values.
+
 wrap_plots(bars)
 ```
 
@@ -244,15 +349,15 @@ wrap_plots(bars)
 
 #### Remove spots based on location
 
-Sometimes there are regionally located clusters of low quality spots which may be filtered prior to downstream analysis.
-For example - the edges of slides which can be easily filtered as long as they are not clearly associated with a biological signal.
-This will need to be completed on a per sample basis - below is an example: 
+Sometimes there are regionally located clusters of low quality spots which may be filtered prior to downstream analysis. For example - the edges of slides which can be easily filtered as long as they are not clearly associated with a biological signal. This will need to be completed on a per sample basis - below is an example:
 
 e.g. image at index 1
 
 Look at ranges of x y values for easier estimation of coordinates
 
-```{r, eval = F}
+```{r}
+#| eval: false
+
 image_key <- seurat[[1]]@images[[1]]@key
   
 # fetch xy axis data frame
@@ -265,32 +370,47 @@ print(c("X axis range:",range(spatial_df[,2])))
 
 Filter out those low quality spots which are located peripherally
 
-```{r, eval = F}
+```{r}
+#| eval: false
+
 seurat_1 <- filterByXY(seurat[[1]], x1 = 85.00408692 , x2 = 520 , 
                              y1 = 53.49836036, y2 = 513.829758624)
 ```
 
 Show which cells have been filtered
 
-```{r, eval = F}
+```{r}
+#| eval: false
+
 labels <- SpatialDimPlot(seurat[[1]],cells.highlight = colnames(seurat_1))
 ```
 
 Plot alongside original UMI count plot
 
-```{r, message = FALSE, warning = FALSE, eval = F }
-counts <- SpatialFeaturePlot(seurat[[1]], features = "nCount_Spatial") + theme(legend.position = "right")
+```{r, message = FALSE, warning = FALSE}
+#| eval: false
+#| message: false
+#| warning: false
+
+counts <- SpatialFeaturePlot(seurat[[1]], features = "nCount_Spatial") + 
+          theme(legend.position = "right")
 ```
 
 Plot together
 
-```{r, fig.width = 6, fig.height = 10, eval = F}
+```{r, fig.width = 6, fig.height = 10}
+#| eval: false
+#| fig.width: 6
+#| fig.height: 10
+
 wrap_plots(counts, labels, ncol = 1)
 ```
 
-Replace old seurat object with new 
+Replace old seurat object with new
 
-```{r, eval = F}
+```{r}
+#| eval: false
+
 seurat[[1]] = NULL
 
 seurat[[1]] = seurat_1
@@ -318,10 +438,10 @@ Save experiment object:
 
 ```{r}
 saveRDS(seurat, file = "output/02-quality-control.rds")
-```  
+```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```

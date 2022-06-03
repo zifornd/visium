@@ -326,9 +326,9 @@ plot_fea_results <- function(cp_obj, title, plot_type = "barplot",
 
             # return a null ggplot if no results
             p <- ggplot() +
-                theme_void() +
-                geom_text(aes(0, 0, label = "N/A")) +
-                xlab(NULL)
+                 theme_void() +
+                 geom_text(aes(0, 0, label = "N/A")) +
+                 xlab(NULL)
         }
   }
 

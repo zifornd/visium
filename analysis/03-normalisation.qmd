@@ -25,13 +25,19 @@ Restore project dependencies:
 
 Load Bioconductor packages:
   
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
   
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -58,13 +64,23 @@ seurat <- readRDS("output/02-quality-control.rds")
 
 Top n HVGs
 
-```{r, message = FALSE, warning = FALSE, Find-features-n}
+```{r}
+#| label: Find-features-n
+#| warning: false
+#| message: false
+
 features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures, BPPARAM = BPPARAM) 
 ```
 
 Feature plot n features
 
-```{r, message = FALSE, warning = FALSE, fig.width = 10, fig.height = 5, warning=FALSE}
+```{r}
+#| fig.width: 10
+#| fig.height: 5
+#| fig-cap: Feature plot for variable features with VST method.
+#| warning: false
+#| message: false
+
 wrap_plots(lapply(features_n, plotVariableGenes, selection.method = "vst"), ncol = 2)
 ```
 
@@ -81,7 +97,11 @@ Here we normalise each sample alone and do not merge.
 
 Set min cells as per params
 
-```{r, Normalise-SCT-features-n, message = FALSE, warning=FALSE}
+```{r}
+#| label: Normalise-SCT-features-n
+#| warning: false
+#| message: false
+
 seurat <- lapply(seurat, normalise, variable.features.n = params$nfeatures, min_cells = params$min_cells) 
 ```
 
@@ -90,30 +110,55 @@ Plot detailed steps of sctransform
 Details of sct transform from sctransform::vst vignette
 See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
 
-```{r, message = FALSE, warning=FALSE}
+```{r}
+#| warning: false
+#| message: false
+
 vst_out <- lapply(seurat, normaliseSctransform) 
 ```
 
 Plot model params
 
-```{r, fig.width = 10, fig.height = 5, message = FALSE, warning=FALSE}
+```{r}
+#| warning: false
+#| message: false
+#| fig-cap: Plot of SCT model parameters.
+#| fig.width: 10
+#| fig.height: 5
+
 wrap_plots(lapply(vst_out, sctransform::plot_model_pars, show_theta = TRUE))
 ```
 
 Plot model for example gene 
 
-```{r, message = TRUE, warning=FALSE, fig.show="hide"}
+```{r}
+#| warning: false
+#| message: false
+#| fig.show: "hide"
+
 print(params$example)
 modl <- lapply(seurat, plotModelSctransform, features = c(params$example), vst_outlist = vst_out)
 ```
 
-```{r, fig.width = 5, fig.height = 10, message = FALSE, warning=FALSE}
+```{r}
+#| fig.width: 5
+#| fig.height: 10
+#| warning: false
+#| message: false
+#| fig-cap: Plot SCT model for example gene alongisde pearsons residuals.
+
 wrap_plots(modl)
 ```
 
 Feature plot as per SCT
 
-```{r, fig.width = 10, fig.height = 5, message = FALSE, warning=FALSE}
+```{r}
+#| fig.width: 10
+#| fig.height: 5
+#| warning: false
+#| message: false
+#| fig-cap: Variable feature plot as per SCT normalisation.
+
 wrap_plots(lapply(seurat, plotVariableGenes, selection.method = "sct"), ncol = 2)
 ```
 

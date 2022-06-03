@@ -24,13 +24,19 @@ Restore project dependencies:
 
 Load Bioconductor packages:
   
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
   
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -42,7 +48,10 @@ library(RColorBrewer)
 
 Source user-defined functions:
   
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 source("scripts/reduceDims.R")
 source("scripts/cluster.R")
 ```
@@ -59,7 +68,10 @@ seurat <- readRDS("output/04-reduced-dimensions.rds")
 
 SNN graph construction across a number of params
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seurat_1 <- bplapply(seurat, snnCluster, k.param = 5, resolution = 0.1, BPPARAM = BPPARAM)
 seurat_2 <- bplapply(seurat, snnCluster, k.param = 10, resolution = 0.3, BPPARAM = BPPARAM)
 seurat_3 <- bplapply(seurat, snnCluster, k.param = 15, resolution = 0.5, BPPARAM = BPPARAM)
@@ -70,23 +82,43 @@ seurat_5 <- bplapply(seurat, snnCluster, k.param = 50, resolution = 0.8, BPPARAM
 ### Plot umaps
 
 k.param = 5, resolution = 0.1
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 5, resolution = 0.1
+
 wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 k.param = 10, resolution = 0.3
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 10, resolution = 0.3
+
 wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 k.param = 15, resolution = 0.5
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 15, resolution = 0.5
+
 wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 k.param = 20, resolution = 0.6
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.6
+
 wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 k.param = 50, resolution = 0.8
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 50, resolution = 0.8
+
 wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 Clean up workspace
@@ -107,45 +139,81 @@ seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.8, BPPARAM =
 ```
 
 k.param = 20, resolution = 0.1
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.1
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.1"), ncol = 2)
 ```
 k.param = 20, resolution = 0.2
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.2
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.2"), ncol = 2)
 ```
 k.param = 20, resolution = 0.3
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.3
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.3"), ncol = 2)
 ```
 
 ### Plot umaps with k.params 20
 
 k.param = 20, resolution = 0.1
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.1
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.1"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.2
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.2
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.2"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.3
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.3
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.3"), ncol = 2)
 ```
 k.param = 20, resolution = 0.5
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.5
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.5"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.6
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.6
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.6"), ncol = 2)
 ```
 k.param = 20, resolution = 0.8
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: k.param = 20, resolution = 0.8
+
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.8"), ncol = 2)
 ```
 
@@ -155,13 +223,20 @@ Across k = 20 (seurat default)
 
 Using clustree for checking cluster stability across params
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 clustree_plots <- lapply(seurat, clustreeRun)
 ```
 
 Wrap plot clustree
 
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height + 4 }
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height + 4
+#| fig-cap: Clustree plot
+
 wrap_plots(clustree_plots, ncol = 2)
 ```
 
@@ -172,7 +247,10 @@ Across k = 20 (seurat default)
 
 A cell with a large positive width is closer to other cells from the same cluster compared to cells from different clusters. On the other hand, low or negative widths indicate that cells from different clusters are not well separated.
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 silhouettes_1 <- lapply(seurat, silhouette, clustername = "res.0.2")
 silhouettes_2 <- lapply(seurat, silhouette, clustername = "res.0.3")
 silhouettes_3 <- lapply(seurat, silhouette, clustername = "res.0.5")
@@ -180,7 +258,10 @@ silhouettes_4 <- lapply(seurat, silhouette, clustername = "res.0.6")
 silhouettes_5 <- lapply(seurat, silhouette, clustername = "res.0.8")
 ```
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 silhouette_plots_1 <- lapply(silhouettes_1, plotSil, type = "boxplot", title = "res.0.2")
 silhouette_plots_2 <- lapply(silhouettes_2, plotSil, type = "boxplot", title = "res.0.3")
 silhouette_plots_3 <- lapply(silhouettes_3, plotSil, type = "boxplot", title = "res.0.5")
@@ -196,23 +277,43 @@ gc()
 #### Wrap plot silhouette
 
 res.0.2
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height
+#| fig-cap: Silhouette plot res 0.2
+
 wrap_plots(silhouette_plots_1, ncol = 2)
 ```
 res.0.3
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height
+#| fig-cap: Silhouette plot res 0.3
+
 wrap_plots(silhouette_plots_2, ncol = 2)
 ```
 res.0.5
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height
+#| fig-cap: Silhouette plot res 0.5
+
 wrap_plots(silhouette_plots_3, ncol = 2)
 ```
 res.0.6
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height
+#| fig-cap: Silhouette plot res 0.6
+
 wrap_plots(silhouette_plots_4, ncol = 2)
 ```
 res.0.8
-```{r, fig.width = (params$plot_width + 2), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 2)
+#| fig.height: params$plot_height
+#| fig-cap: Silhouette plot res 0.8
+
 wrap_plots(silhouette_plots_5, ncol = 2)
 ```
 
@@ -230,11 +331,19 @@ spatial_dim2 <- lapply(seurat, plotSpatialCluster, group = "res.0.3")
 ```
 
 res.0.2
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 3)}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: (params$plot_height + 3)
+#| fig-cap: Spatial plot res 0.2
+
 wrap_plots(spatial_dim1, ncol = 2)
 ```
 res.0.3
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 3)}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: (params$plot_height + 3)
+#| fig-cap: Spatial plot res 0.3
+
 wrap_plots(spatial_dim2, ncol = 2)
 ```
 
@@ -249,12 +358,18 @@ seurat <- lapply(seurat, addLabel, chosenCluster = params$cluster)
 Individual UMAP
 
 ```{r, warning=FALSE}
+#| warning: false
+
 umap_plots <- lapply(seurat, dimplot, reduction = "umap", group.by = "Cluster")
 ```
 
 Wrap plot UMAP
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP chosen resolution
+
 wrap_plots(umap_plots, ncol = 2)
 ```
 
@@ -263,12 +378,18 @@ wrap_plots(umap_plots, ncol = 2)
 Individual TSNE
 
 ```{r, warning=FALSE}
+#| warning: false
+
 tsne_plots <- lapply(seurat, dimplot, reduction = "tsne", group.by = "Cluster")
 ```
 
 Wrap plot TSNE
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: TSNE chosen resolution
+
 wrap_plots(tsne_plots, ncol = 2)
 ```
 

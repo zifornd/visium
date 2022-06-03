@@ -42,12 +42,14 @@ umap <- function(seurat, reduction = "pca", dims = NULL,
     min.dist <- 0.3
 
   } else {
+
     print(paste0("n.neighbors: ", n.neighbors))
     print(paste0("min.dist: ", min.dist))
+
   }
 
   seuratumap <- Seurat::RunUMAP(seurat, reduction = reduction, dims = dims,
-                        n.neighbors = n.neighbors, min.dist = min.dist)
+                                n.neighbors = n.neighbors, min.dist = min.dist)
 
   return(seuratumap)
 
@@ -79,14 +81,25 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
   if (is.null(perplexity)) {
 
     print(paste0("perplexity: ", round(ncol(seurat)^ (1 / 2), digits = -1)))
+
     perplexity <- round(ncol(seurat)^ (1 / 2), digits = -1)
 
   } else {
+
     print(paste0("perplexity: ", perplexity))
+
+    if (perplexity == "N^1/2"){
+
+      print(paste0("perplexity: ", round(ncol(seurat)^ (1 / 2), digits = -1)))
+
+      perplexity <- round(ncol(seurat)^ (1 / 2), digits = -1)
+    
+    }
+
   }
 
   seurattsne <- Seurat::RunTSNE(seurat, reduction = reduction, dims = dims, 
-                        perplexity = perplexity, max_iter = max_iter)
+                                perplexity = perplexity, max_iter = max_iter)
 
   return(seurattsne)
 
@@ -97,7 +110,7 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
 
 dimplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE, 
                     group.by = "orig.ident", cols = NULL, 
-                    groups = NULL, split.by = NULL, title = NULL){
+                    groups = NULL, split.by = NULL, title = NULL) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
 
@@ -116,10 +129,10 @@ dimplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   }
 
   seuratdim <- Seurat::DimPlot(seurat, reduction = reduction,
-                        dims = dims, label = label,
-                        group.by =  group.by, cols = cols,
-                       split.by = split.by) + 
-    labs(title = title)
+                               dims = dims, label = label,
+                               group.by =  group.by, cols = cols,
+                               split.by = split.by) + 
+               labs(title = title)
 
   return(seuratdim)
 }
@@ -138,8 +151,8 @@ featureplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   }
 
   seuratfeature <- Seurat::FeaturePlot(seurat, reduction = reduction,
-                        dims = dims, label = label,
-                        features =  features) +
+                                       dims = dims, label = label,
+                                       features =  features) +
                    scale_color_viridis(option = "magma") +
                    labs(title = title, colour = features)
 
@@ -178,11 +191,15 @@ featurevln <- function(seurat, features = "nCount_Spatial",
   }
 
   if (flip == TRUE) {
+
     seuratvln <- seuratvln + ggplot2::coord_flip()
+
   }
 
   if (xlabs == FALSE) {
+
     seuratvln <- seuratvln + ggplot2::theme(axis.text.x = ggplot2::element_blank())
+
   }
   return(seuratvln)
 

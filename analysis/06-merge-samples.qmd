@@ -10,9 +10,9 @@ params:
   plot_height:
     - 4
 ---
-  
+
 # Setup
-  
+
 Add child documents
 
 ```{r}
@@ -26,14 +26,20 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
-```{r, message=FALSE}
+
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
-  
-```{r, message=FALSE}
+
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -43,7 +49,7 @@ library(clustree)
 ```
 
 Source user-defined functions:
-  
+
 ```{r}
 source("scripts/loadInSpatial.R")
 source("scripts/normalise.R")
@@ -54,7 +60,7 @@ source("scripts/cluster.R")
 # Processing
 
 Read experiment object:
-  
+
 ```{r}
 # seurat <- readRDS("output/06-cell-annotation.rds")
 seurat <- readRDS("output/05-clustering.rds")
@@ -62,7 +68,10 @@ seurat <- readRDS("output/05-clustering.rds")
 
 ## Merge samples
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seurat <- seuratMerge(seurat)
 ```
 
@@ -72,7 +81,10 @@ seurat <- seuratMerge(seurat)
 
 PCA individual samples
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seurat <- pca(seurat)
 ```
 
@@ -80,33 +92,59 @@ seurat <- pca(seurat)
 
 Individual PCA - dimplot
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Merged by group.
+
 dimplot(seurat, reduction = "pca", label = FALSE, group.by = "Group", title = "PCA-Merged")
 ```
 
 Individual PCA - featureplot ncount
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Merged by nCount.
+
 featureplot(seurat, reduction = "pca", label = FALSE, feature = "nCount_Spatial", title = "PCA-Merged")
 ```
 
 Individual PCA - featureplot nfeature
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Merged by nFeature.
+
 featureplot(seurat, reduction = "pca", label = FALSE, feature = "nFeature_Spatial", title = "PCA-Merged")
 ```
 
 ### Elbow
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Elbow plot Merged.
+
 elbow(seurat, vline1 = 10, vline2 = 20, title = "Elbow-Merged")
 ```
 
-From visual inspection it looks like the PCs for merged samples should be between 10-20 
+From visual inspection it looks like the PCs for merged samples should be between 10-20
 
 Define elbow vector:
 
-```{r, warning=FALSE}
+```{r}
+#| warning: false
+
 elbow_vector <- params$elbow_range
 
 print(elbow_vector)
@@ -114,16 +152,23 @@ print(elbow_vector)
 
 Add PC elbow to object
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seurat$Elbow <- rep(elbow_vector, length(seurat$Sample))
 ```
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50.
-min.dist sensible values are in the range 0.001 to 0.5.
+n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
 
-```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE, results='hide'}
+```{r}
+#| label: Explore-Features-UMAP
+#| warning: false
+#| message: false
+#| results: hide
+
 seurat_1 <- umap(seurat, n.neighbors = 30, min.dist = 0.3)
 
 seurat_2 <- umap(seurat, n.neighbors = 5, min.dist = 0.25)
@@ -136,31 +181,41 @@ seurat_5 <- umap(seurat, n.neighbors = 10, min.dist = 0.001)
 ```
 
 UMAP n.neighbors = 30, min.dist = 0.3
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Elbow plot Merged.
+
 dimplot(seurat_1, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(seurat_2, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(seurat_3, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(seurat_4, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
+
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
 dimplot(seurat_5, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace
+
 ```{r}
 rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
@@ -168,8 +223,7 @@ gc()
 
 ### Chosen params UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine)
-UMAP n.neighbors = 30, min.dist = 0.3
+Run UMAP individual samples for choice of params (standard seems fine) UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat <- umap(seurat)
@@ -177,12 +231,11 @@ seurat <- umap(seurat)
 
 ### TSNE
 
-perplexity parameter (should not be bigger than 3 * perplexity < nrow(X) - 1)
-NB: Try N^1/2 as rule of thumb
+perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1) NB: Try N\^1/2 as rule of thumb
 
 ### Chosen params TSNE
 
-perplexity = N^1/2
+perplexity = N\^1/2
 
 ```{r, warning=FALSE, message=FALSE, results='hide'}
 seurat <- tsne(seurat)
@@ -233,26 +286,37 @@ seurat_5 <- snnCluster(seurat, k.param = 50, resolution = 0.8)
 #### Plot umaps
 
 k.param = 5, resolution = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat_1, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 5, resolution = 0.1")
 ```
+
 k.param = 10, resolution = 0.3
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat_2, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 10, resolution = 0.3")
 ```
+
 k.param = 15, resolution = 0.5
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat_3, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 15, resolution = 0.5")
 ```
+
 k.param = 20, resolution = 0.6
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat_4, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
+
 k.param = 50, resolution = 0.8
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat_5, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 50, resolution = 0.8")
 ```
+
 Clean up workspace
+
 ```{r}
 rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
@@ -272,26 +336,37 @@ seurat <- snnCluster(seurat, k.param = 20, resolution = 0.8)
 #### Plot umaps with k.params 20
 
 k.param = 20, resolution = 0.1
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.1", title = "UMAP-Merged, k.param = 20, resolution = 0.1")
 ```
+
 k.param = 20, resolution = 0.2
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.2", title = "UMAP-Merged, k.param = 20, resolution = 0.2")
 ```
+
 k.param = 20, resolution = 0.3
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.3", title = "UMAP-Merged, k.param = 20, resolution = 0.3")
 ```
+
 k.param = 20, resolution = 0.5
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.5", title = "UMAP-Merged, k.param = 20, resolution = 0.5")
 ```
+
 k.param = 20, resolution = 0.6
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.6", title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
+
 k.param = 20, resolution = 0.8
+
 ```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
 dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.8", title = "UMAP-Merged, k.param = 20, resolution = 0.8")
 ```
@@ -306,7 +381,7 @@ Using clustree for checking cluster stability across params
 clustreeRun(seurat)
 ```
 
-### Silhouette 
+### Silhouette
 
 Across k = 20 (seurat default)
 
@@ -340,6 +415,7 @@ wrap_plots(silhouette_plots_1,
 ```
 
 Clean up workspace
+
 ```{r}
 rm(silhouettes_1, silhouettes_2, silhouettes_3, silhouettes_4, silhouettes_5)
 gc()
@@ -348,16 +424,20 @@ gc()
 ### Spatial plot
 
 #### Res 0.2 and 0.3
+
 ```{r, warning=FALSE, message=FALSE}
 sdplot1 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, group = "res.0.2")
 sdplot2 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, group = "res.0.3")
 ```
 
 res.0.2
+
 ```{r, fig.width = 25, fig.height = 10}
 wrap_plots(sdplot1, ncol = 3)
 ```
+
 res.0.3
+
 ```{r, fig.width = 25, fig.height = 10}
 wrap_plots(sdplot2, ncol = 3)
 ```
@@ -377,8 +457,7 @@ saveRDS(seurat, file = "output/06-merge-samples.rds")
 ```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```
-

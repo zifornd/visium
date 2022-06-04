@@ -33,7 +33,7 @@ params:
 
 # Setup
 
-Parameter description 
+Parameter description
 
 ```{r}
 #| code-fold: true
@@ -170,7 +170,7 @@ hallmarks_genesets_t2g <- hallmarks_genesets %>% dplyr::distinct(gs_name, entrez
 ```{r}
 custom_genesets_t2g <- NULL
 
-if(params$custom.anno != FALSE){
+if (params$custom.anno != FALSE) {
 
   custom_genesets <- read.table(params$custom.anno, header = TRUE, sep = ",", quote = F)
   custom_genesets_t2g <- custom_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
@@ -188,8 +188,14 @@ Filter table for overrep and output vector gene names
 #| warning: false
 #| results: hide
 
-vector_res_overrep <- lapply(res, parse_res, group = params$group, p_adj = params$pval.adj.thres.filter, lfc = params$lfc.thres.filter, type= "overrep", 
-                               lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature, split.res = params$split.res)
+vector_res_overrep <- lapply(res, parse_res, group = params$group, 
+                             p_adj = params$pval.adj.thres.filter, 
+                             lfc = params$lfc.thres.filter, 
+                             type = "overrep", 
+                             lfc_name = params$lfc.col.name, 
+                             padj_name = params$padj.col.name, 
+                             gene_id_name = params$feature, 
+                             split.res = params$split.res)
 
 ```
 
@@ -200,8 +206,11 @@ Rank table for gsea and output named vector ranked by lfc
 #| warning: false
 #| results: hide
 
-vector_res_gsea <- lapply(res, parse_res, group = params$group, type= "gsea", 
-                              lfc_name = params$lfc.col.name, padj_name = params$padj.col.name, gene_id_name = params$feature, split.res = params$split.res)
+vector_res_gsea <- lapply(res, parse_res, group = params$group, 
+                          type = "gsea", lfc_name = params$lfc.col.name, 
+                          padj_name = params$padj.col.name, 
+                          gene_id_name = params$feature, 
+                          split.res = params$split.res)
 
 ```
 
@@ -212,32 +221,50 @@ vector_res_gsea <- lapply(res, parse_res, group = params$group, type= "gsea",
 Get Org species
 
 ```{r}
-if(params$species == "Mus musculus"){org_species <- "Mm"}
-if(params$species == "Homo sapiens"){org_species <- "Hs"}
+if (params$species == "Mus musculus") {
+  
+  org_species <- "Mm"
+  
+}
+if (params$species == "Homo sapiens") {
+  
+  org_species <- "Hs"
+  
+}
 ```
 
 Perform hypergeometric Samplewise and per param\$group
 
 ```{r}
-obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = cells_genesets_t2g, 
-                           species = org_species,
-                           analysis_type = "overrep", 
-                           pval = params$pval.adj.thres.overrep, padj = params$pval.adj.thres.overrep, pmethod = "BH")
-```
-
-```{r}
-obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = hallmarks_genesets_t2g, 
-                           species = org_species, 
-                           analysis_type = "overrep", 
-                           pval = params$pval.adj.thres.overrep, padj = params$pval.adj.thres.overrep, pmethod = "BH")
-```
-
-```{r}
-if(!is.null(custom_genesets_t2g)){
-  obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, term2gene = custom_genesets_t2g, 
-                            species = org_species, 
+obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom, 
+                            term2gene = cells_genesets_t2g, 
+                            species = org_species,
                             analysis_type = "overrep", 
-                            pval = params$pval.adj.thres.overrep, padj = params$pval.adj.thres.overrep, pmethod = "BH")
+                            pval = params$pval.adj.thres.overrep, 
+                            padj = params$pval.adj.thres.overrep, 
+                            pmethod = "BH")
+```
+
+```{r}
+obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, 
+                                term2gene = hallmarks_genesets_t2g,
+                                species = org_species, 
+                                analysis_type = "overrep", 
+                                pval = params$pval.adj.thres.overrep, 
+                                padj = params$pval.adj.thres.overrep, 
+                                pmethod = "BH")
+```
+
+```{r}
+if (!is.null(custom_genesets_t2g)) {
+  
+  obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, 
+                                  term2gene = custom_genesets_t2g, 
+                                  species = org_species,
+                                  analysis_type = "overrep",
+                                  pval = params$pval.adj.thres.overrep, 
+                                  padj = params$pval.adj.thres.overrep, 
+                                  pmethod = "BH")
 }
 ```
 
@@ -279,18 +306,20 @@ res_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
 resbind_overrep_cells <- bind_rows(res_overrep_cells, .id = params$group)
 
 # Plot as interactive table
-DT::datatable(resbind_overrep_cells, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-options = list(dom = 'Bfrtip', 
-buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-pageLength = 5,
-columnDefs = list(list(
-  targets = c(8,10),
-  render = JS(
-    "function(data, type, row, meta) {",
-    "return type === 'display' && data.length > 6 ?",
-    "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-    "}")
-))), filter = "top")
+DT::datatable(resbind_overrep_cells, class = 'cell-border stripe', 
+              extensions = 'Buttons', rownames = FALSE, 
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                pageLength = 5,
+                columnDefs = list(
+                  list(targets = c(8,10),
+                       render = JS(
+                         "function(data, type, row, meta) {",
+                         "return type === 'display' && data.length > 6 ?",
+                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                         "}")))),
+              filter = "top")
 ```
 
 ```{r}
@@ -304,22 +333,24 @@ res_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks, nro
 resbind_overrep_hallmarks <- bind_rows(res_overrep_hallmarks, .id = params$group)
 
 # Plot as interactive table
-DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-options = list(dom = 'Bfrtip', 
-buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-pageLength = 5,
-columnDefs = list(list(
-  targets = c(8,10),
-  render = JS(
-    "function(data, type, row, meta) {",
-    "return type === 'display' && data.length > 6 ?",
-    "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-    "}")
-))), filter = "top")
+DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe', 
+              extensions = 'Buttons', rownames = FALSE, 
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                pageLength = 5,
+                columnDefs = list(
+                  list(targets = c(8,10),
+                       render = JS(
+                         "function(data, type, row, meta) {",
+                         "return type === 'display' && data.length > 6 ?",
+                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                         "}")))),
+              filter = "top")
 ```
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
   # Only take final level of results table from list
   res_overrep_custom <- unlist(res_overrep_custom, recursive = FALSE)
@@ -331,19 +362,21 @@ if(!is.null(custom_genesets_t2g)){
   resbind_overrep_custom <- bind_rows(res_overrep_custom, .id = params$group)
 
   # Plot as interactive table
-  DT::datatable(resbind_overrep_custom, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-  options = list(dom = 'Bfrtip', 
-  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-  pageLength = 5,
-  columnDefs = list(list(
-    targets = c(8,10),
-    render = JS(
-      "function(data, type, row, meta) {",
-      "return type === 'display' && data.length > 6 ?",
-      "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-      "}")
-  ))), filter = "top")
-  }
+  DT::datatable(resbind_overrep_custom, class = 'cell-border stripe', 
+                extensions = 'Buttons', rownames = FALSE, 
+                options = list(
+                  dom = 'Bfrtip',
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                  pageLength = 5,
+                  columnDefs = list(
+                    list(targets = c(8,10),
+                         render = JS(
+                           "function(data, type, row, meta) {",
+                           "return type === 'display' && data.length > 6 ?",
+                           "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                           "}")))),
+                filter = "top")
+}
 ```
 
 #### Save out as CSV
@@ -353,7 +386,12 @@ if(!is.null(custom_genesets_t2g)){
 #| warning: false
 #| results: hide
 
-lapply(names(res_overrep_cells), function(x, res_overrep_cells) {write.csv(res_overrep_cells[[x]], file = paste0("output/", x, "-Cells-Overrep_Clusters.csv"))}, res_overrep_cells = res_overrep_cells)
+lapply(names(res_overrep_cells), function(x, res_overrep_cells) {
+  
+  write.csv(res_overrep_cells[[x]], 
+            file = paste0("output/", x, "-Cells-Overrep_Clusters.csv"))
+  
+  }, res_overrep_cells = res_overrep_cells)
 ```
 
 ```{r}
@@ -361,7 +399,12 @@ lapply(names(res_overrep_cells), function(x, res_overrep_cells) {write.csv(res_o
 #| warning: false
 #| results: hide
 
-lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks) {write.csv(res_overrep_hallmarks[[x]], file = paste0("output/", x, "-Hallmarks-Overrep_Clusters.csv"))}, res_overrep_hallmarks = res_overrep_hallmarks)
+lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks) {
+  
+  write.csv(res_overrep_hallmarks[[x]], 
+            file = paste0("output/", x, "-Hallmarks-Overrep_Clusters.csv"))
+  
+  }, res_overrep_hallmarks = res_overrep_hallmarks)
 ```
 
 ```{r}
@@ -369,11 +412,15 @@ lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks) {write.c
 #| warning: false
 #| results: hide
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
-  lapply(names(res_overrep_custom), function(x, res_overrep_custom) {write.csv(res_overrep_custom[[x]], file = paste0("output/", x, "-Custom-Overrep_Clusters.csv"))}, res_overrep_custom = res_overrep_custom)
-
-  }
+  lapply(names(res_overrep_custom), function(x, res_overrep_custom) {
+    
+    write.csv(res_overrep_custom[[x]], 
+              file = paste0("output/", x, "-Custom-Overrep_Clusters.csv"))
+    
+    }, res_overrep_custom = res_overrep_custom)
+}
 ```
 
 ### GSEA
@@ -381,48 +428,59 @@ if(!is.null(custom_genesets_t2g)){
 Perform GSEA Samplewise and per param\$group
 
 ```{r}
-obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = cells_genesets_t2g, 
-                        analysis_type = "gsea", 
-                        pval = params$pval.adj.thres.gsea, padj = params$pval.adj.thres.gsea, pmethod = "BH")
+obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, 
+                         term2gene = cells_genesets_t2g,
+                         analysis_type = "gsea",
+                         pval = params$pval.adj.thres.gsea, 
+                         padj = params$pval.adj.thres.gsea, 
+                         pmethod = "BH")
 ```
 
 ```{r}
-obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = hallmarks_genesets_t2g, 
+obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, 
+                             term2gene = hallmarks_genesets_t2g, 
                              analysis_type = "gsea", 
-                             pval = params$pval.adj.thres.gsea, padj = params$pval.adj.thres.gsea, pmethod = "BH")
+                             pval = params$pval.adj.thres.gsea, 
+                             padj = params$pval.adj.thres.gsea, 
+                             pmethod = "BH")
 ```
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
-  obj_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, term2gene = custom_genesets_t2g, 
+if (!is.null(custom_genesets_t2g)) {
+  
+  obj_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, 
+                            term2gene = custom_genesets_t2g, 
                             analysis_type = "gsea", 
-                            pval = params$pval.adj.thres.gsea, padj = params$pval.adj.thres.gsea, pmethod = "BH")
-}
+                            pval = params$pval.adj.thres.gsea, 
+                            padj = params$pval.adj.thres.gsea, 
+                            pmethod = "BH")
+  }
 ```
 
 Parse cp object
 
 ```{r}
 res_gsea_cells <- lapply(obj_gsea_cells, wrap_parse_cp_obj,  
-                           species = org_species,
-                           type = "gsea", 
-                           db = "Custom")
+                         species = org_species,
+                         type = "gsea",
+                         db = "Custom")
 ```
 
 ```{r}
-res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj, 
-                           species = org_species, 
-                           type = "gsea", 
-                           db = "Custom")
+res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
+                             species = org_species,
+                             type = "gsea",
+                             db = "Custom")
 ```
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
-  res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj, 
-                            species = org_species, 
-                            type = "gsea", 
-                           db = "Custom")
-}
+if (!is.null(custom_genesets_t2g)) {
+  
+  res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
+                               species = org_species,
+                               type = "gsea",
+                               db = "Custom")
+  }
 ```
 
 #### Interactive results
@@ -437,18 +495,20 @@ res_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
 # bind into single results table
 resbind_gsea_cells <- bind_rows(res_gsea_cells, .id = params$group)
 
-DT::datatable(resbind_gsea_cells, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-options = list(dom = 'Bfrtip', 
-buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-pageLength = 5,
-columnDefs = list(list(
-  targets = c(11,12),
-  render = JS(
-    "function(data, type, row, meta) {",
-    "return type === 'display' && data.length > 6 ?",
-    "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-    "}")
-))), filter = "top")
+DT::datatable(resbind_gsea_cells, class = 'cell-border stripe',
+              extensions = 'Buttons', rownames = FALSE,
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                pageLength = 5,
+                columnDefs = list(
+                  list(targets = c(11,12),
+                       render = JS(
+                         "function(data, type, row, meta) {",
+                         "return type === 'display' && data.length > 6 ?",
+                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                         "}")))),
+              filter = "top")
 ```
 
 ```{r}
@@ -461,22 +521,24 @@ res_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 0]
 # bind into single results table
 resbind_gsea_hallmarks <- bind_rows(res_gsea_hallmarks, .id = params$group)
 
-DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-options = list(dom = 'Bfrtip', 
-buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-pageLength = 5,
-columnDefs = list(list(
-  targets = c(11,12),
-  render = JS(
-    "function(data, type, row, meta) {",
-    "return type === 'display' && data.length > 6 ?",
-    "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-    "}")
-))), filter = "top")
+DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe',
+              extensions = 'Buttons', rownames = FALSE,
+              options = list(
+                dom = 'Bfrtip',
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                pageLength = 5,
+                columnDefs = list(
+                  list(targets = c(11,12),
+                       render = JS(
+                         "function(data, type, row, meta) {",
+                         "return type === 'display' && data.length > 6 ?",
+                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                         "}")))),
+              filter = "top")
 ```
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
   # Only take final level of results table from list
   res_gsea_custom <- unlist(res_gsea_custom, recursive = FALSE)
@@ -487,18 +549,20 @@ if(!is.null(custom_genesets_t2g)){
   # bind into single results table
   resbind_gsea_custom <- bind_rows(res_gsea_custom, .id = params$group)
 
-  DT::datatable(resbind_gsea_custom, class = 'cell-border stripe', extensions = 'Buttons', rownames = FALSE,
-  options = list(dom = 'Bfrtip', 
-  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'), 
-  pageLength = 5,
-  columnDefs = list(list(
-    targets = c(11,12),
-    render = JS(
-      "function(data, type, row, meta) {",
-      "return type === 'display' && data.length > 6 ?",
-      "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-      "}")
-  ))), filter = "top")
+  DT::datatable(resbind_gsea_custom, class = 'cell-border stripe',
+                extensions = 'Buttons', rownames = FALSE,
+                options = list(
+                  dom = 'Bfrtip',
+                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                  pageLength = 5,
+                  columnDefs = list(
+                    list(targets = c(11,12),
+                         render = JS(
+                           "function(data, type, row, meta) {",
+                           "return type === 'display' && data.length > 6 ?",
+                           "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
+                           "}")))),
+                filter = "top")
   }
 ```
 
@@ -509,7 +573,12 @@ if(!is.null(custom_genesets_t2g)){
 #| warning: false
 #| results: hide
 
-lapply(names(res_gsea_cells), function(x, res_gsea_cells) {write.csv(res_gsea_cells[[x]], file = paste0("output/", x, "-Cells-GSEA_Clusters.csv"))}, res_gsea_cells = res_gsea_cells)
+lapply(names(res_gsea_cells), function(x, res_gsea_cells) {
+  
+  write.csv(res_gsea_cells[[x]], 
+            file = paste0("output/", x, "-Cells-GSEA_Clusters.csv"))
+  
+  }, res_gsea_cells = res_gsea_cells)
 ```
 
 ```{r}
@@ -517,7 +586,12 @@ lapply(names(res_gsea_cells), function(x, res_gsea_cells) {write.csv(res_gsea_ce
 #| warning: false
 #| results: hide
 
-lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks) {write.csv(res_gsea_hallmarks[[x]], file = paste0("output/", x, "-Hallmarks-GSEA_Clusters.csv"))}, res_gsea_hallmarks = res_gsea_hallmarks)
+lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks) {
+  
+  write.csv(res_gsea_hallmarks[[x]], 
+            file = paste0("output/", x, "-Hallmarks-GSEA_Clusters.csv"))
+  
+  }, res_gsea_hallmarks = res_gsea_hallmarks)
 ```
 
 ```{r}
@@ -525,8 +599,14 @@ lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks) {write.csv(res
 #| warning: false
 #| results: hide
 
-if(!is.null(custom_genesets_t2g)){
-  lapply(names(res_gsea_custom), function(x, res_gsea_custom) {write.csv(res_gsea_custom[[x]], file = paste0("output/", x, "-Custom-GSEA_Clusters.csv"))}, res_gsea_custom = res_gsea_custom)
+if (!is.null(custom_genesets_t2g)) {
+  
+  lapply(names(res_gsea_custom), function(x, res_gsea_custom) {
+    
+    write.csv(res_gsea_custom[[x]], 
+              file = paste0("output/", x, "-Custom-GSEA_Clusters.csv"))
+    
+    }, res_gsea_custom = res_gsea_custom)
 }
 ```
 
@@ -541,7 +621,17 @@ For Overrep
 #| warning: false
 #| results: hide
 
-barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){ plot_barplot(res_overrep_cells[[x]], colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_overrep_cells = res_overrep_cells)
+barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){ 
+  
+  plot_barplot(res_overrep_cells[[x]], 
+               colnames_select = c("Description", "p.adjust", "GeneRatio"), 
+               colour = "steelblue", 
+               title = x, 
+               x = "-log10(Adjusted P.value)", 
+               y = "Term", 
+               top = 5)
+  
+  }, res_overrep_cells = res_overrep_cells)
 ```
 
 ```{r}
@@ -557,7 +647,17 @@ wrap_plots(barplots, ncol = 2)
 #| warning: false
 #| results: hide
 
-barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks){ plot_barplot(res_overrep_hallmarks[[x]], colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_overrep_hallmarks = res_overrep_hallmarks)
+barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks){ 
+  
+  plot_barplot(res_overrep_hallmarks[[x]], 
+               colnames_select = c("Description", "p.adjust", "GeneRatio"), 
+               colour = "steelblue", 
+               title = x, 
+               x = "-log10(Adjusted P.value)", 
+               y = "Term", 
+               top = 5)
+  
+  }, res_overrep_hallmarks = res_overrep_hallmarks)
 ```
 
 ```{r}
@@ -573,8 +673,20 @@ wrap_plots(barplots, ncol = 2)
 #| warning: false
 #| results: hide
 
-if(!is.null(custom_genesets_t2g)){
-  barplots <- lapply(names(res_overrep_custom), function(x, res_overrep_custom){ plot_barplot(res_overrep_custom[[x]], colnames_select = c("Description", "p.adjust", "GeneRatio"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_overrep_custom = res_overrep_custom)
+if (!is.null(custom_genesets_t2g)) {
+  
+  barplots <- lapply(names(res_overrep_custom), function(x, res_overrep_custom){ 
+    
+    plot_barplot(res_overrep_custom[[x]], 
+                 colnames_select = c("Description", "p.adjust", "GeneRatio"), 
+                 colour = "steelblue", 
+                 title = x, 
+                 x = "-log10(Adjusted P.value)", 
+                 y = "Term",
+                 top = 5)
+    
+    }, res_overrep_custom = res_overrep_custom)
+  
 }
 ```
 
@@ -583,8 +695,10 @@ if(!is.null(custom_genesets_t2g)){
 #| fig.height: params$plot_height
 #| fig-cap: Barplot Ovverepresentation analysis Custom geneset
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
+  
   wrap_plots(barplots, ncol = 2)
+  
 }
 ```
 
@@ -595,7 +709,17 @@ For GSEA
 #| warning: false
 #| results: hide
 
-barplots <- lapply(names(res_gsea_cells), function(x, res_gsea_cells){ plot_barplot(res_gsea_cells[[x]], colnames_select = c("Description", "p.adjust", "NES"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_gsea_cells = res_gsea_cells)
+barplots <- lapply(names(res_gsea_cells), function(x, res_gsea_cells){
+  
+  plot_barplot(res_gsea_cells[[x]], 
+               colnames_select = c("Description", "p.adjust", "NES"), 
+               colour = "steelblue", 
+               title = x, 
+               x = "-log10(Adjusted P.value)", 
+               y = "Term", 
+               top = 5)
+  
+  }, res_gsea_cells = res_gsea_cells)
 ```
 
 ```{r}
@@ -611,7 +735,17 @@ wrap_plots(barplots, ncol = 2)
 #| warning: false
 #| results: hide
 
-barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){ plot_barplot(res_gsea_hallmarks[[x]], colnames_select = c("Description", "p.adjust", "NES"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_gsea_hallmarks = res_gsea_hallmarks)
+barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){ 
+  
+  plot_barplot(res_gsea_hallmarks[[x]],
+               colnames_select = c("Description", "p.adjust", "NES"), 
+               colour = "steelblue", 
+               title = x, 
+               x = "-log10(Adjusted P.value)", 
+               y = "Term", 
+               top = 5)
+  
+  }, res_gsea_hallmarks = res_gsea_hallmarks)
 ```
 
 ```{r}
@@ -622,23 +756,33 @@ barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){ p
 wrap_plots(barplots, ncol = 2)
 ```
 
-```{r, warning=FALSE, message=FALSE, results='hide'}
+```{r}
 #| message: false
 #| warning: false
 #| results: hide
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
-  barplots <- lapply(names(res_gsea_custom), function(x, res_gsea_custom){ plot_barplot(res_gsea_custom[[x]], colnames_select = c("Description", "p.adjust", "NES"), colour = "steelblue", title = x, x = "-log10(Adjusted P.value)", y = "Term", top = 5)}, res_gsea_custom = res_gsea_custom)
+  barplots <- lapply(names(res_gsea_custom), function(x, res_gsea_custom){ 
+    
+    plot_barplot(res_gsea_custom[[x]], 
+                 colnames_select = c("Description", "p.adjust", "NES"), 
+                 colour = "steelblue", 
+                 title = x, 
+                 x = "-log10(Adjusted P.value)", 
+                 y = "Term", 
+                 top = 5)
+    
+    }, res_gsea_custom = res_gsea_custom)
 }
 ```
 
-```{r, fig.width = (params$plot_width), fig.height = (params$plot_height)}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: Barplot GSEA Custom geneset
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
 wrap_plots(barplots, ncol = 2)
   
@@ -654,7 +798,14 @@ For GSEA
 #| warning: false
 #| results: hide
 
-enrichplots <- lapply(names(unlist(obj_gsea_cells, recursive = F)), function(x, obj_gsea_cells){plot_fea_results(obj_gsea_cells[[x]], title=x, plot_type = "gsea_enrichment", row_gsea = 1)}, obj_gsea_cells = unlist(obj_gsea_cells, recursive = F))
+enrichplots <- lapply(names(unlist(obj_gsea_cells, recursive = F)), function(x, obj_gsea_cells){
+  
+  plot_fea_results(obj_gsea_cells[[x]], 
+                   title = x, 
+                   plot_type = "gsea_enrichment", 
+                   row_gsea = 1)
+  
+  }, obj_gsea_cells = unlist(obj_gsea_cells, recursive = F))
 ```
 
 ```{r}
@@ -670,7 +821,14 @@ wrap_plots(enrichplots)
 #| warning: false
 #| results: hide
 
-enrichplots <- lapply(names(unlist(obj_gsea_hallmarks, recursive = F)), function(x, obj_gsea_hallmarks){plot_fea_results(obj_gsea_hallmarks[[x]], title=x, plot_type = "gsea_enrichment", row_gsea = 1)}, obj_gsea_hallmarks = unlist(obj_gsea_hallmarks, recursive = F))
+enrichplots <- lapply(names(unlist(obj_gsea_hallmarks, recursive = F)), function(x, obj_gsea_hallmarks) {
+  
+  plot_fea_results(obj_gsea_hallmarks[[x]], 
+                   title = x, 
+                   plot_type = "gsea_enrichment", 
+                   row_gsea = 1)
+  
+  }, obj_gsea_hallmarks = unlist(obj_gsea_hallmarks, recursive = F))
 ```
 
 ```{r}
@@ -686,9 +844,16 @@ wrap_plots(enrichplots)
 #| warning: false
 #| results: hide
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
-enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x, obj_gsea_custom){plot_fea_results(obj_gsea_custom[[x]], title=x, plot_type = "gsea_enrichment", row_gsea = 1)}, obj_gsea_custom = unlist(obj_gsea_custom, recursive = F))
+enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x, obj_gsea_custom) {
+  
+  plot_fea_results(obj_gsea_custom[[x]], 
+                   title = x, 
+                   plot_type = "gsea_enrichment", 
+                   row_gsea = 1)
+  
+  }, obj_gsea_custom = unlist(obj_gsea_custom, recursive = F))
 }
 ```
 
@@ -697,9 +862,10 @@ enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x,
 #| fig.height: (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Custom geneset
 
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
-wrap_plots(enrichplots)
+  wrap_plots(enrichplots)
+  
 }
 ```
 
@@ -708,7 +874,7 @@ wrap_plots(enrichplots)
 Save experiment object:
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
 
   res_anno <- list(res_overrep_cells = res_overrep_cells, 
                    res_overrep_hallmarks = res_overrep_hallmarks, 

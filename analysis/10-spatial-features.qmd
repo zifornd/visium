@@ -55,7 +55,6 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-
 Add child documents
 
 ```{r}
@@ -111,7 +110,9 @@ col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
 
 ## PrepSCTFindmarkers
 
-Prepare "data" slot of SCT assay for differential expression and downstream visualisation Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+Prepare "data" slot of SCT assay for differential expression and downstream visualisation 
+Please see vignette for further details: 
+https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
 
 Parse seurat object into list if not already
 
@@ -120,12 +121,12 @@ Parse seurat object into list if not already
 #| warning: false
 
 # If running on single seurat object or output from merged or integrated qmd
-if(class(seurat) == "Seurat"){ 
+if (class(seurat) == "Seurat") { 
 
   seuratList <- list(seurat)
 
   # If merged or combined will have multiple samples in meta data so save into list as combined seurat
-  if(length(unique(seurat@meta.data$Sample)) > 1){
+  if (length(unique(seurat@meta.data$Sample)) > 1) {
       
     names(seuratList) <- "Combined.Seurat"
 
@@ -135,7 +136,7 @@ if(class(seurat) == "Seurat"){
   }
 
   # If single sample save into list as sample name
-  if(length(unique(seurat@meta.data$Sample)) == 1){
+  if (length(unique(seurat@meta.data$Sample)) == 1) {
 
     names(seuratList) <- unique(seurat@meta.data$Sample)
 
@@ -153,15 +154,21 @@ if(class(seurat) == "Seurat"){
 
 ## Run Spatially variable features (Trendseek)
 
-Please see https://satijalab.org/seurat/articles/spatial_vignette.html for more details and https://www.nature.com/articles/nmeth.4634
+Please see https://satijalab.org/seurat/articles/spatial_vignette.html 
+for more details and https://www.nature.com/articles/nmeth.4634
 
 ```{r}
 samples <- names(seuratprep)
 
 seuratprep <- lapply(samples, function(x, seuratprep, selection.method, nfeatures, r.metric) {
-    sv <- FindSpatiallyVariableFeatures(seuratprep[[x]], assay = "SCT", 
+  
+    sv <- FindSpatiallyVariableFeatures(seuratprep[[x]], 
+                                        assay = "SCT", 
                                         features = VariableFeatures(seuratprep[[x]])[1:nfeatures], 
-                                        selection.method = selection.method, r.metric = r.metric)
+                                        selection.method = selection.method, 
+                                        r.metric = r.metric)
+    seuratprep[[x]] <- sv
+    
 }, seuratprep = seuratprep, selection.method = params$spatial.method, nfeatures = params$nfeatures, r.metric = params$r.metric)
 
 names(seuratprep) <- samples
@@ -172,7 +179,8 @@ names(seuratprep) <- samples
 Get top SpatiallyVariableFeatures
 
 ```{r}
-top.features <- lapply(seuratprep, SpatiallyVariableFeatures, selection.method = params$spatial.method)
+top.features <- lapply(seuratprep, SpatiallyVariableFeatures, 
+                       selection.method = params$spatial.method)
 ```
 
 ```{r}
@@ -181,7 +189,11 @@ top.features <- lapply(seuratprep, SpatiallyVariableFeatures, selection.method =
 
 spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, top) { 
 
-  SpatialFeaturePlot(seuratprep[[x]], features = head(top.features[[x]],top), alpha = c(0.1, 1))  + labs(title=x)
+  SpatialFeaturePlot(seuratprep[[x]], 
+                     features = head(top.features[[x]],top), 
+                     alpha = c(0.1, 1))  + 
+    labs(title = x)
+  
   }, seuratprep = seuratprep, top.features = top.features, top = params$top.features)
 ```
 
@@ -193,7 +205,7 @@ spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, 
 wrap_plots(spatialPlots)
 ```
 
-## ScaleData 
+## ScaleData
 
 Scale and center data and add ScaleData to seuratprep for heatmap visualisation
 
@@ -209,7 +221,8 @@ Plot heatmap of top markers
 ### DoHeatmap
 
 ```{r}
-doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = FALSE)
+doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features, 
+                     type = "DoHeatmap", legend = FALSE)
 ```
 
 ```{r}
@@ -223,7 +236,8 @@ wrap_plots(doheatmaps)
 With legend
 
 ```{r}
-doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = TRUE)
+doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features, 
+                           type = "DoHeatmap", legend = TRUE)
 ```
 
 ```{r}
@@ -237,13 +251,13 @@ wrap_plots(doheatmapslegend)
 # Output
 
 Save experiment object:
-  
+
 ```{r}
 saveRDS(seuratprep, file = "output/10-spatial-features.rds")
 ```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```

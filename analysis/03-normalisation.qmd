@@ -8,7 +8,7 @@ params:
   example:
     - "Foxj1"
 ---
-  
+
 ## Setup
 
 Parameter description
@@ -53,7 +53,7 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -62,7 +62,7 @@ library(Seurat)
 ```
 
 Load CRAN packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -82,7 +82,7 @@ source("scripts/normalise.R")
 ## Processing
 
 Read experiment object:
-  
+
 ```{r}
 seurat <- readRDS("output/02-quality-control.rds")
 ```
@@ -98,7 +98,8 @@ Top n HVGs
 #| warning: false
 #| message: false
 
-features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures, BPPARAM = BPPARAM) 
+features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures, 
+                       BPPARAM = BPPARAM) 
 ```
 
 Feature plot n features
@@ -110,7 +111,8 @@ Feature plot n features
 #| warning: false
 #| message: false
 
-wrap_plots(lapply(features_n, plotVariableGenes, selection.method = "vst"), ncol = 2)
+wrap_plots(lapply(features_n, plotVariableGenes, selection.method = "vst"), 
+           ncol = 2)
 ```
 
 ### Normalisation
@@ -119,7 +121,7 @@ Using SCT transform
 
 See https://satijalab.org/seurat/reference/sctransform for more details.
 
-Seurat authors advice each sample to be normalised separately prior to merging
+Seurat authors advice each sample to be normalised separately prior to merging 
 See https://github.com/satijalab/seurat/discussions/4430 GitHub for more details.
 
 Here we normalise each sample alone and do not merge.
@@ -131,13 +133,13 @@ Set min cells as per params
 #| warning: false
 #| message: false
 
-seurat <- lapply(seurat, normalise, variable.features.n = params$nfeatures, min_cells = params$min_cells) 
+seurat <- lapply(seurat, normalise, variable.features.n = params$nfeatures, 
+                 min_cells = params$min_cells) 
 ```
 
 Plot detailed steps of sctransform
 
-Details of sct transform from sctransform::vst vignette
-See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
+Details of sct transform from sctransform::vst vignette See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
 
 ```{r}
 #| warning: false
@@ -158,7 +160,7 @@ Plot model params
 wrap_plots(lapply(vst_out, sctransform::plot_model_pars, show_theta = TRUE))
 ```
 
-Plot model for example gene 
+Plot model for example gene
 
 ```{r}
 #| warning: false
@@ -166,7 +168,9 @@ Plot model for example gene
 #| fig.show: "hide"
 
 print(params$example)
-modl <- lapply(seurat, plotModelSctransform, features = c(params$example), vst_outlist = vst_out)
+
+modl <- lapply(seurat, plotModelSctransform, features = c(params$example), 
+               vst_outlist = vst_out)
 ```
 
 ```{r}
@@ -197,10 +201,10 @@ Save experiment object:
 
 ```{r}
 saveRDS(seurat, file = "output/03-normalisation.rds")
-```  
+```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```

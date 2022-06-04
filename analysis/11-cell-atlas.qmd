@@ -174,7 +174,9 @@ atlas <- readRDS(params$atlas)
 Normalise ncells = 3000 speeds up normalisation
 
 ```{r}
-atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE) 
+atlas <- SCTransform(atlas, ncells = params$ncells.sct, 
+                     variable.features.n = params$nfeatures.sct, 
+                     verbose = FALSE) 
 ```
 
 Add Group to meta.data
@@ -201,7 +203,8 @@ Individual PCA - dimplot
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by atlas.group.
 
-dimplot(atlas, reduction = "pca", label = FALSE, group.by = params$atlas.group, title = "PCA-Atlas")
+dimplot(atlas, reduction = "pca", label = FALSE, 
+        group.by = params$atlas.group, title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot ncount
@@ -213,7 +216,8 @@ Individual PCA - featureplot ncount
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nCount.
 
-featureplot(atlas, reduction = "pca", label = FALSE, feature = "nCount_RNA", title = "PCA-Atlas")
+featureplot(atlas, reduction = "pca", label = FALSE, 
+            feature = "nCount_RNA", title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot nfeature
@@ -225,7 +229,8 @@ Individual PCA - featureplot nfeature
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nFeature.
 
-featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature_RNA", title = "PCA-Atlas")
+featureplot(atlas, reduction = "pca", label = FALSE, 
+            feature = "nFeature_RNA", title = "PCA-Atlas")
 ```
 
 ### Process Cell Atlas
@@ -241,12 +246,15 @@ Add in variables to regress
 
 if (params$vars.to.regress != FALSE) {
   
-  atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, 
-                       verbose = FALSE, vars.to.regress = params$vars.to.regress)  
+  atlas <- SCTransform(atlas, ncells = params$ncells.sct, 
+                       variable.features.n = params$nfeatures.sct, 
+                       verbose = FALSE, 
+                       vars.to.regress = params$vars.to.regress)  
   
   atlas <- pca(atlas)
   
-  featureplot(atlas, reduction = "pca", label = FALSE, feature = params$vars.to.regress, 
+  featureplot(atlas, reduction = "pca", label = FALSE, 
+              feature = params$vars.to.regress, 
               title = paste0("PCA-Atlas ", params$vars.to.regress))
   
 }
@@ -283,7 +291,9 @@ atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
+n.neighbors should be in the range 5 to 50. 
+
+min.dist sensible values are in the range 0.001 to 0.5.
 
 ```{r}
 #| label: Explore-Features-UMAP
@@ -309,7 +319,9 @@ UMAP n.neighbors = 30, min.dist = 0.3
 #| fig.height: params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 30, min.dist = 0.3.
 
-dimplot(atlas_1, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
+dimplot(atlas_1, reduction = "umap", label = TRUE, 
+        group.by = params$atlas.group, 
+        title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
@@ -319,7 +331,9 @@ UMAP n.neighbors = 5, min.dist = 0.25
 #| fig.height: params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 5, min.dist = 0.25.
 
-dimplot(atlas_2, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
+dimplot(atlas_2, reduction = "umap", label = TRUE, 
+        group.by = params$atlas.group, 
+        title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
@@ -329,7 +343,9 @@ UMAP n.neighbors = 10, min.dist = 0.1
 #| fig.height: params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.1.
 
-dimplot(atlas_3, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
+dimplot(atlas_3, reduction = "umap", label = TRUE, 
+        group.by = params$atlas.group, 
+        title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
@@ -339,7 +355,9 @@ UMAP n.neighbors = 20, min.dist = 0.1
 #| fig.height: params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 20, min.dist = 0.1.
 
-dimplot(atlas_4, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
+dimplot(atlas_4, reduction = "umap", label = TRUE, 
+        group.by = params$atlas.group, 
+        title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
@@ -349,7 +367,9 @@ UMAP n.neighbors = 10, min.dist = 0.001
 #| fig.height: params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.001.
 
-dimplot(atlas_5, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
+dimplot(atlas_5, reduction = "umap", label = TRUE, 
+        group.by = params$atlas.group, 
+        title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace
@@ -361,7 +381,9 @@ gc()
 
 ### Chosen params UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine) UMAP n.neighbors = 30, min.dist = 0.3
+Run UMAP individual samples for choice of params (standard seems fine):
+
+UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
 #| message: false
@@ -369,6 +391,7 @@ Run UMAP individual samples for choice of params (standard seems fine) UMAP n.ne
 #| results: hide
 
 print("n.neighbors: ", params$n.neighbors)
+
 print("min.dist: ", params$min.dist)
 
 atlas <- umap(atlas, n.neighbors = params$n.neighbors, min.dist = params$min.dist)
@@ -383,7 +406,8 @@ nCount
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nCounts.
 
-featureplot(atlas, reduction = "umap",label =  FALSE, feature = "nCount_RNA", title = "UMAP-Atlas")
+featureplot(atlas, reduction = "umap",label =  FALSE, 
+            feature = "nCount_RNA", title = "UMAP-Atlas")
 ```
 
 nFeature
@@ -393,7 +417,8 @@ nFeature
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nFeatures.
 
-featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature_RNA", title = "UMAP-Atlas")
+featureplot(atlas, reduction = "umap", label = FALSE, 
+            feature = "nFeature_RNA", title = "UMAP-Atlas")
 ```
 
 ### Plot Cell Atlas by Class
@@ -412,7 +437,9 @@ DimPlot(atlas, group.by = params$atlas.group, label = TRUE)
 Find Transfer Anchors
 
 ```{r}
-anchors <- FindTransferAnchors(reference = atlas, query = seurat, normalization.method = "SCT")
+anchors <- FindTransferAnchors(reference = atlas, 
+                               query = seurat, 
+                               normalization.method = "SCT")
 ```
 
 Transfer Anchors
@@ -421,8 +448,11 @@ Transfer Anchors
 # Get dimensions required
 dims <- as.numeric(strsplit(params$elbow_range, ":")[[1]])[1]:as.numeric(strsplit(params$elbow_range, ":")[[1]])[2]
 
-predictions.assay <- TransferData(anchorset = anchors, refdata = atlas@meta.data[[params$atlas.group]], prediction.assay = TRUE,
-                                  weight.reduction = seurat[["pca"]], dims = dims)
+predictions.assay <- TransferData(anchorset = anchors, 
+                                  refdata = atlas@meta.data[[params$atlas.group]], 
+                                  prediction.assay = TRUE,
+                                  weight.reduction = seurat[["pca"]], 
+                                  dims = dims)
 ```
 
 Save new assay
@@ -441,14 +471,18 @@ Example:
 #| fig-cap: Spatial plot with predicted Cell Atlas labels.
 
 DefaultAssay(seurat) <- "predictions"
-SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), pt.size.factor = 1.6, ncol = 2, crop = TRUE)
+SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), 
+                   pt.size.factor = 1.6, ncol = 2, crop = TRUE)
 ```
 
 ## Find Spatially variable Cell Atlas Annotations
 
 ```{r}
-seurat <- FindSpatiallyVariableFeatures(seurat, assay = "predictions", selection.method = params$spatial.method,
-                                        features = rownames(seurat), r.metric = params$r.metric, slot = "data")
+seurat <- FindSpatiallyVariableFeatures(seurat, assay = "predictions", 
+                                        selection.method = params$spatial.method,
+                                        features = rownames(seurat), 
+                                        r.metric = params$r.metric, 
+                                        slot = "data")
 
 top.clusters <- head(SpatiallyVariableFeatures(seurat), params$top.features)
 
@@ -465,12 +499,13 @@ wrap_plots(sp)
 
 ## Plot labels of interest
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: Spatial plot with predicted Cell Atlas labels - labels of interest.
 
-SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1,  crop = FALSE, alpha = c(0.1, 1))
+SpatialFeaturePlot(seurat, features = params$feature.example, 
+                   pt.size.factor = 1,  crop = FALSE, alpha = c(0.1, 1))
 ```
 
 # Output

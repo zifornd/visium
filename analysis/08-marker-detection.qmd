@@ -18,7 +18,7 @@ params:
   plot_height:
     - 7
 ---
-  
+
 # Setup
 
 Parameter description
@@ -73,7 +73,7 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -82,7 +82,7 @@ library(Seurat)
 ```
 
 Load CRAN packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -99,7 +99,7 @@ library(DT)
 ```
 
 Source user-defined functions:
-  
+
 ```{r}
 source("scripts/parseCloupe.R")
 source("scripts/plotpHeatmap.R")
@@ -108,13 +108,13 @@ source("scripts/findMarkers.R")
 ```
 
 Read experiment data:
-  
+
 ```{r}
 seurat <- readRDS(paste0("output/", params$seurat))
 ```
 
 Setup colour palette:
-  
+
 ```{r}
 col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
 ```
@@ -123,9 +123,9 @@ col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
 
 ## PrepSCTFindmarkers
 
-Prepare "data" slot of SCT assay for differential expression and downstream visualisation
-Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
-
+Prepare "data" slot of SCT assay for differential expression and downstream visualisation 
+Please see vignette for further details: 
+https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
 
 Parse seurat object into list if not already
 
@@ -165,7 +165,7 @@ if (class(seurat) == "Seurat") {
 }
 ```
 
-## ScaleData 
+## ScaleData
 
 Scale and center data and add ScaleData to seuratprep for heatmap visualisation
 
@@ -179,7 +179,7 @@ seuratprep <- lapply(seuratprep, scaleData, params = params)
 ## Markers Cluster
 
 Find candidate marker genes between clusters:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -194,16 +194,18 @@ res <- lapply(seuratprep, findAllMarkers, params = params)
 #| warning: false
 #| results: hide
 
-lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), "-FindMarkersClusters.csv"))})
+lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), 
+                                                    "-FindMarkersClusters.csv"))})
 ```
 
-### Interactive results 
+### Interactive results
 
 ```{r}
 resbind <- bind_rows(res)
 
 DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', 
-              options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), 
+              options = list(dom = 'Bfrtip', 
+                             buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), 
               filter = "top")
 ```
 
@@ -213,14 +215,15 @@ Get topgenes from each cluster per seurat object and results table
 
 ```{r}
 topgenes <- lapply(seuratprep, topFeatClustList, res = res, head_num = 5)
-``` 
+```
 
 Plot heatmap of top markers
 
 ### DoHeatmap
 
 ```{r}
-doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = FALSE)
+doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+                     type = "DoHeatmap", legend = FALSE)
 ```
 
 ```{r}
@@ -234,7 +237,8 @@ wrap_plots(doheatmaps)
 With legend
 
 ```{r}
-doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = TRUE)
+doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+                           type = "DoHeatmap", legend = TRUE)
 ```
 
 ```{r}
@@ -245,14 +249,15 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type
 wrap_plots(doheatmapslegend)
 ```
 
-### pheatmap 
+### pheatmap
 
 ```{r}
 #| message: false
 #| warning: false
 #| fig.show: hide
 
-pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "pheatmap", head_num = 5)
+pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+                    type = "pheatmap", head_num = 5)
 ```
 
 ```{r}
@@ -266,7 +271,7 @@ wrap_plots(pheatmaps)
 # Output
 
 Save experiment object:
-  
+
 ```{r}
 saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 ```
@@ -276,7 +281,7 @@ saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```

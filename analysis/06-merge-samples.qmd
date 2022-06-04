@@ -149,7 +149,8 @@ Individual PCA - dimplot
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Merged by group.
 
-dimplot(seurat, reduction = "pca", label = FALSE, group.by = "Group", title = "PCA-Merged")
+dimplot(seurat, reduction = "pca", label = FALSE, 
+        group.by = "Group", title = "PCA-Merged")
 ```
 
 Individual PCA - featureplot ncount
@@ -161,7 +162,8 @@ Individual PCA - featureplot ncount
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Merged by nCount.
 
-featureplot(seurat, reduction = "pca", label = FALSE, feature = "nCount_Spatial", title = "PCA-Merged")
+featureplot(seurat, reduction = "pca", label = FALSE, 
+            feature = "nCount_Spatial", title = "PCA-Merged")
 ```
 
 Individual PCA - featureplot nfeature
@@ -173,7 +175,8 @@ Individual PCA - featureplot nfeature
 #| fig.height: params$plot_height
 #| fig-cap: PCA plot Merged by nFeature.
 
-featureplot(seurat, reduction = "pca", label = FALSE, feature = "nFeature_Spatial", title = "PCA-Merged")
+featureplot(seurat, reduction = "pca", label = FALSE, 
+            feature = "nFeature_Spatial", title = "PCA-Merged")
 ```
 
 ### Elbow
@@ -211,7 +214,9 @@ seurat$Elbow <- rep(elbow_vector, length(seurat$Sample))
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
+n.neighbors should be in the range 5 to 50.
+
+min.dist sensible values are in the range 0.001 to 0.5.
 
 ```{r}
 #| label: Explore-Features-UMAP
@@ -237,7 +242,8 @@ UMAP n.neighbors = 30, min.dist = 0.3
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 30, min.dist = 0.3.
 
-dimplot(seurat_1, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 30, min.dist = 0.3")
+dimplot(seurat_1, reduction = "umap", label = FALSE, 
+        group.by = "Group", title = "UMAP-Merged n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
@@ -247,7 +253,8 @@ UMAP n.neighbors = 5, min.dist = 0.25
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 5, min.dist = 0.25.
 
-dimplot(seurat_2, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 5, min.dist = 0.25")
+dimplot(seurat_2, reduction = "umap", label = FALSE, 
+        group.by = "Group", title = "UMAP-Merged n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
@@ -257,7 +264,8 @@ UMAP n.neighbors = 10, min.dist = 0.1
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.1.
 
-dimplot(seurat_3, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.1")
+dimplot(seurat_3, reduction = "umap", label = FALSE, 
+        group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
@@ -267,7 +275,8 @@ UMAP n.neighbors = 20, min.dist = 0.1
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 20, min.dist = 0.1.
 
-dimplot(seurat_4, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 20, min.dist = 0.1")
+dimplot(seurat_4, reduction = "umap", label = FALSE, 
+        group.by = "Group", title = "UMAP-Merged n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
@@ -277,19 +286,23 @@ UMAP n.neighbors = 10, min.dist = 0.001
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.001.
 
-dimplot(seurat_5, reduction = "umap", label = FALSE, group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.001")
+dimplot(seurat_5, reduction = "umap", label = FALSE, 
+        group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.001")
 ```
 
 Clean up workspace
 
 ```{r}
 rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
+
 gc()
 ```
 
 ### Chosen params UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine) UMAP n.neighbors = 30, min.dist = 0.3
+Run UMAP individual samples for choice of params (standard seems fine):
+
+UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
 #| warning: false
@@ -297,14 +310,18 @@ Run UMAP individual samples for choice of params (standard seems fine) UMAP n.ne
 #| results: hide
 
 print("n.neighbors: ", params$n.neighbors)
+
 print("min.dist: ", params$min.dist)
 
-seurat <- umap(seurat, n.neighbors = params$n.neighbors, min.dist = params$min.dist)
+seurat <- umap(seurat, n.neighbors = params$n.neighbors, 
+               min.dist = params$min.dist)
 ```
 
 ### TSNE
 
-perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1) NB: Try N\^1/2 as rule of thumb
+perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1)
+
+NB: Try N\^1/2 as rule of thumb
 
 ### Chosen params TSNE
 
@@ -325,7 +342,8 @@ seurat <- tsne(seurat, perplexity = params$perplexity)
 #| fig.height: params$plot_height
 #| fig-cap: TSNE Merged chosen params.
 
-dimplot(seurat, reduction = "tsne", label = FALSE, group.by = "Group", title = "TSNE-Merged")
+dimplot(seurat, reduction = "tsne", label = FALSE, 
+        group.by = "Group", title = "TSNE-Merged")
 ```
 
 ### Check scale data required
@@ -337,7 +355,8 @@ nCount_Spatial
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged chosen params nCounts.
 
-featureplot(seurat, reduction = "umap", label = FALSE, feature = "nCount_Spatial", title = "UMAP-Merged")
+featureplot(seurat, reduction = "umap", label = FALSE, 
+            feature = "nCount_Spatial", title = "UMAP-Merged")
 ```
 
 nFeature_Spatial
@@ -347,7 +366,8 @@ nFeature_Spatial
 #| fig.height: params$plot_height
 #| fig-cap: UMAP Merged chosen params nFeatures.
 
-featureplot(seurat, reduction = "umap", label = FALSE, feature = "nFeature_Spatial", title = "UMAP-Merged")
+featureplot(seurat, reduction = "umap", label = FALSE, 
+            feature = "nFeature_Spatial", title = "UMAP-Merged")
 ```
 
 nCount_Spatial
@@ -357,7 +377,8 @@ nCount_Spatial
 #| fig.height: params$plot_height
 #| fig-cap: TSNE Merged chosen params nCounts.
 
-featureplot(seurat, reduction = "tsne", label = FALSE, feature = "nCount_Spatial", title = "TSNE-Merged")
+featureplot(seurat, reduction = "tsne", label = FALSE, 
+            feature = "nCount_Spatial", title = "TSNE-Merged")
 ```
 
 nFeature_Spatial
@@ -367,7 +388,8 @@ nFeature_Spatial
 #| fig.height: params$plot_height
 #| fig-cap: TSNE Merged chosen params nFeatures.
 
-featureplot(seurat, reduction = "tsne", label = FALSE, feature = "nFeature_Spatial", title = "TSNE-Merged")
+featureplot(seurat, reduction = "tsne", label = FALSE, 
+            feature = "nFeature_Spatial", title = "TSNE-Merged")
 ```
 
 ## Cluster
@@ -380,9 +402,13 @@ featureplot(seurat, reduction = "tsne", label = FALSE, feature = "nFeature_Spati
 #| results: hide
 
 seurat_1 <- snnCluster(seurat, k.param = 5, resolution = 0.1)
+
 seurat_2 <- snnCluster(seurat, k.param = 10, resolution = 0.3)
+
 seurat_3 <- snnCluster(seurat, k.param = 15, resolution = 0.5)
+
 seurat_4 <- snnCluster(seurat, k.param = 20, resolution = 0.6)
+
 seurat_5 <- snnCluster(seurat, k.param = 50, resolution = 0.8)
 ```
 
@@ -395,47 +421,57 @@ k.param = 5, resolution = 0.1
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 5, resolution = 0.1.
 
-dimplot(seurat_1, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 5, resolution = 0.1")
+dimplot(seurat_1, reduction = "umap", label = T, 
+        group.by = "seurat_clusters", 
+        title = "UMAP-Merged, k.param = 5, resolution = 0.1")
 ```
 
 k.param = 10, resolution = 0.3
 
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 10, resolution = 0.3.
 
-dimplot(seurat_2, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 10, resolution = 0.3")
+dimplot(seurat_2, reduction = "umap", label = T, 
+        group.by = "seurat_clusters", 
+        title = "UMAP-Merged, k.param = 10, resolution = 0.3")
 ```
 
 k.param = 15, resolution = 0.5
 
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 15, resolution = 0.5.
 
-dimplot(seurat_3, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 15, resolution = 0.5")
+dimplot(seurat_3, reduction = "umap", label = T, 
+        group.by = "seurat_clusters", 
+        title = "UMAP-Merged, k.param = 15, resolution = 0.5")
 ```
 
 k.param = 20, resolution = 0.6
 
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
 
-dimplot(seurat_4, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 20, resolution = 0.6")
+dimplot(seurat_4, reduction = "umap", label = T, 
+        group.by = "seurat_clusters", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
 
 k.param = 50, resolution = 0.8
 
-```{r, fig.width = params$plot_width, fig.height = (params$plot_height + 1)}
+```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 50, resolution = 0.8.
 
-dimplot(seurat_5, reduction = "umap", label = T, group.by = "seurat_clusters", title = "UMAP-Merged, k.param = 50, resolution = 0.8")
+dimplot(seurat_5, reduction = "umap", label = T, 
+        group.by = "seurat_clusters", 
+        title = "UMAP-Merged, k.param = 50, resolution = 0.8")
 ```
 
 Clean up workspace
@@ -453,10 +489,15 @@ gc()
 #| results: hide
 
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.1)
+
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.2)
+
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.3)
+
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.5)
+
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.6)
+
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.8)
 ```
 
@@ -469,7 +510,9 @@ k.param = 20, resolution = 0.1
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.1.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.1", title = "UMAP-Merged, k.param = 20, resolution = 0.1")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.1", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.1")
 ```
 
 k.param = 20, resolution = 0.2
@@ -479,7 +522,9 @@ k.param = 20, resolution = 0.2
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.2.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.2", title = "UMAP-Merged, k.param = 20, resolution = 0.2")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.2", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.2")
 ```
 
 k.param = 20, resolution = 0.3
@@ -489,7 +534,9 @@ k.param = 20, resolution = 0.3
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.3.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.3", title = "UMAP-Merged, k.param = 20, resolution = 0.3")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.3", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.3")
 ```
 
 k.param = 20, resolution = 0.5
@@ -499,7 +546,9 @@ k.param = 20, resolution = 0.5
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.5.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.5", title = "UMAP-Merged, k.param = 20, resolution = 0.5")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.5", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.5")
 ```
 
 k.param = 20, resolution = 0.6
@@ -509,7 +558,9 @@ k.param = 20, resolution = 0.6
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.6", title = "UMAP-Merged, k.param = 20, resolution = 0.6")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.6", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
 
 k.param = 20, resolution = 0.8
@@ -519,7 +570,9 @@ k.param = 20, resolution = 0.8
 #| fig.height: (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.8.
 
-dimplot(seurat, reduction = "umap", label = T, group.by = "res.0.8", title = "UMAP-Merged, k.param = 20, resolution = 0.8")
+dimplot(seurat, reduction = "umap", label = T, 
+        group.by = "res.0.8", 
+        title = "UMAP-Merged, k.param = 20, resolution = 0.8")
 ```
 
 ### Clustree
@@ -542,16 +595,24 @@ clustreeRun(seurat)
 
 Across k = 20 (seurat default)
 
-A cell with a large positive width is closer to other cells from the same cluster compared to cells from different clusters. On the other hand, low or negative widths indicate that cells from different clusters are not well separated.
+A cell with a large positive width is closer to other cells from the same cluster 
+- compared to cells from different clusters. 
+
+On the other hand, low or negative widths indicate that cells from 
+- different clusters are not well separated.
 
 ```{r}
 #| warning: false
 #| message: false
 
 silhouettes_1 <- silhouette(seurat, clustername = "res.0.2", sample = "merged")
+
 silhouettes_2 <- silhouette(seurat, clustername = "res.0.3", sample = "merged")
+
 silhouettes_3 <- silhouette(seurat, clustername = "res.0.5", sample = "merged")
+
 silhouettes_4 <- silhouette(seurat, clustername = "res.0.6", sample = "merged")
+
 silhouettes_5 <- silhouette(seurat, clustername = "res.0.8", sample = "merged")
 ```
 
@@ -560,15 +621,19 @@ silhouettes_5 <- silhouette(seurat, clustername = "res.0.8", sample = "merged")
 #| message: false
 
 silhouette_plots_1 <- plotSil(silhouettes_1, type = "boxplot", title = "res.0.2")
+
 silhouette_plots_2 <- plotSil(silhouettes_2, type = "boxplot", title = "res.0.3")
+
 silhouette_plots_3 <- plotSil(silhouettes_3, type = "boxplot", title = "res.0.5")
+
 silhouette_plots_4 <- plotSil(silhouettes_4, type = "boxplot", title = "res.0.6")
+
 silhouette_plots_5 <- plotSil(silhouettes_5, type = "boxplot", title = "res.0.8")
 ```
 
 #### Wrap plot silhouette
 
-```{r, fig.width = 12, fig.height = 10}
+```{r}
 #| fig.width: 12
 #| fig.height: 10
 #| fig-cap: Silhouette plots across res params.
@@ -596,12 +661,14 @@ gc()
 #| warning: false
 #| message: false
 
-sdplot1 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, group = params$cluster.plot[[1]])
+sdplot1 <- plotSpatialCluster(seurat, label = TRUE, 
+                              label.size = 3, group = params$cluster.plot[[1]])
 
-sdplot2 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, group = params$cluster.plot[[2]])
+sdplot2 <- plotSpatialCluster(seurat, label = TRUE, 
+                              label.size = 3, group = params$cluster.plot[[2]])
 ```
 
-params$cluster.plot[[1]]
+params\$cluster.plot\[\[1\]\]
 
 ```{r}
 #| fig.width: 25
@@ -611,7 +678,7 @@ params$cluster.plot[[1]]
 wrap_plots(sdplot1, ncol = 3)
 ```
 
-params$cluster.plot[[2]]
+params\$cluster.plot\[\[2\]\]
 
 ```{r}
 #| fig.width: 25

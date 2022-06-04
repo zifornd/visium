@@ -8,7 +8,7 @@ params:
   plot_height:
     - 4
 ---
-  
+
 # Setup
 
 Parameter description
@@ -48,7 +48,7 @@ Restore project dependencies:
 ```
 
 Load Bioconductor packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -57,7 +57,7 @@ library(Seurat)
 ```
 
 Load CRAN packages:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -72,7 +72,7 @@ library(RColorBrewer)
 ```
 
 Source user-defined functions:
-  
+
 ```{r}
 #| message: false
 #| warning: false
@@ -84,7 +84,7 @@ source("scripts/cluster.R")
 # Processing
 
 Read experiment object:
-  
+
 ```{r}
 seurat <- readRDS("output/04-reduced-dimensions.rds")
 ```
@@ -97,56 +97,81 @@ SNN graph construction across a number of params
 #| message: false
 #| warning: false
 
-seurat_1 <- bplapply(seurat, snnCluster, k.param = 5, resolution = 0.1, BPPARAM = BPPARAM)
-seurat_2 <- bplapply(seurat, snnCluster, k.param = 10, resolution = 0.3, BPPARAM = BPPARAM)
-seurat_3 <- bplapply(seurat, snnCluster, k.param = 15, resolution = 0.5, BPPARAM = BPPARAM)
-seurat_4 <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.6, BPPARAM = BPPARAM)
-seurat_5 <- bplapply(seurat, snnCluster, k.param = 50, resolution = 0.8, BPPARAM = BPPARAM)
+seurat_1 <- bplapply(seurat, snnCluster, k.param = 5, 
+                     resolution = 0.1, BPPARAM = BPPARAM)
+
+seurat_2 <- bplapply(seurat, snnCluster, k.param = 10, 
+                     resolution = 0.3, BPPARAM = BPPARAM)
+
+seurat_3 <- bplapply(seurat, snnCluster, k.param = 15, 
+                     resolution = 0.5, BPPARAM = BPPARAM)
+
+seurat_4 <- bplapply(seurat, snnCluster, k.param = 20, 
+                     resolution = 0.6, BPPARAM = BPPARAM)
+
+seurat_5 <- bplapply(seurat, snnCluster, k.param = 50, 
+                     resolution = 0.8, BPPARAM = BPPARAM)
 ```
 
 ### Plot umaps
 
 k.param = 5, resolution = 0.1
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 5, resolution = 0.1
 
-wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
+wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", 
+                  label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
 k.param = 10, resolution = 0.3
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 10, resolution = 0.3
 
-wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
+wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", 
+                  label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
 k.param = 15, resolution = 0.5
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 15, resolution = 0.5
 
-wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
+wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", 
+                  label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
 k.param = 20, resolution = 0.6
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.6
 
-wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
+wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", 
+                  label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
 k.param = 50, resolution = 0.8
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 50, resolution = 0.8
 
-wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", label = T, group.by = "seurat_clusters"), ncol = 2)
+wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", 
+                  label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
 Clean up workspace
+
 ```{r}
 rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
@@ -154,95 +179,131 @@ gc()
 
 ### Keeping k stable (saving into seurat object for clustree)
 
-```{r, warning=FALSE, message=FALSE}
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.1, BPPARAM = BPPARAM)
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.2, BPPARAM = BPPARAM)
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.3, BPPARAM = BPPARAM)
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.5, BPPARAM = BPPARAM)
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.6, BPPARAM = BPPARAM)
-seurat <- bplapply(seurat, snnCluster, k.param = 20, resolution = 0.8, BPPARAM = BPPARAM)
+```{r}
+#| message: false
+#| warning: false
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20,
+                   resolution = 0.1, BPPARAM = BPPARAM)
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20, 
+                   resolution = 0.2, BPPARAM = BPPARAM)
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20, 
+                   resolution = 0.3, BPPARAM = BPPARAM)
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20, 
+                   resolution = 0.5, BPPARAM = BPPARAM)
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20, 
+                   resolution = 0.6, BPPARAM = BPPARAM)
+
+seurat <- bplapply(seurat, snnCluster, k.param = 20, 
+                   resolution = 0.8, BPPARAM = BPPARAM)
 ```
 
 k.param = 20, resolution = 0.1
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.1
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.1"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.1"), ncol = 2)
 ```
+
 k.param = 20, resolution = 0.2
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.2
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.2"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.2"), ncol = 2)
 ```
+
 k.param = 20, resolution = 0.3
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.3
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.3"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.3"), ncol = 2)
 ```
 
 ### Plot umaps with k.params 20
 
 k.param = 20, resolution = 0.1
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.1
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.1"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.1"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.2
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.2
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.2"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.2"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.3
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.3
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.3"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.3"), ncol = 2)
 ```
+
 k.param = 20, resolution = 0.5
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.5
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.5"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.5"), ncol = 2)
 ```
 
 k.param = 20, resolution = 0.6
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.6
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.6"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.6"), ncol = 2)
 ```
+
 k.param = 20, resolution = 0.8
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.8
 
-wrap_plots(lapply(seurat, dimplot, reduction = "umap", label = T, group.by = "res.0.8"), ncol = 2)
+wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
+                  label = T, group.by = "res.0.8"), ncol = 2)
 ```
 
-## Clustering stability 
+## Clustering stability
 
 Across k = 20 (seurat default)
 
@@ -265,21 +326,27 @@ Wrap plot clustree
 wrap_plots(clustree_plots, ncol = 2)
 ```
 
-
-## Silhouette 
+## Silhouette
 
 Across k = 20 (seurat default)
 
-A cell with a large positive width is closer to other cells from the same cluster compared to cells from different clusters. On the other hand, low or negative widths indicate that cells from different clusters are not well separated.
+A cell with a large positive width is closer to other cells from the same cluster -
+compared to cells from different clusters. 
+
+On the other hand, low or negative widths indicate that cells from different clusters are not well separated.
 
 ```{r}
 #| message: false
 #| warning: false
 
 silhouettes_1 <- lapply(seurat, silhouette, clustername = "res.0.2")
+
 silhouettes_2 <- lapply(seurat, silhouette, clustername = "res.0.3")
+
 silhouettes_3 <- lapply(seurat, silhouette, clustername = "res.0.5")
+
 silhouettes_4 <- lapply(seurat, silhouette, clustername = "res.0.6")
+
 silhouettes_5 <- lapply(seurat, silhouette, clustername = "res.0.8")
 ```
 
@@ -287,13 +354,24 @@ silhouettes_5 <- lapply(seurat, silhouette, clustername = "res.0.8")
 #| message: false
 #| warning: false
 
-silhouette_plots_1 <- lapply(silhouettes_1, plotSil, type = "boxplot", title = "res.0.2")
-silhouette_plots_2 <- lapply(silhouettes_2, plotSil, type = "boxplot", title = "res.0.3")
-silhouette_plots_3 <- lapply(silhouettes_3, plotSil, type = "boxplot", title = "res.0.5")
-silhouette_plots_4 <- lapply(silhouettes_4, plotSil, type = "boxplot", title = "res.0.6")
-silhouette_plots_5 <- lapply(silhouettes_5, plotSil, type = "boxplot", title = "res.0.8")
+silhouette_plots_1 <- lapply(silhouettes_1, plotSil, type = "boxplot", 
+                             title = "res.0.2")
+
+silhouette_plots_2 <- lapply(silhouettes_2, plotSil, type = "boxplot", 
+                             title = "res.0.3")
+
+silhouette_plots_3 <- lapply(silhouettes_3, plotSil, type = "boxplot", 
+                             title = "res.0.5")
+
+silhouette_plots_4 <- lapply(silhouettes_4, plotSil, type = "boxplot", 
+                             title = "res.0.6")
+
+silhouette_plots_5 <- lapply(silhouettes_5, plotSil, type = "boxplot", 
+                             title = "res.0.8")
 ```
+
 Clean up workspace
+
 ```{r}
 rm(silhouettes_1, silhouettes_2, silhouettes_3, silhouettes_4, silhouettes_5)
 gc()
@@ -302,6 +380,7 @@ gc()
 #### Wrap plot silhouette
 
 res.0.2
+
 ```{r}
 #| fig.width: (params$plot_width + 2)
 #| fig.height: params$plot_height
@@ -309,7 +388,9 @@ res.0.2
 
 wrap_plots(silhouette_plots_1, ncol = 2)
 ```
+
 res.0.3
+
 ```{r}
 #| fig.width: (params$plot_width + 2)
 #| fig.height: params$plot_height
@@ -317,7 +398,9 @@ res.0.3
 
 wrap_plots(silhouette_plots_2, ncol = 2)
 ```
+
 res.0.5
+
 ```{r}
 #| fig.width: (params$plot_width + 2)
 #| fig.height: params$plot_height
@@ -325,7 +408,9 @@ res.0.5
 
 wrap_plots(silhouette_plots_3, ncol = 2)
 ```
+
 res.0.6
+
 ```{r}
 #| fig.width: (params$plot_width + 2)
 #| fig.height: params$plot_height
@@ -333,7 +418,9 @@ res.0.6
 
 wrap_plots(silhouette_plots_4, ncol = 2)
 ```
+
 res.0.8
+
 ```{r}
 #| fig.width: (params$plot_width + 2)
 #| fig.height: params$plot_height
@@ -342,20 +429,24 @@ res.0.8
 wrap_plots(silhouette_plots_5, ncol = 2)
 ```
 
-## Spatial feautures 
+## Spatial feautures
 
 #### Chosen Res
 
-SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason.
-Can get around this by setting identity of object prior to plotting.
+SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason. 
+Can get around this by setting identity of object prior to plotting. 
 See plotSpatialCluster for more details.
 
 ```{r}
-spatial_dim1 <- lapply(seurat, plotSpatialCluster, group = params$cluster.plot[[1]])
-spatial_dim2 <- lapply(seurat, plotSpatialCluster, group = params$cluster.plot[[2]])
+spatial_dim1 <- lapply(seurat, plotSpatialCluster, 
+                       group = params$cluster.plot[[1]])
+
+spatial_dim2 <- lapply(seurat, plotSpatialCluster, 
+                       group = params$cluster.plot[[2]])
 ```
 
-params$cluster.plot[[1]]
+params\$cluster.plot\[\[1\]\]
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 3)
@@ -364,7 +455,8 @@ params$cluster.plot[[1]]
 wrap_plots(spatial_dim1, ncol = 2)
 ```
 
-params$cluster.plot[[2]]
+params\$cluster.plot\[\[2\]\]
+
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 3)
@@ -422,14 +514,13 @@ wrap_plots(tsne_plots, ncol = 2)
 # Output
 
 Save experiment object:
-  
+
 ```{r}
 saveRDS(seurat, file = "output/05-clustering.rds")
-```  
+```
 
 Print session information:
-  
+
 ```{r}
 sessionInfo()
 ```
-

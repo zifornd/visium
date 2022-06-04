@@ -35,13 +35,19 @@ Restore project dependencies:
 
 Load Bioconductor packages:
   
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
   
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -84,15 +90,17 @@ Please see vignette for further details: https://satijalab.org/seurat/articles/s
 
 Parse seurat object into list if not already
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
 
 # If running on single seurat object or output from merged or integrated qmd
-if(class(seurat) == "Seurat"){ 
+if (class(seurat) == "Seurat") { 
 
   seuratList <- list(seurat)
 
   # If merged or combined will have multiple samples in meta data so save into list as combined seurat
-  if(length(unique(seurat@meta.data$Sample)) > 1){
+  if (length(unique(seurat@meta.data$Sample)) > 1) {
       
     names(seuratList) <- "Combined.Seurat"
 
@@ -102,7 +110,7 @@ if(class(seurat) == "Seurat"){
   }
 
   # If single sample save into list as sample name
-  if(length(unique(seurat@meta.data$Sample)) == 1){
+  if (length(unique(seurat@meta.data$Sample)) == 1) {
 
     names(seuratList) <- unique(seurat@meta.data$Sample)
 
@@ -122,7 +130,10 @@ if(class(seurat) == "Seurat"){
 
 Scale and center data and add ScaleData to seuratprep for heatmap visualisation
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seuratprep <- lapply(seuratprep, scaleData, params = params)
 ```
 
@@ -130,13 +141,20 @@ seuratprep <- lapply(seuratprep, scaleData, params = params)
 
 Find candidate marker genes between clusters:
   
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 res <- lapply(seuratprep, findAllMarkers, params = params)
 ```
 
 ### Write csv to file
 
-```{r, warning=FALSE, message=FALSE, results='hide'}
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), "-FindMarkersClusters.csv"))})
 ```
 
@@ -144,7 +162,10 @@ lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample),
 
 ```{r}
 resbind <- bind_rows(res)
-DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), filter = "top")
+
+DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', 
+              options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')), 
+              filter = "top")
 ```
 
 ### Define genes interest
@@ -163,7 +184,11 @@ Plot heatmap of top markers
 doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = FALSE)
 ```
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Heatmap of top genes per cluster.
+
 wrap_plots(doheatmaps)
 ```
 
@@ -173,17 +198,29 @@ With legend
 doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "DoHeatmap", legend = TRUE)
 ```
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Heatmap of top genes per cluster with legend.
+
 wrap_plots(doheatmapslegend)
 ```
 
 ### pheatmap 
 
-```{r, fig.show='hide'}
+```{r}
+#| message: false
+#| warning: false
+#| fig.show: hide
+
 pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, type = "pheatmap", head_num = 5)
 ```
 
-```{r, fig.width = (params$plot_width + 5), fig.height = params$plot_height}
+```{r}
+#| fig.width: (params$plot_width + 5)
+#| fig.height: params$plot_height
+#| fig-cap: pHeatmap of top genes per cluster with legend.
+
 wrap_plots(pheatmaps)
 ```
 

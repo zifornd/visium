@@ -5,10 +5,10 @@ params:
     - "1:10"
   n.neighbors:
     - 30
-  perplexity:
-    - "N^1/2"
   min.dist:
     - 0.3
+  perplexity:
+    - "N^1/2"
   plot_width:
     - 8
   plot_height:
@@ -417,7 +417,7 @@ Run tsne individual samples for choice of params
 
 print("perplexity: ", params$perplexity)
 
-seurat <- bplapply(seurat, tsne, perplexity = perplexity, BPPARAM = BPPARAM)
+seurat <- bplapply(seurat, tsne, perplexity = params$perplexity, BPPARAM = BPPARAM)
 ```
 
 ### Plot TSNE

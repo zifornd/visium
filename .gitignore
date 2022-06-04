@@ -11,3 +11,5 @@ data/*/outs/*h5
 data/*/*.jpg
 
 output/*
+
+docs/*

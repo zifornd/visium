@@ -12,6 +12,10 @@ params:
     - 2
   elbow_range:
     - "1:30"
+  n.neighbors:
+    - 30
+  min.dist:
+    - 0.3
   nfeatures.sct:
     - 2000
   ncells.sct:
@@ -125,13 +129,19 @@ Restore project dependencies:
 
 Load Bioconductor packages:
 
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
 
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -142,7 +152,6 @@ library(viridis)
 Source user-defined functions:
 
 ```{r}
-print(getwd())
 source("scripts/reduceDims.R")
 ```
 
@@ -176,25 +185,46 @@ atlas@meta.data$Group = atlas@meta.data[[params$atlas.group]]
 
 PCA
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 atlas <- pca(atlas)
 ```
 
 Individual PCA - dimplot
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Cell Atlas data by atlas.group.
+
 dimplot(atlas, reduction = "pca", label = FALSE, group.by = params$atlas.group, title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot ncount
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Cell Atlas data by nCount.
+
 featureplot(atlas, reduction = "pca", label = FALSE, feature = "nCount_RNA", title = "PCA-Atlas")
 ```
 
 Individual PCA - featureplot nfeature
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Cell Atlas data by nFeature.
+
 featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature_RNA", title = "PCA-Atlas")
 ```
 
@@ -202,15 +232,22 @@ featureplot(atlas, reduction = "pca", label = FALSE, feature = "nFeature_RNA", t
 
 Add in variables to regress
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| message: false
+#| warning: false
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: PCA plot Cell Atlas data after regression by vars.to.regress.
 
-if(params$vars.to.regress != FALSE){
+if (params$vars.to.regress != FALSE) {
   
-  atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, verbose = FALSE, vars.to.regress = params$vars.to.regress)  
+  atlas <- SCTransform(atlas, ncells = params$ncells.sct, variable.features.n = params$nfeatures.sct, 
+                       verbose = FALSE, vars.to.regress = params$vars.to.regress)  
   
   atlas <- pca(atlas)
   
-  featureplot(atlas, reduction = "pca", label = FALSE, feature = params$vars.to.regress, title = paste0("PCA-Atlas ", params$vars.to.regress))
+  featureplot(atlas, reduction = "pca", label = FALSE, feature = params$vars.to.regress, 
+              title = paste0("PCA-Atlas ", params$vars.to.regress))
   
 }
  
@@ -218,7 +255,11 @@ if(params$vars.to.regress != FALSE){
 
 ### Elbow
 
-```{r, warning=FALSE, message=FALSE, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Elbow plot Cell Atlas data.
+
 elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
 ```
 
@@ -226,7 +267,9 @@ From visual inspection it looks like the PCs for merged samples should be betwee
 
 Define elbow vector:
 
-```{r, warning=FALSE}
+```{r}
+#| warning: false
+
 elbow_vector <- params$elbow_range
 
 print(elbow_vector)
@@ -234,7 +277,7 @@ print(elbow_vector)
 
 Add PC elbow to object
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
 atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
 ```
 
@@ -242,7 +285,12 @@ atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
 
 n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
 
-```{r, Explore-Features-UMAP, warning=FALSE, message=FALSE, results='hide'}
+```{r}
+#| label: Explore-Features-UMAP
+#| message: false
+#| warning: false
+#| results: hide
+
 atlas_1 <- umap(atlas, n.neighbors = 30, min.dist = 0.3)
 
 atlas_2 <- umap(atlas, n.neighbors = 5, min.dist = 0.25)
@@ -256,31 +304,51 @@ atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 
 UMAP n.neighbors = 30, min.dist = 0.3
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP plot Cell Atlas n.neighbors = 30, min.dist = 0.3.
+
 dimplot(atlas_1, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
 UMAP n.neighbors = 5, min.dist = 0.25
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP plot Cell Atlas n.neighbors = 5, min.dist = 0.25.
+
 dimplot(atlas_2, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.1
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.1.
+
 dimplot(atlas_3, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 20, min.dist = 0.1
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP plot Cell Atlas n.neighbors = 20, min.dist = 0.1.
+
 dimplot(atlas_4, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
 UMAP n.neighbors = 10, min.dist = 0.001
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.001.
+
 dimplot(atlas_5, reduction = "umap", label = TRUE, group.by = params$atlas.group, title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.001")
 ```
 
@@ -295,27 +363,46 @@ gc()
 
 Run UMAP individual samples for choice of params (standard seems fine) UMAP n.neighbors = 30, min.dist = 0.3
 
-```{r, warning=FALSE, message=FALSE, results='hide'}
-atlas <- umap(atlas)
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+print("n.neighbors: ", params$n.neighbors)
+print("min.dist: ", params$min.dist)
+
+atlas <- umap(atlas, n.neighbors = params$n.neighbors, min.dist = params$min.dist)
 ```
 
 ### Plot Cell Atlas QC
 
 nCount
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP Cell Atlas chosen params nCounts.
+
 featureplot(atlas, reduction = "umap",label =  FALSE, feature = "nCount_RNA", title = "UMAP-Atlas")
 ```
 
 nFeature
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP Cell Atlas chosen params nFeatures.
+
 featureplot(atlas, reduction = "umap", label = FALSE, feature = "nFeature_RNA", title = "UMAP-Atlas")
 ```
 
 ### Plot Cell Atlas by Class
 
 ```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: UMAP Cell Atlas chosen params by atlas.group.
+
 # the annotation is stored in the 'subclass' column of object metadata
 DimPlot(atlas, group.by = params$atlas.group, label = TRUE)
 ```
@@ -331,8 +418,11 @@ anchors <- FindTransferAnchors(reference = atlas, query = seurat, normalization.
 Transfer Anchors
 
 ```{r}
+# Get dimensions required
+dims <- as.numeric(strsplit(params$elbow_range, ":")[[1]])[1]:as.numeric(strsplit(params$elbow_range, ":")[[1]])[2]
+
 predictions.assay <- TransferData(anchorset = anchors, refdata = atlas@meta.data[[params$atlas.group]], prediction.assay = TRUE,
-    weight.reduction = seurat[["pca"]], dims = 1:30)
+                                  weight.reduction = seurat[["pca"]], dims = dims)
 ```
 
 Save new assay
@@ -346,6 +436,10 @@ seurat[["predictions"]] <- predictions.assay
 Example:
 
 ```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Spatial plot with predicted Cell Atlas labels.
+
 DefaultAssay(seurat) <- "predictions"
 SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), pt.size.factor = 1.6, ncol = 2, crop = TRUE)
 ```
@@ -354,20 +448,28 @@ SpatialFeaturePlot(seurat, features = head(params$feature.example, 2), pt.size.f
 
 ```{r}
 seurat <- FindSpatiallyVariableFeatures(seurat, assay = "predictions", selection.method = params$spatial.method,
-    features = rownames(seurat), r.metric = params$r.metric, slot = "data")
+                                        features = rownames(seurat), r.metric = params$r.metric, slot = "data")
 
 top.clusters <- head(SpatiallyVariableFeatures(seurat), params$top.features)
 
 sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
 ```
 
-```{r, fig.width = (params$plot_width + 5), fig.height = (params$plot_height + 5)}
+```{r}
+#| fig.width: (params$plot_width + 5)
+#| fig.height: (params$plot_height + 5)
+#| fig-cap: Spatial plot with predicted Cell Atlas labels of those that are spatially variable.
+
 wrap_plots(sp)
 ```
 
 ## Plot labels of interest
 
 ```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Spatial plot with predicted Cell Atlas labels - labels of interest.
+
 SpatialFeaturePlot(seurat, features = params$feature.example, pt.size.factor = 1,  crop = FALSE, alpha = c(0.1, 1))
 ```
 

@@ -70,13 +70,19 @@ Restore project dependencies:
 
 Load Bioconductor packages:
 
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(Seurat)
 ```
 
 Load CRAN packages:
 
-```{r, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 library(patchwork)
 library(ggplot2)
 library(dplyr)
@@ -109,7 +115,9 @@ Prepare "data" slot of SCT assay for differential expression and downstream visu
 
 Parse seurat object into list if not already
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
 
 # If running on single seurat object or output from merged or integrated qmd
 if(class(seurat) == "Seurat"){ 
@@ -149,9 +157,13 @@ Please see https://satijalab.org/seurat/articles/spatial_vignette.html for more 
 
 ```{r}
 samples <- names(seuratprep)
-seuratprep <- lapply(samples, function(x, seuratprep, selection.method, nfeatures, r.metric){
-    sv <- FindSpatiallyVariableFeatures(seuratprep[[x]], assay = "SCT", features = VariableFeatures(seuratprep[[x]])[1:nfeatures], selection.method = selection.method, r.metric = r.metric)
+
+seuratprep <- lapply(samples, function(x, seuratprep, selection.method, nfeatures, r.metric) {
+    sv <- FindSpatiallyVariableFeatures(seuratprep[[x]], assay = "SCT", 
+                                        features = VariableFeatures(seuratprep[[x]])[1:nfeatures], 
+                                        selection.method = selection.method, r.metric = r.metric)
 }, seuratprep = seuratprep, selection.method = params$spatial.method, nfeatures = params$nfeatures, r.metric = params$r.metric)
+
 names(seuratprep) <- samples
 ```
 
@@ -163,14 +175,21 @@ Get top SpatiallyVariableFeatures
 top.features <- lapply(seuratprep, SpatiallyVariableFeatures, selection.method = params$spatial.method)
 ```
 
-```{r, message = FALSE, warning = FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, top) { 
 
   SpatialFeaturePlot(seuratprep[[x]], features = head(top.features[[x]],top), alpha = c(0.1, 1))  + labs(title=x)
   }, seuratprep = seuratprep, top.features = top.features, top = params$top.features)
 ```
 
-```{r, message = FALSE, warning = FALSE, fig.width = (params$plot_width + 10), fig.height = (params$plot_height + 13)}
+```{r}
+#| fig.width: (params$plot_width + 10)
+#| fig.height: (params$plot_height + 13)
+#| fig-cap: Spatial plot top spatially variable features.
+
 wrap_plots(spatialPlots)
 ```
 
@@ -178,7 +197,10 @@ wrap_plots(spatialPlots)
 
 Scale and center data and add ScaleData to seuratprep for heatmap visualisation
 
-```{r, warning=FALSE, message=FALSE}
+```{r}
+#| message: false
+#| warning: false
+
 seuratprep <- lapply(seuratprep, scaleData, params = params)
 ```
 
@@ -190,7 +212,11 @@ Plot heatmap of top markers
 doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = FALSE)
 ```
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Heatmap top spatially variable features.
+
 wrap_plots(doheatmaps)
 ```
 
@@ -200,7 +226,11 @@ With legend
 doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features, type = "DoHeatmap", legend = TRUE)
 ```
 
-```{r, fig.width = params$plot_width, fig.height = params$plot_height}
+```{r}
+#| fig.width: params$plot_width
+#| fig.height: params$plot_height
+#| fig-cap: Heatmap top spatially variable features with legend.
+
 wrap_plots(doheatmapslegend)
 ```
 

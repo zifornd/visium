@@ -2,6 +2,7 @@
 title: "Clustering"
 params:
   cluster: "res.0.3"
+  cluster.plot: ["res.0.2", "res.0.3"]
   plot_width:
     - 8
   plot_height:
@@ -9,7 +10,31 @@ params:
 ---
   
 # Setup
-  
+
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "cluster",
+Value = params$cluster,
+Description = "Chosen res params for clustering."
+),
+list(
+Parameter = "cluster.plot",
+Value = params$cluster.plot,
+Description = "Chosen res params to complete spatial plot downstream."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
 Add child documents
 
 ```{r}
@@ -319,18 +344,18 @@ wrap_plots(silhouette_plots_5, ncol = 2)
 
 ## Spatial feautures 
 
-#### Res 0.2 and 0.3
+#### Chosen Res
 
 SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason.
 Can get around this by setting identity of object prior to plotting.
 See plotSpatialCluster for more details.
 
 ```{r}
-spatial_dim1 <- lapply(seurat, plotSpatialCluster, group = "res.0.2")
-spatial_dim2 <- lapply(seurat, plotSpatialCluster, group = "res.0.3")
+spatial_dim1 <- lapply(seurat, plotSpatialCluster, group = params$cluster.plot[[1]])
+spatial_dim2 <- lapply(seurat, plotSpatialCluster, group = params$cluster.plot[[2]])
 ```
 
-res.0.2
+params$cluster.plot[[1]]
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 3)
@@ -338,7 +363,8 @@ res.0.2
 
 wrap_plots(spatial_dim1, ncol = 2)
 ```
-res.0.3
+
+params$cluster.plot[[2]]
 ```{r}
 #| fig.width: params$plot_width
 #| fig.height: (params$plot_height + 3)

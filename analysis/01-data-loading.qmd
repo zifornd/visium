@@ -21,9 +21,40 @@ params:
       - "SI-TS-B7"
     marker:
     - "Foxg1"
+    sample.sheet:
+    - "Visium_FFPE_Mouse_Brain_Samples.csv"
 ---
 
 # Setup
+
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "prefix",
+Value = params$prefix,
+Description = "Name of data folder for 10x spatial output."
+),
+list(
+Parameter = "marker",
+Value = params$marker,
+Description = "Name of marker gene expected to be expressed in data."
+),
+list(
+Parameter = "sample.sheet",
+Value = params$sample.sheet,
+Description = "Name of sample sheet with details of samples profiled. Should be within 10x data folder defined in params$prefix."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
 
 ```{r, setup, include=FALSE}
 # knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium")

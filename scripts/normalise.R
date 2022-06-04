@@ -36,7 +36,8 @@ plotVariableGenes <- function(seurat, top = 10, selection.method = "sct") {
   top10 <- head(Seurat::VariableFeatures(seurat), top)
 
   # plot variable features with and without labels
-  plot1 <- Seurat::VariableFeaturePlot(seurat, selection.method = selection.method)
+  plot1 <- Seurat::VariableFeaturePlot(seurat,
+                                       selection.method = selection.method)
 
   plot2 <- Seurat::LabelPoints(plot = plot1, points = top10, repel = TRUE)
 
@@ -73,7 +74,7 @@ regressOut <- function(seurat, vars.to.regress = "batch",
                        do.scale = FALSE, do.center = FALSE) {
 
   seuratscaled <- Seurat::ScaleData(seurat, vars.to.regress = vars.to.regress,
-                            do.scale = do.scale, do.center = do.center)
+                                    do.scale = do.scale, do.center = do.center)
 
   return(seuratscaled)
 
@@ -109,5 +110,3 @@ plotModelSctransform <- function(seurat, features, vst_outlist,
 
   return(p)
 }
-
-

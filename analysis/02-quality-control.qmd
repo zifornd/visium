@@ -361,8 +361,9 @@ Look at ranges of x y values for easier estimation of coordinates
 image_key <- seurat[[1]]@images[[1]]@key
   
 # fetch xy axis data frame
-spatial_df <- FetchData(seurat[[1]], vars = c(paste0(image_key, "imagerow"), 
-                                         paste0(image_key, "imagecol")))
+spatial_df <- FetchData(seurat[[1]], 
+                        vars = c(paste0(image_key, "imagerow"), 
+                                 paste0(image_key, "imagecol")))
 
 print(c("Y axis range:", range(spatial_df[,1])))
 print(c("X axis range:",range(spatial_df[,2])))
@@ -373,8 +374,8 @@ Filter out those low quality spots which are located peripherally
 ```{r}
 #| eval: false
 
-seurat_1 <- filterByXY(seurat[[1]], x1 = 85.00408692 , x2 = 520 , 
-                             y1 = 53.49836036, y2 = 513.829758624)
+seurat_1 <- filterByXY(seurat[[1]], x1 = 85.00408692 , x2 = 520, 
+                       y1 = 53.49836036, y2 = 513.829758624)
 ```
 
 Show which cells have been filtered

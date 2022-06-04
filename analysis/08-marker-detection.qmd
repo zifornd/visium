@@ -20,7 +20,46 @@ params:
 ---
   
 # Setup
-  
+
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "regress",
+Value = params$regress,
+Description = "Name of variables for regression. Set to FALSE if none required."
+),
+list(
+Parameter = "min.pct",
+Value = params$min.pct,
+Description = "Only test genes that are detected in a minimum fraction of min.pct cells in either of the two populations - Default is 0.1"
+),
+list(
+Parameter = "logfc.threshold",
+Value = params$logfc.threshold,
+Description = "Limit testing to genes which show, on average, at least X-fold difference (log-scale) between the two groups of cells. Default is 0.25."
+),
+list(
+Parameter = "only.pos",
+Value = params$only.pos,
+Description = "Only return positive markers (FALSE by default)."
+),
+list(
+Parameter = "pval.adj.thres",
+Value = params$pval.adj.thres,
+Description = "Adjusted p-value threshold for returning markers."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
 Add child documents
 
 ```{r}

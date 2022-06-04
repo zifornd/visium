@@ -17,6 +17,40 @@ params:
   
 # Setup
 
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "elbow_range",
+Value = params$elbow_range,
+Description = "Number of PCs used for reduced dimension analysis."
+),
+list(
+Parameter = "n.neighbors",
+Value = params$n.neighbors,
+Description = "Chosen n.neighbors param for UMAP."
+),
+list(
+Parameter = "min.dist",
+Value = params$min.dist,
+Description = "Chosen min.dist param for UMAP."
+),
+list(
+Parameter = "perplexity",
+Value = params$perplexity,
+Description = "Chosen perplexity param for TSNE."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
 Add child documents
 
 ```{r}

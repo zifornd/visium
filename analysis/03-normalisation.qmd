@@ -11,6 +11,35 @@ params:
   
 ## Setup
 
+Parameter description
+
+```{r}
+#| code-fold: true
+
+par <- list(
+
+list(
+Parameter = "nfeatures",
+Value = params$nfeatures,
+Description = "Number of highly variable gene features to use for normalisation."
+),
+list(
+Parameter = "min_cells",
+Value = params$min_cells,
+Description = "Only use genes that have been detected in at least this many cells; default is 5."
+),
+list(
+Parameter = "example",
+Value = params$example,
+Description = "Example gene to display model."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
 Add child documents
 
 ```{r}

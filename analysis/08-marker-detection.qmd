@@ -21,10 +21,12 @@ params:
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -227,8 +229,8 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster.
 
 wrap_plots(doheatmaps)
@@ -242,8 +244,8 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster with legend.
 
 wrap_plots(doheatmapslegend)
@@ -261,8 +263,8 @@ pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr params$plot_height
 #| fig-cap: pHeatmap of top genes per cluster with legend.
 
 wrap_plots(pheatmaps)

@@ -21,10 +21,12 @@ params:
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -198,8 +200,8 @@ spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, 
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 10)
-#| fig.height: (params$plot_height + 13)
+#| fig.width: !expr (params$plot_width + 10)
+#| fig.height: !expr (params$plot_height + 13)
 #| fig-cap: Spatial plot top spatially variable features.
 
 wrap_plots(spatialPlots)
@@ -226,8 +228,8 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features,
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features.
 
 wrap_plots(doheatmaps)
@@ -241,8 +243,8 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features,
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features with legend.
 
 wrap_plots(doheatmapslegend)

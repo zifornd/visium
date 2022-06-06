@@ -20,10 +20,12 @@ params:
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -145,8 +147,8 @@ Individual PCA - dimplot
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by group.
 
 dimplot(seurat, reduction = "pca", label = FALSE, 
@@ -158,8 +160,8 @@ Individual PCA - featureplot ncount
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nCount.
 
 featureplot(seurat, reduction = "pca", label = FALSE, 
@@ -171,8 +173,8 @@ Individual PCA - featureplot nfeature
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nFeature.
 
 featureplot(seurat, reduction = "pca", label = FALSE, 
@@ -184,8 +186,8 @@ featureplot(seurat, reduction = "pca", label = FALSE,
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot Merged.
 
 elbow(seurat, vline1 = 10, vline2 = 20, title = "Elbow-Merged")
@@ -238,8 +240,8 @@ seurat_5 <- umap(seurat, n.neighbors = 10, min.dist = 0.001)
 UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 30, min.dist = 0.3.
 
 dimplot(seurat_1, reduction = "umap", label = FALSE, 
@@ -249,8 +251,8 @@ dimplot(seurat_1, reduction = "umap", label = FALSE,
 UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 5, min.dist = 0.25.
 
 dimplot(seurat_2, reduction = "umap", label = FALSE, 
@@ -260,8 +262,8 @@ dimplot(seurat_2, reduction = "umap", label = FALSE,
 UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.1.
 
 dimplot(seurat_3, reduction = "umap", label = FALSE, 
@@ -271,8 +273,8 @@ dimplot(seurat_3, reduction = "umap", label = FALSE,
 UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 20, min.dist = 0.1.
 
 dimplot(seurat_4, reduction = "umap", label = FALSE, 
@@ -282,8 +284,8 @@ dimplot(seurat_4, reduction = "umap", label = FALSE,
 UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.001.
 
 dimplot(seurat_5, reduction = "umap", label = FALSE, 
@@ -309,9 +311,9 @@ UMAP n.neighbors = 30, min.dist = 0.3
 #| message: false
 #| results: hide
 
-print("n.neighbors: ", params$n.neighbors)
+print(paste0("n.neighbors: ", params$n.neighbors))
 
-print("min.dist: ", params$min.dist)
+print(paste0("min.dist: ", params$min.dist))
 
 seurat <- umap(seurat, n.neighbors = params$n.neighbors, 
                min.dist = params$min.dist)
@@ -332,14 +334,14 @@ perplexity = N\^1/2
 #| message: false
 #| results: hide
 
-print("perplexity: ", params$perplexity)
+print(paste0("perplexity: ", params$perplexity))
 
 seurat <- tsne(seurat, perplexity = params$perplexity)
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params.
 
 dimplot(seurat, reduction = "tsne", label = FALSE, 
@@ -351,8 +353,8 @@ dimplot(seurat, reduction = "tsne", label = FALSE,
 nCount_Spatial
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nCounts.
 
 featureplot(seurat, reduction = "umap", label = FALSE, 
@@ -362,8 +364,8 @@ featureplot(seurat, reduction = "umap", label = FALSE,
 nFeature_Spatial
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nFeatures.
 
 featureplot(seurat, reduction = "umap", label = FALSE, 
@@ -373,8 +375,8 @@ featureplot(seurat, reduction = "umap", label = FALSE,
 nCount_Spatial
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nCounts.
 
 featureplot(seurat, reduction = "tsne", label = FALSE, 
@@ -384,8 +386,8 @@ featureplot(seurat, reduction = "tsne", label = FALSE,
 nFeature_Spatial
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nFeatures.
 
 featureplot(seurat, reduction = "tsne", label = FALSE, 
@@ -417,8 +419,8 @@ seurat_5 <- snnCluster(seurat, k.param = 50, resolution = 0.8)
 k.param = 5, resolution = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 5, resolution = 0.1.
 
 dimplot(seurat_1, reduction = "umap", label = T, 
@@ -429,8 +431,8 @@ dimplot(seurat_1, reduction = "umap", label = T,
 k.param = 10, resolution = 0.3
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 10, resolution = 0.3.
 
 dimplot(seurat_2, reduction = "umap", label = T, 
@@ -441,8 +443,8 @@ dimplot(seurat_2, reduction = "umap", label = T,
 k.param = 15, resolution = 0.5
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 15, resolution = 0.5.
 
 dimplot(seurat_3, reduction = "umap", label = T, 
@@ -453,8 +455,8 @@ dimplot(seurat_3, reduction = "umap", label = T,
 k.param = 20, resolution = 0.6
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
 
 dimplot(seurat_4, reduction = "umap", label = T, 
@@ -465,8 +467,8 @@ dimplot(seurat_4, reduction = "umap", label = T,
 k.param = 50, resolution = 0.8
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 50, resolution = 0.8.
 
 dimplot(seurat_5, reduction = "umap", label = T, 
@@ -506,8 +508,8 @@ seurat <- snnCluster(seurat, k.param = 20, resolution = 0.8)
 k.param = 20, resolution = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.1.
 
 dimplot(seurat, reduction = "umap", label = T, 
@@ -518,8 +520,8 @@ dimplot(seurat, reduction = "umap", label = T,
 k.param = 20, resolution = 0.2
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.2.
 
 dimplot(seurat, reduction = "umap", label = T, 
@@ -530,8 +532,8 @@ dimplot(seurat, reduction = "umap", label = T,
 k.param = 20, resolution = 0.3
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.3.
 
 dimplot(seurat, reduction = "umap", label = T, 
@@ -542,8 +544,8 @@ dimplot(seurat, reduction = "umap", label = T,
 k.param = 20, resolution = 0.5
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.5.
 
 dimplot(seurat, reduction = "umap", label = T, 
@@ -554,8 +556,8 @@ dimplot(seurat, reduction = "umap", label = T,
 k.param = 20, resolution = 0.6
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
 
 dimplot(seurat, reduction = "umap", label = T, 
@@ -566,8 +568,8 @@ dimplot(seurat, reduction = "umap", label = T,
 k.param = 20, resolution = 0.8
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: (params$plot_height + 1)
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.8.
 
 dimplot(seurat, reduction = "umap", label = T, 

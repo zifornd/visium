@@ -6,15 +6,17 @@ params:
   min_cells:
     - 2
   example:
-    - "Foxj1"
+    - "Nrgn"
 ---
 
 ## Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -165,7 +167,7 @@ Plot model for example gene
 ```{r}
 #| warning: false
 #| message: false
-#| fig.show: "hide"
+#| fig.show: hide
 
 print(params$example)
 

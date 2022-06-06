@@ -71,8 +71,6 @@ topFeatClustList <- function(seurat, resList, head_num = 10) {
 plotHeatmap <- function(seuratprep, featureList, head_num = 10,
                         type = "DoHeatmap", legend = TRUE) {
 
-    source("plotpHeatmap.R")
-
     # Get top features
     features <- featureList[[unique(seuratprep@meta.data$Sample)]]
 

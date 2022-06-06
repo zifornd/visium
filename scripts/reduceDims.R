@@ -93,7 +93,7 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
       print(paste0("perplexity: ", round(ncol(seurat)^ (1 / 2), digits = -1)))
 
       perplexity <- round(ncol(seurat)^ (1 / 2), digits = -1)
-    
+
     }
 
   }
@@ -207,7 +207,7 @@ featurevln <- function(seurat, features = "nCount_Spatial",
 
 # Elbow plot
 
-elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5, 
+elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
                   vline2 = 10, title = NULL) {
 
   if (is.null(title)) {

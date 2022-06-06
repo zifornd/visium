@@ -8,7 +8,7 @@ params:
   feature:
     - "gene"
   split.res:
-    - FALSE
+    - TRUE
   group:
     - "cluster"
   custom.anno:
@@ -33,10 +33,12 @@ params:
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -272,24 +274,26 @@ Parse cp object
 
 ```{r}
 res_overrep_cells <- lapply(obj_overrep_cells, wrap_parse_cp_obj,  
-                           species = org_species,
-                           type = "overrep", 
-                           db = "Custom")
+                            species = org_species,
+                            type = "overrep", 
+                            db = "Custom")
 ```
 
 ```{r}
 res_overrep_hallmarks <- lapply(obj_overrep_hallmarks, wrap_parse_cp_obj, 
-                           species = org_species, 
-                           type = "overrep", 
-                           db = "Custom")
+                                species = org_species, 
+                                type = "overrep", 
+                                db = "Custom")
 ```
 
 ```{r}
-if(!is.null(custom_genesets_t2g)){
+if (!is.null(custom_genesets_t2g)) {
+
   res_overrep_hallmarks <- lapply(obj_overrep_hallmarks, wrap_parse_cp_obj, 
-                            species = org_species, 
-                            type = "overrep", 
-                           db = "Custom")
+                                  species = org_species, 
+                                  type = "overrep", 
+                                  db = "Custom")
+
 }
 ```
 
@@ -635,8 +639,8 @@ barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot Ovverepresentation analysis Msigdb C8
 
 wrap_plots(barplots, ncol = 2)
@@ -661,8 +665,8 @@ barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmar
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 1)
-#| fig.height: (params$plot_height - 5)
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr (params$plot_height - 5)
 #| fig-cap: Barplot Ovverepresentation analysis Msigdb Hallmarks
 
 wrap_plots(barplots, ncol = 2)
@@ -691,8 +695,8 @@ if (!is.null(custom_genesets_t2g)) {
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr params$plot_height
 #| fig-cap: Barplot Ovverepresentation analysis Custom geneset
 
 if (!is.null(custom_genesets_t2g)) {
@@ -723,8 +727,8 @@ barplots <- lapply(names(res_gsea_cells), function(x, res_gsea_cells){
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 3)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 3)
 #| fig-cap: Barplot GSEA Msigdb C8
 
 wrap_plots(barplots, ncol = 2)
@@ -749,8 +753,8 @@ barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 2)
-#| fig.height: (params$plot_height - 3)
+#| fig.width: !expr (params$plot_width + 2)
+#| fig.height: !expr (params$plot_height - 3)
 #| fig-cap: Barplot GSEA Msigdb Hallmarks
 
 wrap_plots(barplots, ncol = 2)
@@ -778,8 +782,8 @@ if (!is.null(custom_genesets_t2g)) {
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Barplot GSEA Custom geneset
 
 if (!is.null(custom_genesets_t2g)) {
@@ -809,8 +813,8 @@ enrichplots <- lapply(names(unlist(obj_gsea_cells, recursive = F)), function(x, 
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb C8
 
 wrap_plots(enrichplots)
@@ -832,8 +836,8 @@ enrichplots <- lapply(names(unlist(obj_gsea_hallmarks, recursive = F)), function
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb Hallmarks
 
 wrap_plots(enrichplots)
@@ -858,8 +862,8 @@ enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x,
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Custom geneset
 
 if (!is.null(custom_genesets_t2g)) {

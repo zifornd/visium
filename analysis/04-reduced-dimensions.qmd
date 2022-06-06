@@ -17,10 +17,12 @@ params:
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 
@@ -132,8 +134,8 @@ pca_plots_dim <- lapply(seurat, dimplot, reduction = "pca", label = FALSE,
 Wrap plot PCAs dimplots
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by group.
 
 wrap_plots(pca_plots_dim, ncol = 2)
@@ -152,8 +154,8 @@ pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca",
 Wrap plot PCAs featureplot ncount
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nCount.
 
 wrap_plots(pca_plots_feature, ncol = 2)
@@ -172,8 +174,8 @@ pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca",
 Wrap plot PCAs featureplot nfeature
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nFeature.
 
 wrap_plots(pca_plots_feature, ncol = 2)
@@ -193,8 +195,8 @@ elbows <- lapply(seurat, elbow)
 ```
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot.
 
 wrap_plots(elbows, ncol = 2)
@@ -248,8 +250,8 @@ seurat_5 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.001, BPPARAM =
 UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 30, min.dist = 0.3.
 
 wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", 
@@ -259,8 +261,8 @@ wrap_plots(lapply(seurat_1, dimplot, reduction = "umap",
 UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 5, min.dist = 0.25.
 
 wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", 
@@ -270,8 +272,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "umap",
 UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 10, min.dist = 0.1.
 
 wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", 
@@ -281,8 +283,8 @@ wrap_plots(lapply(seurat_3, dimplot, reduction = "umap",
 UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 20, min.dist = 0.1.
 
 wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", 
@@ -292,8 +294,8 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "umap",
 UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 10, min.dist = 0.001.
 
 wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", 
@@ -312,9 +314,9 @@ Run UMAP individual samples for choice of params
 ```{r}
 #| warning: false
 
-print("n.neighbors: ", params$n.neighbors)
+print(paste0("n.neighbors: ", params$n.neighbors))
 
-print("min.dist: ", params$min.dist)
+print(paste0("min.dist: ", params$min.dist))
 
 seurat <- bplapply(seurat, umap, n.neighbors = params$n.neighbors, 
                    min.dist = params$min.dist, BPPARAM = BPPARAM)
@@ -335,8 +337,8 @@ umap_plots <- lapply(seurat, dimplot, reduction = "umap",
 Wrap plot UMAP
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params
 
 wrap_plots(umap_plots, ncol = 2)
@@ -355,8 +357,8 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
 Wrap plot UMAP featureplot ncounts
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params nCounts
 
 wrap_plots(umap_plots_feature, ncol = 2)
@@ -375,8 +377,8 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
 Wrap plot UMAP featureplot nfeatures
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params nCounts
 
 wrap_plots(umap_plots_feature, ncol = 2)
@@ -414,8 +416,8 @@ seurat_5 <- bplapply(seurat, tsne, perplexity = 100, BPPARAM = BPPARAM)
 perplexity = N\^1/2
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = N^1/2
 
 wrap_plots(lapply(seurat_1, dimplot, reduction = "tsne", 
@@ -425,8 +427,8 @@ wrap_plots(lapply(seurat_1, dimplot, reduction = "tsne",
 perplexity = 5
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 5
 
 wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne", 
@@ -436,8 +438,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne",
 perplexity = 10
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 10
 
 wrap_plots(lapply(seurat_3, dimplot, reduction = "tsne", 
@@ -447,8 +449,8 @@ wrap_plots(lapply(seurat_3, dimplot, reduction = "tsne",
 perplexity = 20
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 20
 
 wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne", 
@@ -458,8 +460,8 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne",
 perplexity = 100
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 100
 
 wrap_plots(lapply(seurat_5, dimplot, reduction = "tsne", 
@@ -478,7 +480,7 @@ Run tsne individual samples for choice of params
 ```{r}
 #| warning: false
 
-print("perplexity: ", params$perplexity)
+print(paste0("perplexity: ", params$perplexity))
 
 seurat <- bplapply(seurat, tsne, perplexity = params$perplexity, BPPARAM = BPPARAM)
 ```
@@ -498,8 +500,8 @@ tsne_plots <- lapply(seurat, dimplot, reduction = "tsne",
 Wrap plot TSNE
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params.
 
 wrap_plots(tsne_plots, ncol = 2)
@@ -518,8 +520,8 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
 Wrap plot TSNE featureplot ncounts
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params nCounts.
 
 wrap_plots(tsne_plots_feature, ncol = 2)
@@ -538,8 +540,8 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
 Wrap plot TSNE featureplot nfeatures
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params nFeatures.
 
 wrap_plots(tsne_plots_feature, ncol = 2)

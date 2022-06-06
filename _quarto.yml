@@ -15,6 +15,7 @@ project:
     - analysis/08-marker-detection.qmd
     - analysis/09-fea-annotation.qmd
     - analysis/10-spatial-features.qmd
+    - analysis/11-cell-atlas.qmd
   execute:
     message: false
     warning: false
@@ -82,7 +83,9 @@ website:
           - text: "FEA Annotation"
             href: analysis/09-fea-annotation.html
           - text: "Spatially variable features"
-            href: analysis/10-spatial-features
+            href: analysis/10-spatial-features.html
+          - text: "Cell Atlas Annotation"
+            href: analysis/11-cell-atlas.html
       - text: "Help"
         menu:
           - text: "Report an Issue"

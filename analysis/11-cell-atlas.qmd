@@ -7,7 +7,7 @@ params:
     - "data/allen_cortex.rds"
   atlas.group:
     - "subclass"
-  vars.to.regress: ["nFeature_RNA", "nCount_RNA"]
+  vars.to.regress: ["nFeature_RNA"]
   min_cells:
     - 2
   elbow_range:
@@ -30,17 +30,19 @@ params:
   r.metric:
     - 5 # standard given by Seurat
   plot_width:
-    - 5
+    - 6
   plot_height:
-    - 7
+    - 5
 ---
 
 # Setup
 
-Parameter description
+@tbl-params Parameter description
 
 ```{r}
 #| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
 
 par <- list(
 list(
@@ -199,8 +201,8 @@ Individual PCA - dimplot
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by atlas.group.
 
 dimplot(atlas, reduction = "pca", label = FALSE, 
@@ -212,8 +214,8 @@ Individual PCA - featureplot ncount
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nCount.
 
 featureplot(atlas, reduction = "pca", label = FALSE, 
@@ -225,8 +227,8 @@ Individual PCA - featureplot nfeature
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nFeature.
 
 featureplot(atlas, reduction = "pca", label = FALSE, 
@@ -240,8 +242,8 @@ Add in variables to regress
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data after regression by vars.to.regress.
 
 if (params$vars.to.regress != FALSE) {
@@ -264,8 +266,8 @@ if (params$vars.to.regress != FALSE) {
 ### Elbow
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot Cell Atlas data.
 
 elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
@@ -315,8 +317,8 @@ atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 30, min.dist = 0.3.
 
 dimplot(atlas_1, reduction = "umap", label = TRUE, 
@@ -327,8 +329,8 @@ dimplot(atlas_1, reduction = "umap", label = TRUE,
 UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 5, min.dist = 0.25.
 
 dimplot(atlas_2, reduction = "umap", label = TRUE, 
@@ -339,8 +341,8 @@ dimplot(atlas_2, reduction = "umap", label = TRUE,
 UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.1.
 
 dimplot(atlas_3, reduction = "umap", label = TRUE, 
@@ -351,8 +353,8 @@ dimplot(atlas_3, reduction = "umap", label = TRUE,
 UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 20, min.dist = 0.1.
 
 dimplot(atlas_4, reduction = "umap", label = TRUE, 
@@ -363,8 +365,8 @@ dimplot(atlas_4, reduction = "umap", label = TRUE,
 UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.001.
 
 dimplot(atlas_5, reduction = "umap", label = TRUE, 
@@ -390,9 +392,9 @@ UMAP n.neighbors = 30, min.dist = 0.3
 #| warning: false
 #| results: hide
 
-print("n.neighbors: ", params$n.neighbors)
+print(paste0("n.neighbors: ", params$n.neighbors))
 
-print("min.dist: ", params$min.dist)
+print(paste0("min.dist: ", params$min.dist))
 
 atlas <- umap(atlas, n.neighbors = params$n.neighbors, min.dist = params$min.dist)
 ```
@@ -402,8 +404,8 @@ atlas <- umap(atlas, n.neighbors = params$n.neighbors, min.dist = params$min.dis
 nCount
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nCounts.
 
 featureplot(atlas, reduction = "umap",label =  FALSE, 
@@ -413,8 +415,8 @@ featureplot(atlas, reduction = "umap",label =  FALSE,
 nFeature
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nFeatures.
 
 featureplot(atlas, reduction = "umap", label = FALSE, 
@@ -424,8 +426,8 @@ featureplot(atlas, reduction = "umap", label = FALSE,
 ### Plot Cell Atlas by Class
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 1)
+#| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params by atlas.group.
 
 # the annotation is stored in the 'subclass' column of object metadata
@@ -466,8 +468,8 @@ seurat[["predictions"]] <- predictions.assay
 Example:
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
 #| fig-cap: Spatial plot with predicted Cell Atlas labels.
 
 DefaultAssay(seurat) <- "predictions"
@@ -490,8 +492,8 @@ sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
 ```
 
 ```{r}
-#| fig.width: (params$plot_width + 5)
-#| fig.height: (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels of those that are spatially variable.
 
 wrap_plots(sp)
@@ -500,8 +502,8 @@ wrap_plots(sp)
 ## Plot labels of interest
 
 ```{r}
-#| fig.width: params$plot_width
-#| fig.height: params$plot_height
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels - labels of interest.
 
 SpatialFeaturePlot(seurat, features = params$feature.example, 

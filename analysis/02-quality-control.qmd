@@ -45,13 +45,17 @@ source("scripts/filterCells.R")
 
 ## Processing
 
-Read experiment object:
+### Reading in experiment object
+
+We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `01-data-loading.qmd` for more details).
 
 ```{r}
 seurat <- readRDS("output/01-data-loading.rds")
 ```
 
-Read in metrics csv:
+### Reading in QC metrics csv
+
+We can also read in the qc metrics that we collected from the 10x visium output in the same `01-data-loading.qmd` worksheet. Much of the plotting for this analysis will focus on these values.
 
 ```{r}
 metrics <- read.csv("output/metrics.csv")
@@ -59,7 +63,7 @@ metrics <- read.csv("output/metrics.csv")
 
 ### QC Metrics
 
-Combine QC metrics for visualization:
+Before going further we need to combine these QC metrics ready for visualization.
 
 ```{r}
 combinedQC <- collectQC(seurat)
@@ -265,7 +269,7 @@ warningplot <- barplotgg(metrics, ylab = "Reads.Mapped.Confidently.to.Probe.Set"
 bars[[4]] <- warningplot
 ```
 
-@fig-qcmapping and @fig-qcmappingviolin Plot all mapping:
+@fig-qcmapping and @fig-qcmappingwarning Plot all mapping:
 
 ```{r}
 #| fig.width: 8
@@ -281,8 +285,6 @@ Summary Violin plot
 ```{r}
 #| message: false
 #| warning: false
-#| label: fig-qcmappingviolin
-#| fig-cap: Mapping QC values summary violin.
 
 map_metr <- metrics[,c("Sample.ID","Reads.Mapped.to.Probe.Set", 
                        "Reads.Mapped.Confidently.to.Probe.Set", 
@@ -369,7 +371,7 @@ print(c("Y axis range:", range(spatial_df[,1])))
 print(c("X axis range:",range(spatial_df[,2])))
 ```
 
-Filter out those low quality spots which are located peripherally
+Filter out those low quality spots which are located peripherally.
 
 ```{r}
 #| eval: false
@@ -378,7 +380,7 @@ seurat_1 <- filterByXY(seurat[[1]], x1 = 85.00408692 , x2 = 520,
                        y1 = 53.49836036, y2 = 513.829758624)
 ```
 
-Show which cells have been filtered
+Show which cells have been filtered.
 
 ```{r}
 #| eval: false
@@ -386,7 +388,7 @@ Show which cells have been filtered
 labels <- SpatialDimPlot(seurat[[1]],cells.highlight = colnames(seurat_1))
 ```
 
-Plot alongside original UMI count plot
+Plot alongside original UMI count plot.
 
 ```{r, message = FALSE, warning = FALSE}
 #| eval: false
@@ -397,7 +399,7 @@ counts <- SpatialFeaturePlot(seurat[[1]], features = "nCount_Spatial") +
           theme(legend.position = "right")
 ```
 
-Plot together
+Plot together.
 
 ```{r, fig.width = 6, fig.height = 10}
 #| eval: false
@@ -407,7 +409,7 @@ Plot together
 wrap_plots(counts, labels, ncol = 1)
 ```
 
-Replace old seurat object with new
+Replace old seurat object with new.
 
 ```{r}
 #| eval: false
@@ -419,14 +421,17 @@ seurat[[1]] = seurat_1
 
 #### Remove spots with zero counts
 
-SCT transform will complain when attempts to log transform - so we filter 0 count spots by default
+Normalisation approaches that we use (e.g. SCT transform) require non zero counts for each spot and will complain when they attempt to log transform spots with zero counts - so we filter 0 count spots by default.
 
-Plot filtered spots
+We can plot those spots with zero counts first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
 
 ```{r}
+# Plot filtered spots
 wrap_plots(lapply(seurat, filterByPlot, threshold = 0, by = "nCount_Spatial", 
                   direction = "up"))
 ```
+
+We can then remove these spots:
 
 ```{r}
 seurat <- lapply(seurat, filterBy, threshold = 0, by = "nCount_Spatial", 

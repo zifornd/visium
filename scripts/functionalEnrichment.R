@@ -168,7 +168,7 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
 
         gene_ids_vector <- gene_ids_vector[complete.cases(gene_ids_vector)]
 
-        cp_obj <- clusterprofiler::enricher(gene = as.character(gene_ids_vector),
+        cp_obj <- clusterProfiler::enricher(gene = as.character(gene_ids_vector),
                                             TERM2GENE = term2gene)
 
     }
@@ -180,7 +180,7 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
 
         gene_ids_vector <- gene_ids_vector[complete.cases(names(gene_ids_vector))]
 
-        cp_obj <- clusterprofiler::GSEA(gene = gene_ids_vector,
+        cp_obj <- clusterProfiler::GSEA(gene = gene_ids_vector,
                                         TERM2GENE = term2gene)
 
     }
@@ -459,7 +459,7 @@ trim_label <- function(lab, width = 20, delim = NULL) {
 # Input: deseq_df, filtered DF
 # Output: clusterprofiler object
 
-# Other Options 
+# Other Options
 # Analysis type: gsea, overrep
 # DB choice: GO,KEGG, REACTOME, Hallmark
 # DB sub cat fo GO as ont:  ALL, BP, CC, MF

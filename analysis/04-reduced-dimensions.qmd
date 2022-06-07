@@ -1,21 +1,23 @@
 ---
-title: "Reduce Dimensions"
-params:
-  elbow_range:
+title: "Reduced Dimensions"
+params: 
+  elbow_range: 
     - "1:10"
   n.neighbors:
     - 30
-  min.dist:
+  min.dist: 
     - 0.3
-  perplexity:
+  perplexity: 
     - "N^1/2"
-  plot_width:
+  plot_width: 
     - 8
-  plot_height:
+  plot_height: 
     - 4
 ---
 
 # Setup
+
+### Parameters
 
 @tbl-params Parameter description
 
@@ -52,6 +54,12 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 
 knitr::kable(jsonlite::fromJSON(par))
 ```
+
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+### Dependencies
 
 Add child documents
 
@@ -97,9 +105,15 @@ Source user-defined functions:
 source("scripts/reduceDims.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
 # Processing
 
-Read experiment object:
+### Reading in experiment object
+
+We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `03-normalisation.qmd` for more details).
 
 ```{r}
 #| message: false
@@ -110,7 +124,9 @@ seurat <- readRDS("output/03-normalisation.rds")
 
 ## PCA
 
-PCA individual samples
+Due to existence of abundant technical noise in any single gene feature for single cell and spatial data - it is common practice to perform dimensionality reduction and clustering using the top principal components from principal component analysis (PCA). This sees each principal component (PC) as a metafeature or metagene which summarises information across a number of correlated gene features maximising biological signal.
+
+Below we perform PCA on each seurat object:
 
 ```{r}
 #| message: false
@@ -121,7 +137,7 @@ seurat <- bplapply(seurat, pca, BPPARAM = BPPARAM)
 
 ### Plot PCAs
 
-Individual PCA - dimplot
+Below we plot the first two components of the PCA that we completed on each seurat object coloured by group.
 
 ```{r}
 #| message: false
@@ -131,17 +147,20 @@ pca_plots_dim <- lapply(seurat, dimplot, reduction = "pca", label = FALSE,
                         group.by = "Group")
 ```
 
-Wrap plot PCAs dimplots
+@fig-pca-group Wrap plot PCAs dimplots
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by group.
+#| label: fig-pca-group
 
 wrap_plots(pca_plots_dim, ncol = 2)
 ```
 
-Individual PCA - featureplot ncount
+It can also be a very useful exploratory data analysis step to look at the PCA coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches. Other things like a known batch could be plotted as a labelled PCA plot for diagnosis of potential batch effects.
+
+Below we plot the first two components of the PCA that we completed on each seurat object coloured by `nCount_Spatial`.
 
 ```{r}
 #| message: false
@@ -151,17 +170,18 @@ pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca",
                             label = FALSE, feature = "nCount_Spatial")
 ```
 
-Wrap plot PCAs featureplot ncount
+@fig-pca-ncount Wrap plot PCAs featureplot ncount
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nCount.
+#| label: fig-pca-ncount
 
 wrap_plots(pca_plots_feature, ncol = 2)
 ```
 
-Individual PCA - featureplot nfeature
+Below we plot the first two components of the PCA that we completed on each seurat object coloured by `nFeature_Spatial`.
 
 ```{r}
 #| message: false
@@ -171,21 +191,24 @@ pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca",
                             label = FALSE, feature = "nFeature_Spatial")
 ```
 
-Wrap plot PCAs featureplot nfeature
+@fig-pca-nfeature Wrap plot PCAs featureplot nfeature
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nFeature.
-
+#| label: fig-pca-nfeature
+ 
 wrap_plots(pca_plots_feature, ncol = 2)
 ```
 
 ## Finding dimensionality of dataset
 
-Find ncomponents for downstream dimensionality reduction
+Although we know that using the top PCs from PCA improves downstream analysis and overcomes technical noise of single cell and spatial data we do not know how many PCs to choose. A simple way to do this is to perform a heuristic method by generating an Elbow plot by ranking the PCs by % variance that each explains and finding the "elbow" in which variance ceases to decrease. At this elbow the majority true biological signal is captured.
 
 ### Elbow plot
+
+Below we plot the variance of the top components as an elbow plot
 
 ```{r}
 #| message: false
@@ -194,17 +217,22 @@ Find ncomponents for downstream dimensionality reduction
 elbows <- lapply(seurat, elbow)
 ```
 
+@fig-elbow Elbow plot
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot.
+#| label: fig-elbow
 
 wrap_plots(elbows, ncol = 2)
 ```
 
-Take number of PCs from visual inspection - better to go higher
+::: callout-note
+Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
+:::
 
-Define elbow vector:
+Below we take number of PCs from visual inspectiondefined by the parameter elbow vector:
 
 ```{r}
 #| warning: false
@@ -216,7 +244,7 @@ names(elbow_vector) <- names(seurat)
 print(elbow_vector)
 ```
 
-Add PC elbow to object
+And we add that information to the seurat object
 
 ```{r}
 #| message: false
@@ -227,9 +255,17 @@ seurat <- lapply(seurat, addElbow, elbow_vector = elbow_vector)
 
 ## UMAP
 
+Although PCA does a good first job of initial dimensionality reduction it cannot preserve local structure of the data (clusters), it gets affected easily by outliers, and it cannot capture non linear dependencies. We therefore want to use a non-linear dimensionality reduction technique which can best capture and visualise clusters of similar tissue anatomy. Borrowing from single cell RNA-seq we use either Uniform Manifold Approximation and Projection (**UMAP**) or T-distributed stochastic neighbourhood embedding (**t-SNE**) approaches. Generally we favor UMAP due to its faster run time.
+
+Unlike PCA these approaches have hyperparameters (e.g. perplexity and t-SNE), and these can be tweaked to affect the outcome of the plot. It is therefore important to explore this parameter space, at least quickly, to ensure the dimensionality reduction you have is a representative one.
+
+Below we explore the parameter space of both UMAP and t-SNE approaches in a non-exhaustive manner.
+
 ### Test stability of UMAP params
 
-n.neighbors should be in the range 5 to 50. min.dist sensible values are in the range 0.001 to 0.5.
+For UMAP hyperparams of importance are n.neighbors and min.dist. n.neighbors should be in the range 5 to 50, and min.dist sensible values are in the range 0.001 to 0.5.
+
+Below we run UMAP across seurat objects for these parameters.
 
 ```{r}
 #| message: false
@@ -247,56 +283,61 @@ seurat_4 <- bplapply(seurat, umap, n.neighbors = 20, min.dist = 0.1, BPPARAM = B
 seurat_5 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.001, BPPARAM = BPPARAM)
 ```
 
-UMAP n.neighbors = 30, min.dist = 0.3
+@fig-umap-30-03 Plot UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 30, min.dist = 0.3.
+#| label: fig-umap-30-03
 
 wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-UMAP n.neighbors = 5, min.dist = 0.25
+@fig-umap-05-025 Plot UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 5, min.dist = 0.25.
+#| label: fig-umap-05-025
 
 wrap_plots(lapply(seurat_2, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.1
+@fig-umap-10-01 Plot UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 10, min.dist = 0.1.
+#| label: fig-umap-10-01
 
 wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-UMAP n.neighbors = 20, min.dist = 0.1
+@fig-umap-20-01 Plot UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 20, min.dist = 0.1.
+#| label: fig-umap-20-01
 
 wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.001
+@fig-umap-10-0001 Plot UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP n.neighbors = 10, min.dist = 0.001.
+#| label: fig-umap-10-0001
 
 wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
@@ -309,7 +350,13 @@ rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
 ```
 
-Run UMAP individual samples for choice of params
+### Plot UMAP
+
+::: callout-note
+Please take the values for `n.neighbors` and `min.dist` that are representative across UMAP plots and set them as params.
+:::
+
+Below we run UMAP with the paramaters of choice.
 
 ```{r}
 #| warning: false
@@ -322,9 +369,7 @@ seurat <- bplapply(seurat, umap, n.neighbors = params$n.neighbors,
                    min.dist = params$min.dist, BPPARAM = BPPARAM)
 ```
 
-### Plot UMAP
-
-Individual UMAPs
+Below we plot the UMAP of choice
 
 ```{r}
 #| message: false
@@ -334,17 +379,20 @@ umap_plots <- lapply(seurat, dimplot, reduction = "umap",
                      label = FALSE, group.by = "Group")
 ```
 
-Wrap plot UMAP
+@fig-umap-choice Plot UMAP of choice
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params
+#| label: fig-umap-choice
 
 wrap_plots(umap_plots, ncol = 2)
 ```
 
-Individual UMAP - featureplot ncounts
+As in PCA plotting it can also be a very useful exploratory data analysis step to look at the UMAP coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). Other things like a known batch could be plotted as a labelled UMAP plot for diagnosis of potential batch effects as well.
+
+Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
 
 ```{r}
 #| message: false
@@ -354,17 +402,18 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
                              label = FALSE, feature = "nCount_Spatial")
 ```
 
-Wrap plot UMAP featureplot ncounts
+@fig-umap-chosen-ncounts Wrap plot UMAP featureplot nCounts
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params nCounts
+#| label: fig-umap-chosen-ncounts
 
 wrap_plots(umap_plots_feature, ncol = 2)
 ```
 
-Individual UMAP - featureplot nfeatures
+Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
 
 ```{r}
 #| message: false
@@ -374,12 +423,13 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
                              label = FALSE, feature = "nFeature_Spatial")
 ```
 
-Wrap plot UMAP featureplot nfeatures
+@fig-umap-chosen-nfeatures Wrap plot UMAP featureplot nFeatures
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP chosen params nCounts
+#| label: fig-umap-chosen-nfeatures
 
 wrap_plots(umap_plots_feature, ncol = 2)
 ```
@@ -388,8 +438,9 @@ wrap_plots(umap_plots_feature, ncol = 2)
 
 ### Test stability of TSNE params
 
-perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1) 
-NB: Try N\^1/2 as rule of thumb
+For t-SNE hyperparams of importance are perplexity. perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1) NB: Try N\^1/2 as rule of thumb.
+
+Below we run TSNE across seurat objects for these parameters.
 
 ```{r}
 #| label: Explore-Features-TSNE-N1-2
@@ -413,56 +464,61 @@ seurat_4 <- bplapply(seurat, tsne, perplexity = 20, BPPARAM = BPPARAM)
 seurat_5 <- bplapply(seurat, tsne, perplexity = 100, BPPARAM = BPPARAM)
 ```
 
-perplexity = N\^1/2
+@fig-tsne-n12 Plot perplexity = N\^1/2
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = N^1/2
+#| label: fig-tsne-n12
 
 wrap_plots(lapply(seurat_1, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-perplexity = 5
+@fig-tsne-5 Plot perplexity = 5
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 5
+#| label: fig-tsne-5
 
 wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-perplexity = 10
+@fig-tsne-10 Plot perplexity = 10
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 10
+#| label: fig-tsne-10
 
 wrap_plots(lapply(seurat_3, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-perplexity = 20
+@fig-tsne-20 Plot perplexity = 20
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 20
+#| label: fig-tsne-20
 
 wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
-perplexity = 100
+@fig-tsne-100 Plot perplexity = 100
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE perplexity = 100
+#| label: fig-tsne-100
 
 wrap_plots(lapply(seurat_5, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
@@ -475,7 +531,13 @@ rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
 ```
 
-Run tsne individual samples for choice of params
+### Plot TSNE
+
+::: callout-note
+Please take the values for `perplexity` that are representative across TSNE plots and set them as params.
+:::
+
+Below we run TSNE with the paramaters of choice.
 
 ```{r}
 #| warning: false
@@ -485,9 +547,7 @@ print(paste0("perplexity: ", params$perplexity))
 seurat <- bplapply(seurat, tsne, perplexity = params$perplexity, BPPARAM = BPPARAM)
 ```
 
-### Plot TSNE
-
-Individual TSNEs
+Below we plot each individual TSNE.
 
 ```{r}
 #| warning: false
@@ -497,17 +557,20 @@ tsne_plots <- lapply(seurat, dimplot, reduction = "tsne",
                      label = FALSE, group.by = "Group")
 ```
 
-Wrap plot TSNE
+@fig-tsne-chosen Wrap plot TSNE
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params.
+#| label: fig-tsne-chosen
 
 wrap_plots(tsne_plots, ncol = 2)
 ```
 
-Individual TSNE - featureplot ncounts
+As in UMAP plotting we will also complete an exploratory data analysis step and colour the UMAP by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`).
+
+Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
 
 ```{r}
 #| warning: false
@@ -517,17 +580,18 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
                              label = FALSE, feature = "nCount_Spatial")
 ```
 
-Wrap plot TSNE featureplot ncounts
+@fig-tsne-chosen-ncounts Wrap plot TSNE featureplot ncounts
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params nCounts.
+#| label: fig-tsne-chosen-ncounts
 
 wrap_plots(tsne_plots_feature, ncol = 2)
 ```
 
-Individual TSNE - featureplot nfeatures
+Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
 
 ```{r}
 #| warning: false
@@ -537,12 +601,13 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
                              label = FALSE, feature = "nFeature_Spatial")
 ```
 
-Wrap plot TSNE featureplot nfeatures
+@fig-tsne-chosen-nfeatures Wrap plot TSNE featureplot nfeatures
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE chosen params nFeatures.
+#| label: fig-tsne-chosen-nfeatures
 
 wrap_plots(tsne_plots_feature, ncol = 2)
 ```

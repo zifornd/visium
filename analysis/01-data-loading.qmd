@@ -51,7 +51,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-:::{.callout-tip}
+::: callout-tip
 You can supply these paramaters upon render.
 :::
 
@@ -82,7 +82,7 @@ Source user-defined functions:
 source("scripts/loadInSpatial.R")
 ```
 
-:::{.callout-note}
+::: callout-note
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
 

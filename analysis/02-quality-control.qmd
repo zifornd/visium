@@ -8,6 +8,8 @@ title: "Quality control"
 # knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium")
 ```
 
+### Dependencies
+
 Restore project dependencies:
 
 ```{r}
@@ -43,9 +45,15 @@ source("scripts/plotQC.R")
 source("scripts/filterCells.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
 ## Processing
 
-### Reading in experiment object
+### Reading in
+
+#### Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `01-data-loading.qmd` for more details).
 
@@ -53,7 +61,13 @@ We can read in the seurat object that we loaded in from the previous worksheet (
 seurat <- readRDS("output/01-data-loading.rds")
 ```
 
-### Reading in QC metrics csv
+We also need to collect the QC metrics from the seurat objects ready for visualization.
+
+```{r}
+combinedQC <- collectQC(seurat)
+```
+
+#### Reading in QC metrics csv
 
 We can also read in the qc metrics that we collected from the 10x visium output in the same `01-data-loading.qmd` worksheet. Much of the plotting for this analysis will focus on these values.
 
@@ -63,15 +77,11 @@ metrics <- read.csv("output/metrics.csv")
 
 ### QC Metrics
 
-Before going further we need to combine these QC metrics ready for visualization.
-
-```{r}
-combinedQC <- collectQC(seurat)
-```
-
 #### nCounts
 
-Violin plots for nCounts metric from 10x output (sum in OSCA):
+Below we plot violin plots for `nCounts_Spatial` metric from 10x output and represents the number of total UMI barcodes counted per spot - the higher the count the more RNA content in each spot. If you are familiar with the OSCA single cell workflow this is equivalent to the `sum` of counts for a single cell experiment. For single cell Seurat workflow this is equivalent to `nCounts_RNA`.
+
+Ideally, we are looking for well enriched samples with good number of overall UMI counts across spots (median \~20k UMI is fine), however more importantly we are looking for low count outliers - e.g. Is the distribution particularly skewed? Do we need to filter a low quality group of spots with low counts represented by a bimodal distribution etc.?
 
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
@@ -97,7 +107,7 @@ vlns <- lapply(meta, function(x, combinedQC, clean_label) {
 wrap_plots(vlns)
 ```
 
-Image map plots for nCounts:
+It is also important to look at the distribution of counts across the tissue sample via image map plots. Below we plot our H+E stained histology imaged with `nCounts_Spatial` overlayed. It is normal to see biological variation driving differences in total RNA content and thus areas of the image may have areas of low nCounts. For example, regions containing mostly connective tissue (e.g. in fibrotic/cirrhotic liver) will typically have low UMI counts. In the brain, areas that are depleted for neurons such as cortical white matter, are also known to show low nCounts reproducibly (https://satijalab.org/seurat/articles/spatial_vignette.html).
 
 ```{r}
 #| message: false
@@ -126,7 +136,11 @@ wrap_plots(spatialPlots)
 
 #### nFeatures
 
-Violin plots for nFeatures metric from 10x output (detected in OSCA):
+Another important QC measurement we use is the number of features sampled per spot or `nFeatures_Spatial`. In this case the features we are interested in are of course genes, so nFeatures really is the number of genes we have managed to sample per spot. In the OSCA workflow this is `detected` and in a Seurat single cell workflow this is `nFeatures_RNA`. Below we plot violin plots for nFeatures metric from 10x output.
+
+The median number of genes per spot can vary from experiment to experiment depending on the tissue type. Like the example above fibrotic tissue may have few detected and expressed genes as well as low UMI count and so median nFeature can be low in tissues such as cirrhotic liver (although something like \~5k is fine). What we are looking for again is low feature count spots and skewed distributions that may be amenable to filtering.
+
+Ideally we would be able to spend lots of money on sequencing to be able to sample all possible genes - including those lowly expressed genes. This is not always possible however and if a gene of interest is not expressed sequencing saturation plots which come with 10x html output should be inspected further.
 
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
@@ -152,7 +166,7 @@ vlns <- lapply(meta, function(x, combinedQC, clean_label) {
 wrap_plots(vlns)
 ```
 
-@fig-nfeaturesimage Image map nFeatures:
+As above it is also important to look at the distribution of feature counts across the tissue sample via image map plots. Below we plot our H+E stained histology imaged with `nFeatures_Spatial` overlayed.
 
 ```{r}
 #| warning: false
@@ -166,6 +180,8 @@ spatialPlots <- lapply(names(seurat), function(x, seuratList) {
   }, seuratList = seurat)
 ```
 
+@fig-nfeaturesimage Image map nFeatures:
+
 ```{r}
 #| fig.width: 15
 #| fig.height: 20
@@ -177,9 +193,13 @@ spatialPlots <- lapply(names(seurat), function(x, seuratList) {
 wrap_plots(spatialPlots)
 ```
 
-#### Additional QC Metrics
+### Additional QC Metrics
 
-##### Sequencing:
+Spaceranger also produces a set of QC values which we have parsed ready for plotting below. These are presented to the user normally within 10x html outputs and we plot these below under the headers specified by 10x - `Sequencing`, `Mapping`, and `Spots`.
+
+#### Sequencing
+
+This set of QC values focuses on sequencing QC e.g. total number of reads per sample (`Number.of.Reads`), percentage of valid UMIs (`Valid.UMIs`), the quality of reads and barcodes (`Q30.Bases.in.Barcode`, `Q30.Bases.in.Probe.Read`, `Q30.Bases.in.UMI`) per sample.
 
 ```{r}
 metricscols <- c("Number.of.Reads", "Valid.Barcodes", "Valid.UMIs", 
@@ -195,7 +215,7 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
   }, metrics = metrics, clean_label = wrap_label)
 ```
 
-@fig-qcseq and @fig-qcseqviolin Plot all Sequencing:
+@fig-qcseq Plot Sequencing QC Barplot
 
 ```{r}
 #| fig.width: 12
@@ -206,7 +226,7 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
 wrap_plots(bars)
 ```
 
-Summary Violin plot
+We can also summarise some of these values (those that are a %) into a violin plot so that they can be more easily compared across samples.
 
 ```{r}
 seq_metr <- metrics[,c("Sample.ID","Valid.Barcodes", "Valid.UMIs", 
@@ -220,6 +240,8 @@ seq_metr$Percentage <- seq_metr$value
 seq_metr$QC <- seq_metr$variable
 ```
 
+One violin zooms into the values of each QC measurement, the other enforces a 0 - 100% y axis.
+
 ```{r}
 v1 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T)
@@ -227,6 +249,8 @@ v1 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC",
 v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, ylim = c(0,1))
 ```
+
+@fig-qcseqviolin Summary Violin plot
 
 ```{r}
 #| fig.width: 4
@@ -237,7 +261,9 @@ v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC",
 wrap_plots(v1, v2, nrow = 2)
 ```
 
-##### Mapping:
+#### Mapping
+
+This set of QC values focuses on mapping QC (mapping to the mouse or human probe set for FFPE protocol) e.g. total number of reads mapped to probe set (`Reads.Mapped.to.Probe.Set`), total number of reads mapped uniquely to probe set (`Reads.Mapped.Confidently.to.Probe.Set`), and total number of reads that mapped uniquely to filtered probe set (those with low predicted off-targets and are no DEPRECATED) (`Reads.Mapped.Confidently.to.the.Filtered.Probe.Set`) per sample.
 
 ```{r}
 metricscols <- c("Reads.Mapped.to.Probe.Set", 
@@ -269,7 +295,7 @@ warningplot <- barplotgg(metrics, ylab = "Reads.Mapped.Confidently.to.Probe.Set"
 bars[[4]] <- warningplot
 ```
 
-@fig-qcmapping and @fig-qcmappingwarning Plot all mapping:
+@fig-qcmapping Plot a barplot of all mapping based QC:
 
 ```{r}
 #| fig.width: 8
@@ -280,7 +306,7 @@ bars[[4]] <- warningplot
 wrap_plots(bars, nrow = 2)
 ```
 
-Summary Violin plot
+We can also summarise some of these values (those that are a %) into a violin plot so that they can be more easily compared across samples.
 
 ```{r}
 #| message: false
@@ -298,6 +324,8 @@ map_metr$Percentage <- map_metr$value
 map_metr$QC <- map_metr$variable
 ```
 
+One violin zooms into the values of each QC measurement, the other enforces a 0 - 100% y axis, and the final includes those with a warning.
+
 ```{r}
 v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, clean = 20)
@@ -310,7 +338,7 @@ v3 <- violingg(map_metr, ylab = "Percentage", xlab = "QC",
                colour_by = "Warning", show_median = T, clean = 20)
 ```
 
-With warning label
+@fig-qcmappingwarning Summary Violin Plot
 
 ```{r}
 #| fig.width: 8
@@ -321,7 +349,9 @@ With warning label
 wrap_plots(v1, v2, v3, nrow = 2)
 ```
 
-##### Spots:
+#### Spots
+
+This set of QC values focuses on spot associated QC e.g. total number of spots under the tissue sample (`Number.of.Spots.Under.Tissue`), the mean reads per spot (`Mean.Reads.per.Spot`) which is like mean nCounts, and the median genes per spot (`Median.Genes.per.Spot`) which is similar to median nFeatures.
 
 ```{r}
 metricscols <- c("Number.of.Spots.Under.Tissue", "Mean.Reads.per.Spot", 
@@ -336,7 +366,7 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
   }, metrics = metrics, clean_label = wrap_label)
 ```
 
-@fig-qcspot Plot all spot:
+@fig-qcspot Plot a barplot of all spot based QC (as they are not on the same scale we cannot summarise them as violin plots).
 
 ```{r}
 #| fig.width: 12

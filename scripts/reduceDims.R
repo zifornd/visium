@@ -80,19 +80,19 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
 
   if (is.null(perplexity)) {
 
-    print(paste0("perplexity: ", round(ncol(seurat)^ (1 / 2), digits = -1)))
+    print(paste0("perplexity: ", round(ncol(seurat)^(1 / 2), digits = -1)))
 
-    perplexity <- round(ncol(seurat)^ (1 / 2), digits = -1)
+    perplexity <- round(ncol(seurat)^(1 / 2), digits = -1)
 
   } else {
 
     print(paste0("perplexity: ", perplexity))
 
-    if (perplexity == "N^1/2"){
+    if (perplexity == "N^1/2") {
 
-      print(paste0("perplexity: ", round(ncol(seurat)^ (1 / 2), digits = -1)))
+      print(paste0("perplexity: ", round(ncol(seurat)^(1 / 2), digits = -1)))
 
-      perplexity <- round(ncol(seurat)^ (1 / 2), digits = -1)
+      perplexity <- round(ncol(seurat)^(1 / 2), digits = -1)
 
     }
 

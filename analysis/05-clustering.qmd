@@ -11,6 +11,8 @@ params:
 
 # Setup
 
+### Parameters
+
 @tbl-params Parameter description
 
 ```{r}
@@ -36,6 +38,8 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 
 knitr::kable(jsonlite::fromJSON(par))
 ```
+
+### Dependencies
 
 Add child documents
 
@@ -83,17 +87,29 @@ source("scripts/reduceDims.R")
 source("scripts/cluster.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
 # Processing
 
-Read experiment object:
+### Reading in experiment object
+
+We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `04-reduced-dimensions.qmd` for more details).
 
 ```{r}
 seurat <- readRDS("output/04-reduced-dimensions.rds")
 ```
 
-## Clustering with SNN
+## Clustering
 
-SNN graph construction across a number of params
+A common next step in the spatial workflow is to cluster spots to identify anatomically distinct regions across tissue samples. Seurat uses a graph-based clustering approach (SNN), building upon strategies from [Macosko *et al*](http://www.cell.com/abstract/S0092-8674(15)00549-8)*.* In brief, this approach completes clustering in two stages - the first stage embeds cells in a graph structure (e.g. K-nearest neighbor (KNN) graph) with edges drawn between cells with similar expression patterns, and the second stage attempts to partition the graph into highly connected communities.
+
+Please see Seurat single cell vignette (https://satijalab.org/seurat/articles/pbmc3k_tutorial.html) for more details.
+
+Like dimensionality reduction clustering using this approach uses a `resolution` parameter that sets the 'granularity' of the downstream clustering. The Seurat authors recommend a value between `0.4-1.2` but the value should be explored to see how it affects stability and quality of clusters. Another important parameter is the `k.param` which defines the k number of nearest neighbors for a given data set during KNN graph construction.
+
+Below we complete SNN clustering whilst changing the `resolution` parameter as well as the `k.param` parameter. Generally speaking the default `k.param of 20` should be kept - but as a rule of thumb you do not want to have a higher k than the number of cells in your least populated cell type. Other rules of thumb for KNN approaches are `sqrt(N)` where N is the number of cells/spots.
 
 ```{r}
 #| message: false
@@ -332,8 +348,7 @@ wrap_plots(clustree_plots, ncol = 2)
 
 Across k = 20 (seurat default)
 
-A cell with a large positive width is closer to other cells from the same cluster -
-compared to cells from different clusters. 
+A cell with a large positive width is closer to other cells from the same cluster - compared to cells from different clusters.
 
 On the other hand, low or negative widths indicate that cells from different clusters are not well separated.
 
@@ -431,13 +446,11 @@ res.0.8
 wrap_plots(silhouette_plots_5, ncol = 2)
 ```
 
-## Spatial feautures
+## Spatial features
 
 #### Chosen Res
 
-SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason. 
-Can get around this by setting identity of object prior to plotting. 
-See plotSpatialCluster for more details.
+SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason. Can get around this by setting identity of object prior to plotting. See plotSpatialCluster for more details.
 
 ```{r}
 spatial_dim1 <- lapply(seurat, plotSpatialCluster, 

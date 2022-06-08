@@ -368,7 +368,7 @@ gc()
 Please take the values for `n.neighbors` and `min.dist` that are representative across UMAP plots and set them as params.
 :::
 
-Below we run UMAP with the paramaters of choice \`r n.neighbors: params\$n.neighbors min.dist: params\$min.dist\`
+Below we run UMAP with the paramaters of choice `r paste0("n.neighbors: ", params$n.neighbors, " min.dist: ", params$min.dist)`
 
 ```{r}
 #| warning: false

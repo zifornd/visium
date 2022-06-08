@@ -210,7 +210,7 @@ gc()
 
 ### Keeping k stable
 
-As discussed above generally speaking we link to keep k.param as Seurat default (`k.param = 20`), therefore below we will keep it stable whilst changing the `resolution` parameter. We will save the results of this clustering into the seurat object so we can refer to this clustering downstream.
+As discussed above generally speaking we like to keep k.param as Seurat default (`k.param = 20`), therefore below we will keep it stable whilst changing the `resolution` parameter. We will save the results of this clustering into the seurat object so we can refer to this clustering downstream.
 
 ```{r}
 #| message: false
@@ -313,7 +313,7 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
 
 ## Clustering stability
 
-Another way of deciding what resolution to choose is to look at the stability of clusters across different resolution paramaters - in particular watching how spots move between clusters as the number of clusters increases. Below we use the package `clustree` to produce clustering trees to visualise this process.
+Another way of deciding what resolution to choose is to look at the stability of clusters across different resolution parameters - in particular watching how spots move between clusters as the number of clusters increases. Below we use the package `clustree` to produce clustering trees to visualise this process.
 
 A good resolution is one which captures a number of stable clusters that remain in tact as the resolution parameter increases. Unstable clusters demonstrate large movements of samples(spots) between them as we change resolution parameters.
 

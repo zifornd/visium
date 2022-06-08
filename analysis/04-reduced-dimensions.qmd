@@ -232,7 +232,7 @@ wrap_plots(elbows, ncol = 2)
 Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
 :::
 
-Below we take number of PCs from visual inspectiondefined by the parameter elbow vector:
+Below we take number of PCs from visual inspection defined by the parameter elbow vector:
 
 ```{r}
 #| warning: false

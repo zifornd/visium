@@ -20,6 +20,8 @@ params:
 
 # Setup
 
+### Parameters
+
 @tbl-params Parameter description
 
 ```{r}
@@ -66,6 +68,12 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+### Dependencies
+
 Add child documents
 
 ```{r}
@@ -110,15 +118,43 @@ source("scripts/reduceDims.R")
 source("scripts/cluster.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
 # Processing
 
-Read experiment object:
+### Reading in experiment object
+
+We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `05-clustering.qmd` for more details).
 
 ```{r}
 seurat <- readRDS("output/05-clustering.rds")
 ```
 
 ## Merge samples
+
+Much of this workbook is focused around elements that we have already discussed in previous portions of the visium workflow (see `04-reduced-dimensions.qmd` and `05-clustering.qmd`). The distinction here is that we are merging our samples together into a single seurat object prior to re-running dimensionality reduction and clustering.
+
+As discussed in `03-normalisation.qmd` seurat authors suggest to normalise each sample individually prior to merging as each sample would have a different amount of technical noise.
+
+Please see https://github.com/satijalab/seurat/discussions/4430 for more details.
+
+Below we merge the samples together - this combines them in the simplest of senses by combining count matrices, features, and metadata into a single seurat object. It **does not** complete additional processing on the data.
+
+For more details see https://satijalab.org/seurat/articles/merge_vignette.html
+
+::: callout-note
+Removal of known batch effects with seurats `ScaleData` and `vars.to.regress` may be an option for visualisation purposes down stream.
+:::
+
+::: callout-note
+Another approach is offered by following the alternative `07-integrate-samples.qmd` workflow which does process samples prior to combining.
+:::
+
+::: callout-warning
+As there are multiple SCT models present within a merged seurat object further processing will need to be completed prior to marker detection (see `08-marker-detection.qmd`)
+:::
 
 ```{r}
 #| message: false
@@ -127,11 +163,17 @@ seurat <- readRDS("output/05-clustering.rds")
 seurat <- seuratMerge(seurat)
 ```
 
-## Dim Reduc
+## Downstream analysis
+
+Following merging we follow the same analysis as described in `04-reduced-dimensions.qmd` and `05-clustering.qmd.` For more details on these analyses please consult the relevant workflow.
+
+## Dimensionality Reduction
 
 ### PCA
 
-PCA individual samples
+It is common practice to perform dimensionality reduction and clustering using the top principal components from principal component analysis (PCA).
+
+Below we perform PCA on the merged seurat object:
 
 ```{r}
 #| message: false
@@ -142,7 +184,7 @@ seurat <- pca(seurat)
 
 ### Plot PCAs
 
-Individual PCA - dimplot
+Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by group.
 
 ```{r}
 #| message: false
@@ -155,7 +197,9 @@ dimplot(seurat, reduction = "pca", label = FALSE,
         group.by = "Group", title = "PCA-Merged")
 ```
 
-Individual PCA - featureplot ncount
+Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by `nCount_Spatial`.
+
+@fig-pca-ncount Plot PCA nCount merged
 
 ```{r}
 #| message: false
@@ -163,12 +207,15 @@ Individual PCA - featureplot ncount
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nCount.
+#| label: fig-pca-ncount
 
 featureplot(seurat, reduction = "pca", label = FALSE, 
             feature = "nCount_Spatial", title = "PCA-Merged")
 ```
 
-Individual PCA - featureplot nfeature
+Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by `nFeature_Spatial`.
+
+@fig-pca-nfeature Plot PCA nFeature merged
 
 ```{r}
 #| message: false
@@ -176,6 +223,7 @@ Individual PCA - featureplot nfeature
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nFeature.
+#| label: fig-pca-nfeature
 
 featureplot(seurat, reduction = "pca", label = FALSE, 
             feature = "nFeature_Spatial", title = "PCA-Merged")
@@ -183,19 +231,28 @@ featureplot(seurat, reduction = "pca", label = FALSE,
 
 ### Elbow
 
+A simple way to decide how many PCs to use downstream is to generate an Elbow plot by ranking the PCs by % variance that each explains and finding the "elbow" in which variance ceases to decrease. At this elbow the majority true biological signal is captured.
+
+Below we plot the variance of the top components as an elbow plot.
+
+@fig-elbow Elbow plot merged
+
 ```{r}
 #| message: false
 #| warning: false
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot Merged.
+#| label: fig-elbow
 
 elbow(seurat, vline1 = 10, vline2 = 20, title = "Elbow-Merged")
 ```
 
-From visual inspection it looks like the PCs for merged samples should be between 10-20
+::: callout-note
+Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
+:::
 
-Define elbow vector:
+Below we take number of PCs from visual inspection defined by the parameter elbow vector:
 
 ```{r}
 #| warning: false
@@ -205,7 +262,7 @@ elbow_vector <- params$elbow_range
 print(elbow_vector)
 ```
 
-Add PC elbow to object
+And we add that information to the seurat object
 
 ```{r}
 #| message: false
@@ -216,9 +273,9 @@ seurat$Elbow <- rep(elbow_vector, length(seurat$Sample))
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50.
+Next we take the results from our PCA and feed this into a non-linear dimensionality reduction technique such as UMAP.
 
-min.dist sensible values are in the range 0.001 to 0.5.
+Below we explore the parameter space of UMAPs for our merged seurat samples. Remember that `n.neighbors` should be in the range 5 to 50, and `min.dist` sensible values are in the range 0.001 to 0.5.
 
 ```{r}
 #| label: Explore-Features-UMAP
@@ -237,56 +294,61 @@ seurat_4 <- umap(seurat, n.neighbors = 20, min.dist = 0.1)
 seurat_5 <- umap(seurat, n.neighbors = 10, min.dist = 0.001)
 ```
 
-UMAP n.neighbors = 30, min.dist = 0.3
+@fig-umap-30-03 Plot UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 30, min.dist = 0.3.
+#| label: fig-umap-30-03
 
 dimplot(seurat_1, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 30, min.dist = 0.3")
 ```
 
-UMAP n.neighbors = 5, min.dist = 0.25
+@fig-umap-05-025 Plot UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 5, min.dist = 0.25.
+#| label: fig-umap-05-025
 
 dimplot(seurat_2, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 5, min.dist = 0.25")
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.1
+@fig-umap-10-01 Plot UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.1.
+#| label: fig-umap-10-01
 
 dimplot(seurat_3, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.1")
 ```
 
-UMAP n.neighbors = 20, min.dist = 0.1
+@fig-umap-20-01 Plot UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 20, min.dist = 0.1.
+#| label: fig-umap-20-01
 
 dimplot(seurat_4, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 20, min.dist = 0.1")
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.001
+@fig-umap-10-0001 Plot UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged n.neighbors = 10, min.dist = 0.001.
+#| label: fig-umap-10-0001
 
 dimplot(seurat_5, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.001")
@@ -300,11 +362,13 @@ rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
 gc()
 ```
 
-### Chosen params UMAP
+### Plot UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine):
+::: callout-note
+Please take the values for `n.neighbors` and `min.dist` that are representative across UMAP plots and set them as params.
+:::
 
-UMAP n.neighbors = 30, min.dist = 0.3
+Below we run UMAP with the paramaters of choice \`r n.neighbors: params\$n.neighbors min.dist: params\$min.dist\`
 
 ```{r}
 #| warning: false
@@ -321,13 +385,11 @@ seurat <- umap(seurat, n.neighbors = params$n.neighbors,
 
 ### TSNE
 
-perplexity parameter (should not be bigger than 3 \* perplexity \< nrow(X) - 1)
+Due to restrictions on compute time we will only plot a chosen TSNE with `r params$perplexity`.
 
-NB: Try N\^1/2 as rule of thumb
+### Plot TSNE
 
-### Chosen params TSNE
-
-perplexity = N\^1/2
+Below we run TSNE with the paramaters of choice - `r params$perplexity`
 
 ```{r}
 #| warning: false
@@ -339,56 +401,73 @@ print(paste0("perplexity: ", params$perplexity))
 seurat <- tsne(seurat, perplexity = params$perplexity)
 ```
 
+Below we plot the merged TSNE.
+
+@fig-tsne-chosen Plot TSNE merged
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params.
+#| label: fig-tsne-chosen
 
 dimplot(seurat, reduction = "tsne", label = FALSE, 
         group.by = "Group", title = "TSNE-Merged")
 ```
 
-### Check scale data required
+As previously discussed it can also be a very useful exploratory data analysis step to look at the UMAP/TSNE coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident).
 
-nCount_Spatial
+Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
+
+@fig-umap-chosen-ncounts Plot UMAP nCount merged
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nCounts.
+#| label: fig-umap-chosen-ncounts
 
 featureplot(seurat, reduction = "umap", label = FALSE, 
             feature = "nCount_Spatial", title = "UMAP-Merged")
 ```
 
-nFeature_Spatial
+Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
+
+@fig-umap-chosen-nfeature Plot UMAP nFeature merged
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nFeatures.
+#| label: fig-umap-chosen-nfeature
 
 featureplot(seurat, reduction = "umap", label = FALSE, 
             feature = "nFeature_Spatial", title = "UMAP-Merged")
 ```
 
-nCount_Spatial
+Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
+
+@fig-tsne-chosen-ncounts Plot TSNE nCount merged
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nCounts.
+#| label: fig-tsne-chosen-ncounts
 
 featureplot(seurat, reduction = "tsne", label = FALSE, 
             feature = "nCount_Spatial", title = "TSNE-Merged")
 ```
 
-nFeature_Spatial
+Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
+
+@fig-tsne-chosen-ncounts Plot TSNE nFeature merged
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nFeatures.
+#| label: fig-tsne-chosen-nfeature
 
 featureplot(seurat, reduction = "tsne", label = FALSE, 
             feature = "nFeature_Spatial", title = "TSNE-Merged")
@@ -396,94 +475,9 @@ featureplot(seurat, reduction = "tsne", label = FALSE,
 
 ## Cluster
 
-### SNN
+The next step in the spatial workflow is to cluster spots to identify anatomically distinct regions across tissue samples - using the graph-based clustering approach (SNN).
 
-```{r}
-#| warning: false
-#| message: false
-#| results: hide
-
-seurat_1 <- snnCluster(seurat, k.param = 5, resolution = 0.1)
-
-seurat_2 <- snnCluster(seurat, k.param = 10, resolution = 0.3)
-
-seurat_3 <- snnCluster(seurat, k.param = 15, resolution = 0.5)
-
-seurat_4 <- snnCluster(seurat, k.param = 20, resolution = 0.6)
-
-seurat_5 <- snnCluster(seurat, k.param = 50, resolution = 0.8)
-```
-
-#### Plot umaps
-
-k.param = 5, resolution = 0.1
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 1)
-#| fig-cap: UMAP Merged k.param = 5, resolution = 0.1.
-
-dimplot(seurat_1, reduction = "umap", label = T, 
-        group.by = "seurat_clusters", 
-        title = "UMAP-Merged, k.param = 5, resolution = 0.1")
-```
-
-k.param = 10, resolution = 0.3
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 1)
-#| fig-cap: UMAP Merged k.param = 10, resolution = 0.3.
-
-dimplot(seurat_2, reduction = "umap", label = T, 
-        group.by = "seurat_clusters", 
-        title = "UMAP-Merged, k.param = 10, resolution = 0.3")
-```
-
-k.param = 15, resolution = 0.5
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 1)
-#| fig-cap: UMAP Merged k.param = 15, resolution = 0.5.
-
-dimplot(seurat_3, reduction = "umap", label = T, 
-        group.by = "seurat_clusters", 
-        title = "UMAP-Merged, k.param = 15, resolution = 0.5")
-```
-
-k.param = 20, resolution = 0.6
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 1)
-#| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
-
-dimplot(seurat_4, reduction = "umap", label = T, 
-        group.by = "seurat_clusters", 
-        title = "UMAP-Merged, k.param = 20, resolution = 0.6")
-```
-
-k.param = 50, resolution = 0.8
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 1)
-#| fig-cap: UMAP Merged k.param = 50, resolution = 0.8.
-
-dimplot(seurat_5, reduction = "umap", label = T, 
-        group.by = "seurat_clusters", 
-        title = "UMAP-Merged, k.param = 50, resolution = 0.8")
-```
-
-Clean up workspace
-
-```{r}
-rm(seurat_1, seurat_2, seurat_3, seurat_4, seurat_5)
-gc()
-```
-
-#### Keeping k stable (saving into seurat object for clustree)
+Generally speaking we like to keep k.param as Seurat default (\`k.param = 20\`), therefore below we will keep it stable whilst changing the \`resolution\` parameter. We will save the results of this clustering into the seurat object so we can refer to this clustering downstream.
 
 ```{r}
 #| warning: false
@@ -503,85 +497,95 @@ seurat <- snnCluster(seurat, k.param = 20, resolution = 0.6)
 seurat <- snnCluster(seurat, k.param = 20, resolution = 0.8)
 ```
 
-#### Plot umaps with k.params 20
+### Plot UMAPS with `k.params 20`
 
-k.param = 20, resolution = 0.1
+Here we plot using the meta data column name associated with a given resolution.
+
+@fig-kparam-20-res-01 Plot UMAP k.param = 20, resolution = 0.1
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.1.
+#| label: fig-kparam-20-res-01
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.1", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.1")
 ```
 
-k.param = 20, resolution = 0.2
+@fig-kparam-20-res-02 Plot UMAP k.param = 20, resolution = 0.2
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.2.
+#| label: fig-kparam-20-res-02
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.2", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.2")
 ```
 
-k.param = 20, resolution = 0.3
+@fig-kparam-20-res-03 Plot UMAP k.param = 20, resolution = 0.3
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.3.
+#| label: fig-kparam-20-res-03
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.3", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.3")
 ```
 
-k.param = 20, resolution = 0.5
+@fig-kparam-20-res-05 Plot UMAP k.param = 20, resolution = 0.5
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.5.
+#| label: fig-kparam-20-res-05
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.5", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.5")
 ```
 
-k.param = 20, resolution = 0.6
+@fig-kparam-20-res-06 Plot UMAP k.param = 20, resolution = 0.6
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.6.
+#| label: fig-kparam-20-res-06
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.6", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
 
-k.param = 20, resolution = 0.8
+@fig-kparam-20-res-08 Plot UMAP k.param = 20, resolution = 0.8
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 1)
 #| fig-cap: UMAP Merged k.param = 20, resolution = 0.8.
+#| label: fig-kparam-20-res-08
 
 dimplot(seurat, reduction = "umap", label = T, 
         group.by = "res.0.8", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.8")
 ```
 
-### Clustree
+### Clustering stability
 
-Across k = 20 (seurat default)
+Another way of deciding what resolution to choose is to look at the stability of clusters across different resolution parameters. Below we use the package `clustree` to produce clustering trees to visualise this process.
 
-Using clustree for checking cluster stability across params
+We complete this process with `k.param = 20` (seurat default)
+
+@fig-clustree Plot clustree
 
 ```{r}
 #| warning: false
@@ -589,19 +593,18 @@ Using clustree for checking cluster stability across params
 #| fig.width: 10
 #| fig.height: 10
 #| fig-cap: Clustree dendrogram across chosen k param.
+#| label: fig-clustree
 
 clustreeRun(seurat)
 ```
 
 ### Silhouette
 
-Across k = 20 (seurat default)
+There are numerous other quantitative ways to evaluate clustering quality - however the one we use here is the silhouette width metric.
 
-A cell with a large positive width is closer to other cells from the same cluster 
-- compared to cells from different clusters. 
+We complete this process with `k.param = 20` (seurat default).
 
-On the other hand, low or negative widths indicate that cells from 
-- different clusters are not well separated.
+A cell with a large positive width is closer to other cells from the same cluster - compared to cells from different clusters. On the other hand, low or negative widths indicate that cells from - different clusters are not well separated.
 
 ```{r}
 #| warning: false
@@ -618,6 +621,8 @@ silhouettes_4 <- silhouette(seurat, clustername = "res.0.6", sample = "merged")
 silhouettes_5 <- silhouette(seurat, clustername = "res.0.8", sample = "merged")
 ```
 
+Below we plot these scores as boxplots:
+
 ```{r}
 #| warning: false
 #| message: false
@@ -633,12 +638,13 @@ silhouette_plots_4 <- plotSil(silhouettes_4, type = "boxplot", title = "res.0.6"
 silhouette_plots_5 <- plotSil(silhouettes_5, type = "boxplot", title = "res.0.8")
 ```
 
-#### Wrap plot silhouette
+@fig-sil-merged Plot silhouette
 
 ```{r}
 #| fig.width: 12
 #| fig.height: 10
 #| fig-cap: Silhouette plots across res params.
+#| label: fig-sil-merged
 
 wrap_plots(silhouette_plots_1,
            silhouette_plots_2,
@@ -655,9 +661,15 @@ rm(silhouettes_1, silhouettes_2, silhouettes_3, silhouettes_4, silhouettes_5)
 gc()
 ```
 
-### Spatial plot
+### Spatial Clusters
 
-#### Chosen Res
+Another important approach for clustering in the context of spatial transcriptomics is to see how this clustering looks when mapped onto our tissue images. By doing this we can see if our clusters relate to biology and whether a given parameter introduces noise (introduces a randomly distributed cluster) or finds a anatomically prescribed region of interest.
+
+Below we will plot two resolutions of interest across our H+E images.
+
+::: callout-note
+Please take the two resolution parameters of interest and define them as params for plotting as spatial dimension plots.
+:::
 
 ```{r}
 #| warning: false
@@ -670,27 +682,31 @@ sdplot2 <- plotSpatialCluster(seurat, label = TRUE,
                               label.size = 3, group = params$cluster.plot[[2]])
 ```
 
-params\$cluster.plot\[\[1\]\]
+@fig-spatial-res1 Plot spatial plot clusters for `r params$cluster.plot[[1]]`
 
 ```{r}
 #| fig.width: 25
 #| fig.height: 10
-#| fig-cap: Spatial plots across chosen res 1.
+#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[1]])
+#| label: fig-spatial-res1
 
 wrap_plots(sdplot1, ncol = 3)
 ```
 
-params\$cluster.plot\[\[2\]\]
+@fig-spatial-res2 Plot spatial plot clusters for `r params$cluster.plot[[2]]`
 
 ```{r}
 #| fig.width: 25
 #| fig.height: 10
-#| fig-cap: Spatial plots across chosen res 2.
+#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[2]])
+#| label: fig-spatial-res2
 
 wrap_plots(sdplot2, ncol = 3)
 ```
 
-### Chosen params
+### Apply chosen cluster labels
+
+Below we decide on a resolution of choice using a combination of the above 4 approaches (UMAP, cluster tree, silhouette scores, and the spatial distribution of clusters) and apply this label to the seurat meta data column as "Cluster".
 
 ```{r}
 seurat <- addLabel(seurat, chosenCluster = params$cluster)

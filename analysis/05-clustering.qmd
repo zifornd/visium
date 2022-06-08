@@ -6,7 +6,7 @@ params:
   plot_width:
     - 8
   plot_height:
-    - 4
+    - 4.5
 ---
 
 # Setup
@@ -38,6 +38,10 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 
 knitr::kable(jsonlite::fromJSON(par))
 ```
+
+::: callout-tip
+You can supply these paramaters upon render.
+:::
 
 ### Dependencies
 
@@ -173,13 +177,13 @@ wrap_plots(lapply(seurat_3, dimplot, reduction = "umap",
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 
-@fig-kparam-20-res-06 Plot UMAP k.param = 20, resolution = 0.6
+@fig-kparam-20-res-061 Plot UMAP k.param = 20, resolution = 0.6
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: k.param = 20, resolution = 0.6
-#| label: fig-kparam-20-res-06
+#| label: fig-kparam-20-res-061
 
 wrap_plots(lapply(seurat_4, dimplot, reduction = "umap", 
                   label = T, group.by = "seurat_clusters"), ncol = 2)
@@ -444,7 +448,7 @@ wrap_plots(silhouette_plots_4, ncol = 2)
 wrap_plots(silhouette_plots_5, ncol = 2)
 ```
 
-## Spatial features
+## Spatial Clusters
 
 Another important approach for clustering in the context of spatial transcriptomics is to see how this clustering looks when mapped onto our tissue images. By doing this we can see if our clusters relate to biology and whether a given parameter introduces noise (introduces a randomly distributed cluster) or finds a anatomically prescribed region of interest.
 
@@ -464,23 +468,23 @@ spatial_dim2 <- lapply(seurat, plotSpatialCluster,
                        group = params$cluster.plot[[2]])
 ```
 
-@fig-spatial-res1 Plot spatial plot clusters for 'params$cluster.plot[[1]]'
+@fig-spatial-res1 Plot spatial plot clusters for `r params$cluster.plot[[1]]`
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 3)
-#| fig-cap: Spatial plot res 0.2
+#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[1]])
 #| label: fig-spatial-res1
 
 wrap_plots(spatial_dim1, ncol = 2)
 ```
 
-@fig-spatial-res2 Plot spatial plot clusters for 'params$cluster.plot[[2]]'
+@fig-spatial-res2 Plot spatial plot clusters for `r params$cluster.plot[[2]]`
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr (params$plot_height + 3)
-#| fig-cap: Spatial plot res 0.3
+#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[2]])
 #| label: fig-spatial-res2
 
 wrap_plots(spatial_dim2, ncol = 2)
@@ -496,7 +500,7 @@ seurat <- lapply(seurat, addLabel, chosenCluster = params$cluster)
 
 ### UMAP
 
-Below we plot the UMAP with clustering resolution of choice.
+Below we plot the UMAP with clustering resolution of choice `r params$cluster`.
 
 ```{r}
 #| warning: false
@@ -504,12 +508,12 @@ Below we plot the UMAP with clustering resolution of choice.
 umap_plots <- lapply(seurat, dimplot, reduction = "umap", group.by = "Cluster")
 ```
 
-@fig-umap-res-choice Plot UMAP
+@fig-umap-res-choice Plot UMAP `r params$cluster`
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
-#| fig-cap: UMAP chosen resolution
+#| fig-cap: !expr paste0("UMAP chosen resolution ", params$cluster)
 #| label: fig-umap-res-choice
 
 wrap_plots(umap_plots, ncol = 2)
@@ -525,12 +529,12 @@ Below we plot the TSNE with clustering resolution of choice.
 tsne_plots <- lapply(seurat, dimplot, reduction = "tsne", group.by = "Cluster")
 ```
 
-@fig-tsne-res-choice Plot TSNE
+@fig-tsne-res-choice Plot TSNE `r params$cluster`
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
-#| fig-cap: TSNE chosen resolution
+#| fig-cap: !expr paste0("TSNE chosen resolution ", params$cluster)
 #| label: fig-tsne-res-choice
 
 wrap_plots(tsne_plots, ncol = 2)

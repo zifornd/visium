@@ -470,13 +470,13 @@ featureplot(seurat, reduction = "tsne", label = FALSE,
 
 Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
 
-@fig-tsne-chosen-ncounts Plot TSNE nFeature integrated
+@fig-tsne-chosen-nfeature Plot TSNE nFeature integrated
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Integrated chosen params nFeatures.
-#| label: fig-tsne-chosen-ncounts
+#| label: fig-tsne-chosen-nfeature
 
 featureplot(seurat, reduction = "tsne", label = FALSE, 
             feature = "nFeature_Spatial", title = "TSNE-Integrated")

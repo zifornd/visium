@@ -388,36 +388,19 @@ seurat <- umap(seurat, n.neighbors = params$n.neighbors,
                min.dist = params$min.dist)
 ```
 
-### TSNE
+Below we plot the integrated UMAP.
 
-Due to restrictions on compute time we will only plot a chosen TSNE with `r params$perplexity`.
-
-### Plot TSNE
-
-Below we run TSNE with the paramaters of choice - `r params$perplexity`
-
-```{r}
-#| message: false
-#| warning: false
-#| results: hide
-
-print(paste0("perplexity: ", params$perplexity))
-
-seurat <- tsne(seurat, perplexity = params$perplexity)
-```
-
-Below we plot the integrated TSNE.
-
-@fig-tsne-chosen Plot TSNE integrated
+@fig-umap-chosen Plot UMAP integrated
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Integrated chosen params.
-#| label: fig-tsne-chosen
+#| label: fig-umap-chosen
 
-dimplot(seurat, reduction = "tsne", label = FALSE, group.by = "Group", 
-        title = "TSNE-Integrated")
+
+dimplot(seurat, reduction = "umap", label = FALSE, group.by = "Group", 
+        title = "UMAP-Integrated")
 ```
 
 As previously discussed it can also be a very useful exploratory data analysis step to look at the UMAP/TSNE coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident).
@@ -448,6 +431,38 @@ Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
 
 featureplot(seurat, reduction = "umap", label = FALSE, 
             feature = "nFeature_Spatial", title = "UMAP-Integrated")
+```
+
+### TSNE
+
+Due to restrictions on compute time we will only plot a chosen TSNE with `r params$perplexity`.
+
+### Plot TSNE
+
+Below we run TSNE with the paramaters of choice - `r params$perplexity`
+
+```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
+print(paste0("perplexity: ", params$perplexity))
+
+seurat <- tsne(seurat, perplexity = params$perplexity)
+```
+
+Below we plot the integrated TSNE.
+
+@fig-tsne-chosen Plot TSNE integrated
+
+```{r}
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
+#| fig-cap: TSNE Integrated chosen params.
+#| label: fig-tsne-chosen
+
+dimplot(seurat, reduction = "tsne", label = FALSE, group.by = "Group", 
+        title = "TSNE-Integrated")
 ```
 
 Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.

@@ -149,15 +149,11 @@ Please see https://satijalab.org/seurat/articles/integration_introduction.html f
 Cell types that are unique to a particular sample will be retained and will still be identifiable. Likewise, comparisons between groups (e.g. treatment vs. control, or disease vs. healthy) can still be completed downstream - however this type of comparison has not yet been implement within the visium workflow (only simple cluster based marker detection has been implemented - see `09-marker-detection.qmd` for more details). See Seurat Integration workflow and look for functions such as `FindConservedMarkers` for additional useful functionality.
 
 ::: callout-note
-Removal of known batch effects with seurats `ScaleData` and `vars.to.regress` may be an option for visualisation purposes down stream.
-:::
-
-::: callout-note
-Another approach is offered by following the alternative `07-integrate-samples.qmd` workflow which does process samples prior to combining.
+Another approach is offered by following the alternative `06-merge-samples.qmd` workflow which does not process samples prior to combining.
 :::
 
 ::: callout-warning
-As there are multiple SCT models present within a merged seurat object further processing will need to be completed prior to marker detection (see `08-marker-detection.qmd`)
+As there are multiple SCT models present within an integrated seurat object further processing will need to be completed prior to marker detection (see `08-marker-detection.qmd`)
 :::
 
 ```{r}
@@ -169,7 +165,7 @@ seurat <- seuratIntegrate(seuratList)
 
 ## Downstream analysis
 
-Following merging we follow the same analysis as described in `04-reduced-dimensions.qmd` and `05-clustering.qmd.` For more details on these analyses please consult the relevant workflow.
+Following integration of samples we follow the same analysis as described in `04-reduced-dimensions.qmd` and `05-clustering.qmd.` For more details on these analyses please consult the relevant workflow.
 
 ## Dimensionality Reduction
 
@@ -177,7 +173,7 @@ Following merging we follow the same analysis as described in `04-reduced-dimens
 
 It is common practice to perform dimensionality reduction and clustering using the top principal components from principal component analysis (PCA).
 
-Below we perform PCA on the merged seurat object:
+Below we perform PCA on the integrated seurat object:
 
 ```{r}
 #| message: false
@@ -648,13 +644,13 @@ silhouette_plots_4 <- plotSil(silhouettes_4, type = "boxplot", title = "res.0.6"
 silhouette_plots_5 <- plotSil(silhouettes_5, type = "boxplot", title = "res.0.8")
 ```
 
-@fig-sil-merged Plot silhouette
+@fig-sil-integrated Plot silhouette
 
 ```{r}
 #| fig.width: 12
 #| fig.height: 10
 #| fig-cap: Silhouette plots across res params.
-#| label: fig-sil-merged
+#| label: fig-sil-integrated
 
 wrap_plots(silhouette_plots_1,
            silhouette_plots_2,

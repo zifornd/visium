@@ -17,9 +17,13 @@ params:
     - 5
   plot_height:
     - 7
+  colours:
+    - "RdBu"
 ---
 
 # Setup
+
+### Parameters
 
 @tbl-params Parameter description
 
@@ -30,6 +34,11 @@ params:
 
 par <- list(
 
+list(
+Parameter = "seurat",
+Value = params$seurat,
+Description = "Name of seurat object used for analysis."
+),
 list(
 Parameter = "regress",
 Value = params$regress,
@@ -54,6 +63,11 @@ list(
 Parameter = "pval.adj.thres",
 Value = params$pval.adj.thres,
 Description = "Adjusted p-value threshold for returning markers."
+),
+list(
+Parameter = "colours",
+Value = params$colours,
+Description = "RdBu"
 )
 )
 
@@ -61,6 +75,12 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 
 knitr::kable(jsonlite::fromJSON(par))
 ```
+
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+### Dependencies
 
 Add child documents
 
@@ -109,27 +129,47 @@ source("scripts/reduceDims.R")
 source("scripts/findMarkers.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
+# Processing
+
+## Reading in experiment object
+
+We can read in the `output/06-merge-samples.rds` or `output/07-integrate-samples.rds` seurat object that we saved from previous worksheets (See quarto worksheets `06-merge-samples.qmd` and `07-integrate-samples.qmd` for more details).
+
+Alternatively you can run this step of the workflow on un-merged or un-integrated samples following clustering (`output/05-clustering.rds` and `05-clustering.qmd`). In this case you will need to tweak plot sizes (see `params$plot_width` and `params$plot_height` for more details).
+
+::: callout-note
+Please take the seurat object of choice and define them as `params$seurat`.
+:::
+
 Read experiment data:
 
 ```{r}
 seurat <- readRDS(paste0("output/", params$seurat))
 ```
 
-Setup colour palette:
+## Setup colour palette
+
+Below we set the colour palette we will use for the custom pheatmap used for plotting of cluster markers.
+
+Other options from RColourBrewer are `RdYlBu`, `RdYlGn`, `Spectral` etc.
 
 ```{r}
-col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+col <- colorRampPalette(rev(brewer.pal(n = 11, name = params$colours)))(100)
 ```
-
-# Processing
 
 ## PrepSCTFindmarkers
 
-Prepare "data" slot of SCT assay for differential expression and downstream visualisation 
-Please see vignette for further details: 
-https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+As discussed during `06-merge-samples.qmd` and `07-integrate-samples.qmd` worksheets where SCT normalisation has been completed on individual samples and then these samples have subsequently been combined - these combined objects contain multiple SCT models. Before further downstream analysis, therefore, we need to perform additional processing on these combined objects.
 
-Parse seurat object into list if not already
+As this worksheet may be completed on un-combined objects the code chunk below checks if the seurat object is combined before applying this extra processing step.
+
+`PrepSCTFindMarkers` prepares the "data" slot of SCT assay for differential expression and downstream visualisation.
+
+Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
 
 ```{r}
 #| message: false
@@ -169,7 +209,15 @@ if (class(seurat) == "Seurat") {
 
 ## ScaleData
 
-Scale and center data and add ScaleData to seuratprep for heatmap visualisation
+A next step we need to take with our pre-processing is scale the data ready for heatmap visualisation. This is a simple subtraction of the mean expression for that gene divided by the sd. This needs to be completed because when we combine samples they will not have a unified scaled data slot.
+
+We complete this process with the `ScaleData` function from seurat. If you wish to regress out additional variables this is possible with the same `ScaleData` function by supplying the variable name as `param$regress`.
+
+Please see https://satijalab.org/seurat/reference/scaledata for more details.
+
+We save the result of this scaling into a new slot named "`[[ScaleData]]`" so not to write over other important normalisation values from SCT normalisation (pearsons residuals).
+
+The seurat object can be a bit tricky and we it can often get confusing what assay or data slot seurat is utilising. If you are interested this handy graphic from Lior pachter describes it pretty well https://twitter.com/lpachter/status/1524413513233575936/photo/1
 
 ```{r}
 #| message: false
@@ -180,7 +228,19 @@ seuratprep <- lapply(seuratprep, scaleData, params = params)
 
 ## Markers Cluster
 
-Find candidate marker genes between clusters:
+Next we find candidate marker genes between clusters using the `FindAllMarkers` function from seurat. By default it uses the Wilcoxon Rank Sum test to compute p-values. At current we have not allowed you to change this but this could be done if there is a need.
+
+::: callout-note
+You can change adjusted p-value threshold (`pval.adj.thres`), logfc threshold (`logfc.threshold`), whether you want only positive expressed genes (`only.pos`), and minimum % cells with gene expressed in any group (`min.pct`) paramaters before running this code chunk.
+:::
+
+For more information regarding differential expression using seurat between clusters please see:
+
+-   https://satijalab.org/seurat/articles/pbmc3k_tutorial.html#finding-differentially-expressed-features-cluster-biomarkers-
+
+And where testing following intergration is being considered please see:
+
+-   https://satijalab.org/seurat/articles/integration_introduction.html#perform-an-integrated-analysis-1
 
 ```{r}
 #| message: false
@@ -190,6 +250,8 @@ res <- lapply(seuratprep, findAllMarkers, params = params)
 ```
 
 ### Write csv to file
+
+Below we write these results to csv file:
 
 ```{r}
 #| message: false
@@ -202,6 +264,8 @@ lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample),
 
 ### Interactive results
 
+Below we use the DT package to plot these results interactively:
+
 ```{r}
 resbind <- bind_rows(res)
 
@@ -213,13 +277,13 @@ DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons',
 
 ### Define genes interest
 
-Get topgenes from each cluster per seurat object and results table
+Next we get the top results for each cluster ready for plotting. As there are often numerous clusters it is often useful to keep this number small. Here we have kept the number as 5.
 
 ```{r}
 topgenes <- lapply(seuratprep, topFeatClustList, res = res, head_num = 5)
 ```
 
-Plot heatmap of top markers
+Below we plot these markers in two ways - using the heatmap functions supplied by Seurat (DoHeatmap), and using pheatmap.
 
 ### DoHeatmap
 
@@ -228,30 +292,38 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
                      type = "DoHeatmap", legend = FALSE)
 ```
 
+@fig-doheatmap
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster.
+#| label: fig-doheatmap
 
 wrap_plots(doheatmaps)
 ```
 
-With legend
+Below we plot the same heatmap but include a legend.
 
 ```{r}
 doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
                            type = "DoHeatmap", legend = TRUE)
 ```
 
+@fig-doheatmap-legend
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster with legend.
+#| label: fig-doheatmap-legend
 
 wrap_plots(doheatmapslegend)
 ```
 
 ### pheatmap
+
+Below we plot the same features but do this using the pheatmap function.
 
 ```{r}
 #| message: false
@@ -262,10 +334,13 @@ pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
                     type = "pheatmap", head_num = 5)
 ```
 
+@fig-pheatmap-custom
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: pHeatmap of top genes per cluster with legend.
+#| label: fig-pheatmap-custom
 
 wrap_plots(pheatmaps)
 ```

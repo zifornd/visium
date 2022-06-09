@@ -31,6 +31,11 @@ params:
 par <- list(
 
 list(
+Parameter = "seurat",
+Value = params$seurat,
+Description = "Name of seurat object used for analysis."
+),
+list(
 Parameter = "nfeatures",
 Value = params$nfeatures,
 Description = "Number of features used for variable spatial feature analysis."
@@ -49,6 +54,11 @@ list(
 Parameter = "r.metric",
 Value = params$r.metric,
 Description = "r value at which to report the trans value of the mark variogram. Seurat advised to leave at 5."
+),
+list(
+Parameter = "colours",
+Value = params$colours,
+Description = "RdBu"
 )
 )
 
@@ -56,6 +66,12 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 
 knitr::kable(jsonlite::fromJSON(par))
 ```
+
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+### Dependencies
 
 Add child documents
 
@@ -98,25 +114,45 @@ source("scripts/plotpHeatmap.R")
 source("scripts/findMarkers.R")
 ```
 
-Read experiment data:
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
+# Processing
+
+## Reading in experiment object
+
+We can read in the `output/06-merge-samples.rds` or `output/07-integrate-samples.rds` seurat object that we saved from previous worksheets (See quarto worksheets `06-merge-samples.qmd` and `07-integrate-samples.qmd` for more details).
+
+Alternatively you can run this step of the workflow on un-merged or un-integrated samples following clustering (`output/05-clustering.rds` and `05-clustering.qmd`). In this case you will need to tweak plot sizes (see `params$plot_width` and `params$plot_height` for more details).
+
+::: callout-note
+Please take the seurat object of choice and define them as `params$seurat`.
+:::
 
 ```{r}
 seurat <- readRDS(paste0("output/", params$seurat))
 ```
 
-Setup colour palette:
+## Setup colour palette
+
+Below we set the colour palette we will use for the custom pheatmap used for plotting of cluster markers.
+
+Other options from RColourBrewer are `RdYlBu`, `RdYlGn`, `Spectral` etc.
 
 ```{r}
-col <- colorRampPalette(rev(brewer.pal(n = 7, name = "RdBu")))(100)
+col <- colorRampPalette(rev(brewer.pal(n = 11, name = params$colours)))(100)
 ```
 
 ## PrepSCTFindmarkers
 
-Prepare "data" slot of SCT assay for differential expression and downstream visualisation 
-Please see vignette for further details: 
-https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
+As discussed during `06-merge-samples.qmd` and `07-integrate-samples.qmd` worksheets where SCT normalisation has been completed on individual samples and then these samples have subsequently been combined - these combined objects contain multiple SCT models. Before further downstream analysis, therefore, we need to perform additional processing on these combined objects.
 
-Parse seurat object into list if not already
+As this worksheet may be completed on un-combined objects the code chunk below checks if the seurat object is combined before applying this extra processing step.
+
+`PrepSCTFindMarkers` prepares the "data" slot of SCT assay for differential expression and downstream visualisation.
+
+Please see vignette for further details: https://satijalab.org/seurat/articles/sctransform_v2_vignette.html
 
 ```{r}
 #| message: false
@@ -156,8 +192,17 @@ if (class(seurat) == "Seurat") {
 
 ## Run Spatially variable features (Trendseek)
 
-Please see https://satijalab.org/seurat/articles/spatial_vignette.html 
-for more details and https://www.nature.com/articles/nmeth.4634
+An alterative approach to finding features of interest to completing a simple differential expression between groups of interest (either clusters or a priori groups), is to utilise the spatial data that we have to find genes that are distributed in a non-random manner across the tissue samples. To do this we use the Trendseek inspired approach implemented within Seurat.
+
+Please see https://satijalab.org/seurat/articles/spatial_vignette.html for more details and https://www.nature.com/articles/nmeth.4634
+
+::: callout-caution
+This approach can take some time to complete and is affected by the number of variable features supplied for testing. Please consider reducing this number for speed up purposes.
+:::
+
+::: callout-note
+Other selection.methods are available with Seurat such as `moransi` which is used within the Loupe browser from 10x. Please specify above if you wish to change approach. Please note that this approach has not been tested within this notebook.
+:::
 
 ```{r}
 samples <- names(seuratprep)
@@ -178,12 +223,16 @@ names(seuratprep) <- samples
 
 ### Define genes interest
 
-Get top SpatiallyVariableFeatures
+Next we get the top spatially variable features ready for plotting.
 
 ```{r}
 top.features <- lapply(seuratprep, SpatiallyVariableFeatures, 
                        selection.method = params$spatial.method)
 ```
+
+### Spatial plots
+
+Below we prepare plots for the top spatially variable genes.
 
 ```{r}
 #| message: false
@@ -199,17 +248,28 @@ spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, 
   }, seuratprep = seuratprep, top.features = top.features, top = params$top.features)
 ```
 
+@fig-spatial-var-top
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 10)
 #| fig.height: !expr (params$plot_height + 13)
 #| fig-cap: Spatial plot top spatially variable features.
+#| label: fig-spatial-var-top
 
 wrap_plots(spatialPlots)
 ```
 
 ## ScaleData
 
-Scale and center data and add ScaleData to seuratprep for heatmap visualisation
+A next step we need to take with our pre-processing is scale the data ready for heatmap visualisation. This is a simple subtraction of the mean expression for that gene divided by the sd. This needs to be completed because when we combine samples they will not have a unified scaled data slot.
+
+We complete this process with the `ScaleData` function from seurat. If you wish to regress out additional variables this is possible with the same `ScaleData` function by supplying the variable name as `param$regress`.
+
+Please see https://satijalab.org/seurat/reference/scaledata for more details.
+
+We save the result of this scaling into a new slot named "`[[ScaleData]]`" so not to write over other important normalisation values from SCT normalisation (pearsons residuals).
+
+The seurat object can be a bit tricky and we it can often get confusing what assay or data slot seurat is utilising. If you are interested this handy graphic from Lior pachter describes it pretty well https://twitter.com/lpachter/status/1524413513233575936/photo/1
 
 ```{r}
 #| message: false
@@ -218,34 +278,40 @@ Scale and center data and add ScaleData to seuratprep for heatmap visualisation
 seuratprep <- lapply(seuratprep, scaleData, params = params)
 ```
 
-Plot heatmap of top markers
-
 ### DoHeatmap
+
+Below we plot these markers using the heatmap functions supplied by Seurat (DoHeatmap).
 
 ```{r}
 doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features, 
                      type = "DoHeatmap", legend = FALSE)
 ```
 
+@fig-doheatmap-var-top
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features.
+#| label: fig-doheatmap-var-top
 
 wrap_plots(doheatmaps)
 ```
 
-With legend
+Below we plot these markers using DoHeatmap with a legend.
 
 ```{r}
 doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features, 
                            type = "DoHeatmap", legend = TRUE)
 ```
 
+@fig-doheatmap-var-top-legend
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features with legend.
+#| label: fig-doheatmap-var-top-legend
 
 wrap_plots(doheatmapslegend)
 ```

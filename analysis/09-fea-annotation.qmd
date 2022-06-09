@@ -33,6 +33,8 @@ params:
 
 # Setup
 
+### Parameters
+
 @tbl-params Parameter description
 
 ```{r}
@@ -104,6 +106,16 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+::: callout-note
+The paramater `split.res` is important as it will split the results table further prior to running fea. This may be useful if you have run marker detection on clusters and have a results table which contains the results for many different clusters. In this case if `split.res` is set to `TRUE`, the table will be split into separate clusters based on the `param$group` name and the workflow will be run separately on each independent cluster.
+:::
+
+### Dependencies
+
 Add child documents
 
 ```{r}
@@ -153,21 +165,45 @@ source("scripts/annotate.R")
 source("scripts/functionalEnrichment.R")
 ```
 
-Read experiment data:
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
+# Processing
+
+### Reading in experiment object
+
+We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `09-marker-detection.qmd` for more details).
+
+In theory this module could be used to process other results tables with genes and some form of enrichment (lfc) - however it has not yet been tested.
 
 ```{r}
 res <- readRDS(paste0("output/", params$res))
 ```
+
+### Reading in gene sets
+
+Below we read in MSigDb gene sets using the R package `msigdbr`. As we understand individuals may require their own custom gene set we allow users to specify a separate table of genes in the same format as output by `msigdbr`.
+
+The standard gene sets we use are C8 which are a group of gene sets which look at cell types, and the hallmarks set which are a highly curated streamlined set which are useful to describe a biological state.
+
+Please see https://www.gsea-msigdb.org/gsea/msigdb/ for details on the gene sets used.
+
+Below we obtain the gene sets for a given species (10x visium supports `Mus musculus` or `Homo sapiens`.
 
 ```{r}
 cells_genesets <- msigdbr(species = params$species, category = "C8")
 hallmarks_genesets <- msigdbr(species = params$species, category = "H")
 ```
 
+Below we transform to a dataframe:
+
 ```{r}
 cells_genesets_t2g <- cells_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
 hallmarks_genesets_t2g <- hallmarks_genesets %>% dplyr::distinct(gs_name, entrez_gene) %>% as.data.frame()
 ```
+
+Next we process the custom gene sets if provided:
 
 ```{r}
 custom_genesets_t2g <- NULL
@@ -179,11 +215,13 @@ if (params$custom.anno != FALSE) {
 }
 ```
 
-# Processing
-
 ## Prepare results table
 
-Filter table for overrep and output vector gene names
+Before we run a given functional enrichment approach we need to process the results table. In the case of simple over-representation analysis we need to select for genes of interest based on some thresholds of choice, and in the case of pre-rank GSEA we need to rank the genes by some measurement of enrichment. Generally speaking we will rank the genes by lfc.
+
+::: callout-note
+You can change many of the paramaters below for this filtering step. Please see the paramater desciption above @tbl-params for more details.
+:::
 
 ```{r}
 #| message: false
@@ -201,7 +239,7 @@ vector_res_overrep <- lapply(res, parse_res, group = params$group,
 
 ```
 
-Rank table for gsea and output named vector ranked by lfc
+We prepare a separate set of genes for GSEA as a named vector ranked by lfc.
 
 ```{r}
 #| message: false
@@ -220,7 +258,9 @@ vector_res_gsea <- lapply(res, parse_res, group = params$group,
 
 ### Enricher
 
-Get Org species
+After getting the results tables ready we can run the subsequent enrichment analyses. First we run the overrepresentation analysis with the function `enrichr` using the `clusterprofiler` package. There are many other approaches available and we may switch over to another if needs be.
+
+Below we define the name of the org db (`org.Mm.eg.db` or `org.Hs.eg.db`) based on the name of the organism given to the `msigdbr`.
 
 ```{r}
 if (params$species == "Mus musculus") {
@@ -235,7 +275,9 @@ if (params$species == "Homo sapiens") {
 }
 ```
 
-Perform hypergeometric Samplewise and per param\$group
+Below we perform the hypergeometric sample wise and per `r param$group` if the table is split with `split.res`.
+
+For C8:
 
 ```{r}
 obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom, 
@@ -247,6 +289,8 @@ obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom,
                             pmethod = "BH")
 ```
 
+For Hallmark:
+
 ```{r}
 obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, 
                                 term2gene = hallmarks_genesets_t2g,
@@ -256,6 +300,8 @@ obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom,
                                 padj = params$pval.adj.thres.overrep, 
                                 pmethod = "BH")
 ```
+
+For Custom:
 
 ```{r}
 if (!is.null(custom_genesets_t2g)) {
@@ -270,7 +316,9 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-Parse cp object
+Finally we parse the output of `enrichr` so we can use it for downstream plotting and saving:
+
+For C8:
 
 ```{r}
 res_overrep_cells <- lapply(obj_overrep_cells, wrap_parse_cp_obj,  
@@ -279,12 +327,16 @@ res_overrep_cells <- lapply(obj_overrep_cells, wrap_parse_cp_obj,
                             db = "Custom")
 ```
 
+For Hallmark:
+
 ```{r}
 res_overrep_hallmarks <- lapply(obj_overrep_hallmarks, wrap_parse_cp_obj, 
                                 species = org_species, 
                                 type = "overrep", 
                                 db = "Custom")
 ```
+
+For Custom:
 
 ```{r}
 if (!is.null(custom_genesets_t2g)) {
@@ -299,7 +351,15 @@ if (!is.null(custom_genesets_t2g)) {
 
 #### Interactive results
 
+We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
+
+@tbl-over-c8 Results for C8:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for C8 overrepresentation analysis.
+#| label: tbl-over-c8
+
 # Only take final level of results table from list
 res_overrep_cells <- unlist(res_overrep_cells, recursive = FALSE)
 
@@ -326,7 +386,13 @@ DT::datatable(resbind_overrep_cells, class = 'cell-border stripe',
               filter = "top")
 ```
 
+@tbl-over-h Results for Hallmark:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for Hallmark overrepresentation analysis.
+#| label: tbl-over-h
+
 # Only take final level of results table from list
 res_overrep_hallmarks <- unlist(res_overrep_hallmarks, recursive = FALSE)
 
@@ -353,7 +419,13 @@ DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe',
               filter = "top")
 ```
 
+@tbl-over-custom Results for Custom:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for Custom overrepresentation analysis.
+#| label: tbl-over-custom
+
 if (!is.null(custom_genesets_t2g)) {
 
   # Only take final level of results table from list
@@ -385,6 +457,10 @@ if (!is.null(custom_genesets_t2g)) {
 
 #### Save out as CSV
 
+Next we save these same results out as CSV files.
+
+Save out results for C8:
+
 ```{r}
 #| message: false
 #| warning: false
@@ -398,6 +474,8 @@ lapply(names(res_overrep_cells), function(x, res_overrep_cells) {
   }, res_overrep_cells = res_overrep_cells)
 ```
 
+Save out results for Hallmark:
+
 ```{r}
 #| message: false
 #| warning: false
@@ -410,6 +488,8 @@ lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmarks) {
   
   }, res_overrep_hallmarks = res_overrep_hallmarks)
 ```
+
+Save out results for Custom:
 
 ```{r}
 #| message: false
@@ -429,7 +509,11 @@ if (!is.null(custom_genesets_t2g)) {
 
 ### GSEA
 
-Perform GSEA Samplewise and per param\$group
+After completing overrepresentation analysis we then move to completing GSEA. We do this by using the function `GSEA` in the `clusterprofiler` package. There are other approaches available and we may switch over to another if needs be - however this GSEA function does come with some convenient plotting functions which allow us to plot some standard GSEA enrichment plots used commonly in publications.
+
+Below we perform GSEA sample wise and per `r param$group` if the table is split with `split.res`.
+
+For C8:
 
 ```{r}
 obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, 
@@ -440,6 +524,8 @@ obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom,
                          pmethod = "BH")
 ```
 
+For Hallmark:
+
 ```{r}
 obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, 
                              term2gene = hallmarks_genesets_t2g, 
@@ -448,6 +534,8 @@ obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom,
                              padj = params$pval.adj.thres.gsea, 
                              pmethod = "BH")
 ```
+
+For Custom:
 
 ```{r}
 if (!is.null(custom_genesets_t2g)) {
@@ -461,7 +549,9 @@ if (!is.null(custom_genesets_t2g)) {
   }
 ```
 
-Parse cp object
+Finally we parse the output of `GSEA` so we can use it for downstream plotting and saving:
+
+For C8:
 
 ```{r}
 res_gsea_cells <- lapply(obj_gsea_cells, wrap_parse_cp_obj,  
@@ -470,12 +560,16 @@ res_gsea_cells <- lapply(obj_gsea_cells, wrap_parse_cp_obj,
                          db = "Custom")
 ```
 
+For Hallmark:
+
 ```{r}
 res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
                              species = org_species,
                              type = "gsea",
                              db = "Custom")
 ```
+
+For Custom:
 
 ```{r}
 if (!is.null(custom_genesets_t2g)) {
@@ -489,7 +583,15 @@ if (!is.null(custom_genesets_t2g)) {
 
 #### Interactive results
 
+We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
+
+@tbl-gsea-c8 Results for C8:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for C8 GSEA analysis.
+#| label: tbl-gsea-c8
+
 # Only take final level of results table from list
 res_gsea_cells <- unlist(res_gsea_cells, recursive = FALSE)
 
@@ -515,7 +617,13 @@ DT::datatable(resbind_gsea_cells, class = 'cell-border stripe',
               filter = "top")
 ```
 
+@tbl-gsea-hallmark Results for Hallmark:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for Hallmark GSEA analysis.
+#| label: tbl-gsea-hallmark
+
 # Only take final level of results table from list
 res_gsea_hallmarks <- unlist(res_gsea_hallmarks, recursive = FALSE)
 
@@ -541,7 +649,13 @@ DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe',
               filter = "top")
 ```
 
+@tbl-gsea-custom Results for Custom:
+
 ```{r}
+#| code-fold: true
+#| tbl-cap: Results for Custom GSEA analysis.
+#| label: tbl-gsea-custom
+
 if (!is.null(custom_genesets_t2g)) {
 
   # Only take final level of results table from list
@@ -572,6 +686,10 @@ if (!is.null(custom_genesets_t2g)) {
 
 #### Save out as CSV
 
+Next we save these same results out as CSV files.
+
+Save out results for C8:
+
 ```{r}
 #| message: false
 #| warning: false
@@ -585,6 +703,8 @@ lapply(names(res_gsea_cells), function(x, res_gsea_cells) {
   }, res_gsea_cells = res_gsea_cells)
 ```
 
+Save out results for Hallmark:
+
 ```{r}
 #| message: false
 #| warning: false
@@ -597,6 +717,8 @@ lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks) {
   
   }, res_gsea_hallmarks = res_gsea_hallmarks)
 ```
+
+Save out results for Custom:
 
 ```{r}
 #| message: false
@@ -616,9 +738,11 @@ if (!is.null(custom_genesets_t2g)) {
 
 ### Plot output
 
+Next we will plot some of the output of the enrichment analyses. We will only plot simple barplots and GSEA enrichment plots to keep things as readable as possible.
+
 #### Barplots
 
-For Overrep
+For Overrep C8:
 
 ```{r}
 #| message: false
@@ -638,13 +762,18 @@ barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){
   }, res_overrep_cells = res_overrep_cells)
 ```
 
+@fig-barplot-over-c8
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot Ovverepresentation analysis Msigdb C8
+#| label: fig-barplot-over-c8
 
 wrap_plots(barplots, ncol = 2)
 ```
+
+For Overrep Hallmark:
 
 ```{r}
 #| message: false
@@ -664,13 +793,18 @@ barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmar
   }, res_overrep_hallmarks = res_overrep_hallmarks)
 ```
 
+@fig-barplot-over-h
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr (params$plot_height - 5)
 #| fig-cap: Barplot Ovverepresentation analysis Msigdb Hallmarks
+#| label: fig-barplot-over-h
 
 wrap_plots(barplots, ncol = 2)
 ```
+
+For Overrep Custom:
 
 ```{r}
 #| message: false
@@ -694,10 +828,13 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
+@fig-barplot-over-custom
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: Barplot Ovverepresentation analysis Custom geneset
+#| label: fig-barplot-over-custom
 
 if (!is.null(custom_genesets_t2g)) {
   
@@ -706,7 +843,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-For GSEA
+For GSEA C8
 
 ```{r}
 #| message: false
@@ -726,13 +863,18 @@ barplots <- lapply(names(res_gsea_cells), function(x, res_gsea_cells){
   }, res_gsea_cells = res_gsea_cells)
 ```
 
+@fig-barplot-gsea-c8
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 3)
 #| fig-cap: Barplot GSEA Msigdb C8
+#| label: fig-barplot-gsea-c8
 
 wrap_plots(barplots, ncol = 2)
 ```
+
+For GSEA Hallmark
 
 ```{r}
 #| message: false
@@ -752,13 +894,18 @@ barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){
   }, res_gsea_hallmarks = res_gsea_hallmarks)
 ```
 
+@fig-barplot-gsea-h
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 2)
 #| fig.height: !expr (params$plot_height - 3)
 #| fig-cap: Barplot GSEA Msigdb Hallmarks
+#| label: fig-barplot-gsea-h
 
 wrap_plots(barplots, ncol = 2)
 ```
+
+For GSEA Custom
 
 ```{r}
 #| message: false
@@ -781,10 +928,13 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
+@fig-barplot-gsea-custom
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Barplot GSEA Custom geneset
+#| label: fig-barplot-gsea-custom
 
 if (!is.null(custom_genesets_t2g)) {
 
@@ -795,7 +945,9 @@ wrap_plots(barplots, ncol = 2)
 
 #### GSEA enrichment
 
-For GSEA
+Finally we will plot the top enrichment plot per results table or group if the table has been split with `split.res`.
+
+For GSEA C8
 
 ```{r}
 #| message: false
@@ -812,13 +964,18 @@ enrichplots <- lapply(names(unlist(obj_gsea_cells, recursive = F)), function(x, 
   }, obj_gsea_cells = unlist(obj_gsea_cells, recursive = F))
 ```
 
+@fig-enrich-gsea-c8
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb C8
+#| label: fig-enrich-gsea-c8
 
 wrap_plots(enrichplots)
 ```
+
+For GSEA Hallmark
 
 ```{r}
 #| message: false
@@ -835,13 +992,18 @@ enrichplots <- lapply(names(unlist(obj_gsea_hallmarks, recursive = F)), function
   }, obj_gsea_hallmarks = unlist(obj_gsea_hallmarks, recursive = F))
 ```
 
+@fig-enrich-gsea-h
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb Hallmarks
+#| label: fig-enrich-gsea-h
 
 wrap_plots(enrichplots)
 ```
+
+For GSEA Custom
 
 ```{r}
 #| message: false
@@ -861,10 +1023,13 @@ enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x,
 }
 ```
 
+@fig-enrich-gsea-custom
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Custom geneset
+#| label: fig-enrich-gsea-custom
 
 if (!is.null(custom_genesets_t2g)) {
 
@@ -874,6 +1039,8 @@ if (!is.null(custom_genesets_t2g)) {
 ```
 
 # Output
+
+As we do not attach these results to the seurat object we save these results into a separate list and save them out as an additional rds.
 
 Save experiment object:
 
@@ -897,7 +1064,7 @@ if (!is.null(custom_genesets_t2g)) {
 ```
 
 ```{r}
-saveRDS(res_anno, file = "output/09-annotation.rds")
+saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 ```
 
 Print session information:

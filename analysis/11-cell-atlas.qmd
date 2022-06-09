@@ -2,7 +2,7 @@
 title: "Cell Atlas annotation"
 params:
   seurat:
-    - "07-integrate-samples.rds" # So far only for merged, integrated, or single objects
+    - "07-integrate-samples.rds" # So far only for merged, integrated, or single objects (not lists of seurat objects)
   atlas:
     - "data/allen_cortex.rds"
   atlas.group:
@@ -36,6 +36,8 @@ params:
 ---
 
 # Setup
+
+### Parameters
 
 @tbl-params Parameter description
 
@@ -117,6 +119,12 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
+::: callout-tip
+You can supply these paramaters upon render.
+:::
+
+### Dependencies
+
 Add child documents
 
 ```{r}
@@ -157,11 +165,39 @@ Source user-defined functions:
 source("scripts/reduceDims.R")
 ```
 
+::: callout-note
+Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
+:::
+
+## Reading in experiment object
+
+We can read in the `output/06-merge-samples.rds` or `output/07-integrate-samples.rds` seurat object that we saved from previous worksheets (See quarto worksheets `06-merge-samples.qmd` and `07-integrate-samples.qmd` for more details).
+
+Alternatively you can run this step of the workflow on un-merged or un-integrated samples following clustering (`output/05-clustering.rds` and `05-clustering.qmd`) **if** it is only a **single sample**.
+
+::: callout-note
+Please take the seurat object of choice and define them as `params$seurat`.
+:::
+
 Read experiment data:
 
 ```{r}
 seurat <- readRDS(paste0("output/", params$seurat))
 ```
+
+## Reading in Atlas object
+
+We also need a cell atlas as an rds object for this worksheet.
+
+For the mouse brain we have the atlas as referenced within the seurat tutorial:
+
+-   https://www.dropbox.com/s/cuowvm4vrf65pvq/allen_cortex.rds?dl=1
+
+For liver see (which will be useful for NN projects):
+
+-   https://github.com/joeb-liver/Single_Cell_Liver_Atlas/blob/main/Liver_Atlas_Integration.R
+
+-   https://www.journal-of-hepatology.eu/article/S0168-8278(21)00173-2/fulltext
 
 Read in cell atlas:
 
@@ -173,10 +209,12 @@ atlas <- readRDS(params$atlas)
 
 ### Process Cell Atlas
 
-Normalise ncells = 3000 speeds up normalisation
+We process the cell atlas in the same way we would for any single cell experiment - normalisation, pca, and dim reduction.
+
+First we normalise the cell atlas with SCT normalisation. Using a smaller ncells (e.g. ncells = 3000) speeds up normalisation.
 
 ```{r}
-atlas <- SCTransform(atlas, ncells = params$ncells.sct, 
+atlas1 <- SCTransform(atlas, ncells = params$ncells.sct, 
                      variable.features.n = params$nfeatures.sct, 
                      verbose = FALSE) 
 ```
@@ -184,19 +222,19 @@ atlas <- SCTransform(atlas, ncells = params$ncells.sct,
 Add Group to meta.data
 
 ```{r}
-atlas@meta.data$Group = atlas@meta.data[[params$atlas.group]]
+atlas1@meta.data$Group = atlas1@meta.data[[params$atlas.group]]
 ```
 
-PCA
+We then complete PCA on the cell atlas:
 
 ```{r}
 #| message: false
 #| warning: false
 
-atlas <- pca(atlas)
+atlas1 <- pca(atlas1)
 ```
 
-Individual PCA - dimplot
+@fig-atlas-pca-class And plot PCAs with labels:
 
 ```{r}
 #| message: false
@@ -204,12 +242,13 @@ Individual PCA - dimplot
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by atlas.group.
+#| label: fig-atlas-pca-class
 
-dimplot(atlas, reduction = "pca", label = FALSE, 
+dimplot(atlas1, reduction = "pca", label = FALSE, 
         group.by = params$atlas.group, title = "PCA-Atlas")
 ```
 
-Individual PCA - featureplot ncount
+@fig-atlas-pca-ncount Plot PCA - nCounts
 
 ```{r}
 #| message: false
@@ -217,12 +256,13 @@ Individual PCA - featureplot ncount
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nCount.
+#| label: fig-atlas-pca-ncount
 
-featureplot(atlas, reduction = "pca", label = FALSE, 
+featureplot(atlas1, reduction = "pca", label = FALSE, 
             feature = "nCount_RNA", title = "PCA-Atlas")
 ```
 
-Individual PCA - featureplot nfeature
+@fig-atlas-pca-nfeatures Plot PCA - nFeatures
 
 ```{r}
 #| message: false
@@ -230,14 +270,21 @@ Individual PCA - featureplot nfeature
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data by nFeature.
-
-featureplot(atlas, reduction = "pca", label = FALSE, 
+#| label: fig-atlas-pca-nfeatures
+ 
+featureplot(atlas1, reduction = "pca", label = FALSE, 
             feature = "nFeature_RNA", title = "PCA-Atlas")
 ```
 
 ### Process Cell Atlas
 
-Add in variables to regress
+Using the PCA plots we may also wish to add in variables to regress into the normalisation process following visualisation of the initial PCA. To do this we go back to the original cell atlas object and normalise again using variables to regress.
+
+::: callout-note
+Please leave `params$vars.to.regress` as `FALSE` if you do not wish to regress out any additional variables during SCT normalisation.
+:::
+
+@fig-pca-vars-regress
 
 ```{r}
 #| message: false
@@ -245,9 +292,15 @@ Add in variables to regress
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Cell Atlas data after regression by vars.to.regress.
+#| label: fig-pca-vars-regress
 
 if (params$vars.to.regress != FALSE) {
   
+  # clean up
+  rm(atlas1)
+  
+  gc()
+
   atlas <- SCTransform(atlas, ncells = params$ncells.sct, 
                        variable.features.n = params$nfeatures.sct, 
                        verbose = FALSE, 
@@ -259,23 +312,34 @@ if (params$vars.to.regress != FALSE) {
               feature = params$vars.to.regress, 
               title = paste0("PCA-Atlas ", params$vars.to.regress))
   
+} else {
+  
+  atlas <- atlas1
+  
 }
  
 ```
 
 ### Elbow
 
+As in other workflows we use an elbow plot to infer the number of PCs to use downstream.
+
+@fig-elbow Elbow plot merged
+
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Elbow plot Cell Atlas data.
+#| label: fig-elbow
 
 elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
 ```
 
-From visual inspection it looks like the PCs for merged samples should be between 10-20
+::: callout-note
+Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
+:::
 
-Define elbow vector:
+Below we take number of PCs from visual inspection defined by the parameter elbow vector:
 
 ```{r}
 #| warning: false
@@ -285,7 +349,7 @@ elbow_vector <- params$elbow_range
 print(elbow_vector)
 ```
 
-Add PC elbow to object
+And we add that information to the cell atlas object
 
 ```{r}
 atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
@@ -293,9 +357,9 @@ atlas$Elbow <- rep(elbow_vector, nrow(atlas@meta.data))
 
 ### UMAP
 
-n.neighbors should be in the range 5 to 50. 
+Next we take the results from our PCA and feed this into a non-linear dimensionality reduction technique such as UMAP.
 
-min.dist sensible values are in the range 0.001 to 0.5.
+Below we explore the parameter space of UMAPs for our merged seurat samples. Remember that `n.neighbors` should be in the range 5 to 50, and `min.dist` sensible values are in the range 0.001 to 0.5.
 
 ```{r}
 #| label: Explore-Features-UMAP
@@ -314,60 +378,65 @@ atlas_4 <- umap(atlas, n.neighbors = 20, min.dist = 0.1)
 atlas_5 <- umap(atlas, n.neighbors = 10, min.dist = 0.001)
 ```
 
-UMAP n.neighbors = 30, min.dist = 0.3
+@fig-umap-30-03 Plot UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 30, min.dist = 0.3.
+#| label: fig-umap-30-03
 
 dimplot(atlas_1, reduction = "umap", label = TRUE, 
         group.by = params$atlas.group, 
         title = "UMAP-Atlas n.neighbors = 30, min.dist = 0.3")
 ```
 
-UMAP n.neighbors = 5, min.dist = 0.25
+@fig-umap-05-025 Plot UMAP n.neighbors = 5, min.dist = 0.25
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 5, min.dist = 0.25.
+#| label: fig-umap-05-025
 
 dimplot(atlas_2, reduction = "umap", label = TRUE, 
         group.by = params$atlas.group, 
         title = "UMAP-Atlas n.neighbors = 5, min.dist = 0.25")
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.1
+@fig-umap-10-01 Plot UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.1.
+#| label: fig-umap-10-01
 
 dimplot(atlas_3, reduction = "umap", label = TRUE, 
         group.by = params$atlas.group, 
         title = "UMAP-Atlas n.neighbors = 10, min.dist = 0.1")
 ```
 
-UMAP n.neighbors = 20, min.dist = 0.1
+@fig-umap-20-01 Plot UMAP n.neighbors = 20, min.dist = 0.1
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 20, min.dist = 0.1.
+#| label: fig-umap-20-01
 
 dimplot(atlas_4, reduction = "umap", label = TRUE, 
         group.by = params$atlas.group, 
         title = "UMAP-Atlas n.neighbors = 20, min.dist = 0.1")
 ```
 
-UMAP n.neighbors = 10, min.dist = 0.001
+@fig-umap-10-0001 Plot UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP plot Cell Atlas n.neighbors = 10, min.dist = 0.001.
+#| label: fig-umap-10-0001
 
 dimplot(atlas_5, reduction = "umap", label = TRUE, 
         group.by = params$atlas.group, 
@@ -381,11 +450,11 @@ rm(atlas_1, atlas_2, atlas_3, atlas_4, atlas_5)
 gc()
 ```
 
-### Chosen params UMAP
+### Plot UMAP
 
-Run UMAP individual samples for choice of params (standard seems fine):
+Please take the values for `n.neighbors` and `min.dist` that are representative across UMAP plots and set them as params.
 
-UMAP n.neighbors = 30, min.dist = 0.3
+Below we run UMAP with the paramaters of choice `r paste0("n.neighbors: ", params$n.neighbors, " min.dist: ", params$min.dist)`
 
 ```{r}
 #| message: false
@@ -399,25 +468,31 @@ print(paste0("min.dist: ", params$min.dist))
 atlas <- umap(atlas, n.neighbors = params$n.neighbors, min.dist = params$min.dist)
 ```
 
-### Plot Cell Atlas QC
+As previously discussed it can also be a very useful exploratory data analysis step to look at the UMAP/TSNE coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident).
 
-nCount
+Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
+
+@fig-umap-chosen-ncounts Plot UMAP nCount Atlas
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nCounts.
+#| label: fig-umap-chosen-ncounts
 
 featureplot(atlas, reduction = "umap",label =  FALSE, 
             feature = "nCount_RNA", title = "UMAP-Atlas")
 ```
 
-nFeature
+Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
+
+@fig-umap-chosen-nfeature Plot UMAP nFeature Atlas
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params nFeatures.
+#| label: fig-umap-chosen-nfeature
 
 featureplot(atlas, reduction = "umap", label = FALSE, 
             feature = "nFeature_RNA", title = "UMAP-Atlas")
@@ -425,10 +500,15 @@ featureplot(atlas, reduction = "umap", label = FALSE,
 
 ### Plot Cell Atlas by Class
 
+And we can also plot the cell atlas annotation on top of the UMAP we just calculated.
+
+@fig-umap-chosen-atlas-group Plot UMAP Atlas Group
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 1)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Cell Atlas chosen params by atlas.group.
+#| label: fig-umap-chosen-atlas-group
 
 # the annotation is stored in the 'subclass' column of object metadata
 DimPlot(atlas, group.by = params$atlas.group, label = TRUE)
@@ -436,7 +516,11 @@ DimPlot(atlas, group.by = params$atlas.group, label = TRUE)
 
 ## Find Anchors
 
-Find Transfer Anchors
+Next we apply 'anchor'-based integration implemented by seurat which allows for the transfer of annotations, in a probabilistic manner, from a cell atlas reference set to our spatial query data set.
+
+Please see https://satijalab.org/seurat/articles/integration_mapping.html for more details.
+
+Below we find transfer anchors
 
 ```{r}
 anchors <- FindTransferAnchors(reference = atlas, 
@@ -444,7 +528,7 @@ anchors <- FindTransferAnchors(reference = atlas,
                                normalization.method = "SCT")
 ```
 
-Transfer Anchors
+Next we transfer those a anchors
 
 ```{r}
 # Get dimensions required
@@ -457,7 +541,7 @@ predictions.assay <- TransferData(anchorset = anchors,
                                   dims = dims)
 ```
 
-Save new assay
+And save these predictions as a new assay within our seurat object.
 
 ```{r}
 seurat[["predictions"]] <- predictions.assay
@@ -465,7 +549,9 @@ seurat[["predictions"]] <- predictions.assay
 
 ## Plot Cell Atlas Annotations
 
-Example:
+Now that we have our new annotations from our cell atlas we can plot these annotation onto our tissue images.
+
+Below we plot an example of this:
 
 ```{r}
 #| fig.width: !expr params$plot_width
@@ -479,6 +565,10 @@ SpatialFeaturePlot(seurat, features = head(params$feature.example, 2),
 
 ## Find Spatially variable Cell Atlas Annotations
 
+As in previous worksheets (`10-spatial-features.qmd`), we can also look at which of these new annotations are spatially variable.
+
+Below we find those annotations that are localised rather than randomly distributed, and we plot those top features below:
+
 ```{r}
 seurat <- FindSpatiallyVariableFeatures(seurat, assay = "predictions", 
                                         selection.method = params$spatial.method,
@@ -491,20 +581,32 @@ top.clusters <- head(SpatiallyVariableFeatures(seurat), params$top.features)
 sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
 ```
 
+@fig-spatial-variable
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels of those that are spatially variable.
+#| label: fig-spatial-variable
 
 wrap_plots(sp)
 ```
 
 ## Plot labels of interest
 
+We can also plot any labels of interest below:
+
+::: callout-note
+Please specify any labels of interest as params above @tbl-params
+:::
+
+@fig-spatial-interest
+
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels - labels of interest.
+#| label: fig-spatial-interest
 
 SpatialFeaturePlot(seurat, features = params$feature.example, 
                    pt.size.factor = 1,  crop = FALSE, alpha = c(0.1, 1))

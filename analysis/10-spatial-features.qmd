@@ -17,6 +17,8 @@ params:
     - 5
   plot_height:
     - 7
+  colours:
+    - "RdBu"
 ---
 
 # Setup

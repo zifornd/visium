@@ -189,7 +189,7 @@ The standard gene sets we use are C8 which are a group of gene sets which look a
 
 Please see https://www.gsea-msigdb.org/gsea/msigdb/ for details on the gene sets used.
 
-Below we obtain the gene sets for a given species (10x visium supports `Mus musculus` or `Homo sapiens`.
+Below we obtain the gene sets for a given species (10x visium supports `Mus musculus` or `Homo sapiens`).
 
 ```{r}
 cells_genesets <- msigdbr(species = params$species, category = "C8")
@@ -275,7 +275,7 @@ if (params$species == "Homo sapiens") {
 }
 ```
 
-Below we perform the hypergeometric sample wise and per `r param$group` if the table is split with `split.res`.
+Below we perform the hypergeometric sample wise and per `r params$group` if the table is split with `split.res`.
 
 For C8:
 
@@ -353,12 +353,10 @@ if (!is.null(custom_genesets_t2g)) {
 
 We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
 
-@tbl-over-c8 Results for C8:
+Results for C8:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for C8 overrepresentation analysis.
-#| label: tbl-over-c8
 
 # Only take final level of results table from list
 res_overrep_cells <- unlist(res_overrep_cells, recursive = FALSE)
@@ -386,12 +384,10 @@ DT::datatable(resbind_overrep_cells, class = 'cell-border stripe',
               filter = "top")
 ```
 
-@tbl-over-h Results for Hallmark:
+Results for Hallmark:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for Hallmark overrepresentation analysis.
-#| label: tbl-over-h
 
 # Only take final level of results table from list
 res_overrep_hallmarks <- unlist(res_overrep_hallmarks, recursive = FALSE)
@@ -419,12 +415,10 @@ DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe',
               filter = "top")
 ```
 
-@tbl-over-custom Results for Custom:
+Results for Custom:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for Custom overrepresentation analysis.
-#| label: tbl-over-custom
 
 if (!is.null(custom_genesets_t2g)) {
 
@@ -511,7 +505,7 @@ if (!is.null(custom_genesets_t2g)) {
 
 After completing overrepresentation analysis we then move to completing GSEA. We do this by using the function `GSEA` in the `clusterprofiler` package. There are other approaches available and we may switch over to another if needs be - however this GSEA function does come with some convenient plotting functions which allow us to plot some standard GSEA enrichment plots used commonly in publications.
 
-Below we perform GSEA sample wise and per `r param$group` if the table is split with `split.res`.
+Below we perform GSEA sample wise and per `r params$group` if the table is split with `split.res`.
 
 For C8:
 
@@ -585,12 +579,10 @@ if (!is.null(custom_genesets_t2g)) {
 
 We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
 
-@tbl-gsea-c8 Results for C8:
+Results for C8:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for C8 GSEA analysis.
-#| label: tbl-gsea-c8
 
 # Only take final level of results table from list
 res_gsea_cells <- unlist(res_gsea_cells, recursive = FALSE)
@@ -617,12 +609,10 @@ DT::datatable(resbind_gsea_cells, class = 'cell-border stripe',
               filter = "top")
 ```
 
-@tbl-gsea-hallmark Results for Hallmark:
+Results for Hallmark:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for Hallmark GSEA analysis.
-#| label: tbl-gsea-hallmark
 
 # Only take final level of results table from list
 res_gsea_hallmarks <- unlist(res_gsea_hallmarks, recursive = FALSE)
@@ -649,12 +639,10 @@ DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe',
               filter = "top")
 ```
 
-@tbl-gsea-custom Results for Custom:
+Results for Custom:
 
 ```{r}
 #| code-fold: true
-#| tbl-cap: Results for Custom GSEA analysis.
-#| label: tbl-gsea-custom
 
 if (!is.null(custom_genesets_t2g)) {
 
@@ -767,7 +755,7 @@ barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
-#| fig-cap: Barplot Ovverepresentation analysis Msigdb C8
+#| fig-cap: Barplot Overrepresentation analysis Msigdb C8
 #| label: fig-barplot-over-c8
 
 wrap_plots(barplots, ncol = 2)
@@ -828,12 +816,11 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-@fig-barplot-over-custom
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr params$plot_height
-#| fig-cap: Barplot Ovverepresentation analysis Custom geneset
+#| fig-cap: Barplot Overrepresentation analysis Custom geneset
 #| label: fig-barplot-over-custom
 
 if (!is.null(custom_genesets_t2g)) {
@@ -928,7 +915,6 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-@fig-barplot-gsea-custom
 
 ```{r}
 #| fig.width: !expr params$plot_width
@@ -1023,7 +1009,6 @@ enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x,
 }
 ```
 
-@fig-enrich-gsea-custom
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)

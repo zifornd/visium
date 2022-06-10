@@ -141,7 +141,7 @@ seurat <- lapply(seurat, function(x) {x[rowSums(x) > 0, ]})
 
 #### Remove "DEPRECATED-" genes
 
-For FFPE analyses by default these genes are removed - however if an unfiltered feature barcode matrix is supplied following the use of the **`--no-probe-filter`** tag DEPRECATED probes must be removed prior to downstream analysis.
+For FFPE analyses by default these genes are removed - however if an unfiltered feature barcode matrix is supplied DEPRECATED probes must be removed prior to downstream analysis.
 
 For more details on how probe filtering occurs for FFPE protocol upstream with spaceranger please see "**Probe Filtering For FFPE**" section:
 

@@ -1,12 +1,38 @@
 ---
 title: "Quality control"
+params:
+    protocol:
+      - "FFPE" # Fresh frozen as FF
 ---
 
 ## Setup
 
-```{r, setup, include=FALSE}
-# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium")
+### Parameters
+
+@tbl-params Parameter description
+
+```{r}
+#| code-fold: true
+#| label: tbl-params
+#| tbl-cap: Description of paramaters used in notebook.
+
+par <- list(
+
+list(
+Parameter = "protocol",
+Value = params$protocol,
+Description = "Name of the 10x Visium protocol used - either FFPE or FF (Fresh Frozen)."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
 ```
+
+::: callout-tip
+You can supply these paramaters upon render.
+:::
 
 ### Dependencies
 
@@ -263,12 +289,32 @@ wrap_plots(v1, v2, nrow = 2)
 
 #### Mapping
 
-This set of QC values focuses on mapping QC (mapping to the mouse or human probe set for FFPE protocol) e.g. total number of reads mapped to probe set (`Reads.Mapped.to.Probe.Set`), total number of reads mapped uniquely to probe set (`Reads.Mapped.Confidently.to.Probe.Set`), and total number of reads that mapped uniquely to filtered probe set (those with low predicted off-targets and are no DEPRECATED) (`Reads.Mapped.Confidently.to.the.Filtered.Probe.Set`) per sample.
+This set of QC values focuses on mapping QC (mapping to the mouse or human probe set for FFPE protocol) e.g. total number of reads mapped to probe set (`Reads.Mapped.to.Probe.Set`), total number of reads mapped uniquely to probe set (`Reads.Mapped.Confidently.to.Probe.Set`), and total number of reads that mapped uniquely to filtered probe set (those with low predicted off-targets and are no DEPRECATED) (`Reads.Mapped.Confidently.to.the.Filtered.Probe.Set`) per sample if the run is following the FFPE protocol.
+
+Where the samples are run following the Fresh frozen protocol we would expect to assess QC mapping metrics such as `Reads.Mapped.to.Genome`, `Reads.Mapped.Confidently.to.Genome`, `Reads.Mapped.Confidently.to.Intergenic.Regions`, `Reads.Mapped.Confidently.to.Intronic.Regions`, `Reads.Mapped.Confidently.to.Exonic.Regions`, `Reads.Mapped.Confidently.to.Transcriptome`, and `Reads.Mapped.Antisense.to.Gene`.
 
 ```{r}
-metricscols <- c("Reads.Mapped.to.Probe.Set", 
-                 "Reads.Mapped.Confidently.to.Probe.Set", 
-                 "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set")
+if (params$protocol == "FFPE"){
+
+  metricscols <- c("Reads.Mapped.to.Probe.Set", 
+                   "Reads.Mapped.Confidently.to.Probe.Set", 
+                   "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set")
+
+} 
+
+if (params$protocol == "FF"){
+
+
+  metricscols <- c("Reads.Mapped.to.Genome", 
+                   "Reads.Mapped.Confidently.to.Genome", 
+                   "Reads.Mapped.Confidently.to.Intergenic.Regions", 
+                   "Reads.Mapped.Confidently.to.Intronic.Regions", 
+                   "Reads.Mapped.Confidently.to.Exonic.Regions", 
+                   "Reads.Mapped.Confidently.to.Transcriptome", 
+                   "Reads.Mapped.Antisense.to.Gene")
+
+}
+
 
 bars <- lapply(metricscols, function(x, metrics, clean_label) {
   
@@ -277,22 +323,6 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
             clean_label = clean_label)
 
   }, metrics = metrics, clean_label = wrap_label)
-```
-
-Add Warning values if mapping poor
-
-```{r}
-metrics$Warning <- ifelse(metrics$Reads.Mapped.Confidently.to.Probe.Set <= 0.5, 
-                          "Red","Green") 
-
-metrics$Warning <- factor(metrics$Warning, levels = c("Red", "Green"))
-
-warningplot <- barplotgg(metrics, ylab = "Reads.Mapped.Confidently.to.Probe.Set", 
-                         xlab = "Sample.ID", colour_by = "Warning", 
-                          clean = 15, delim = "_", xdelim = ".", 
-                         ydelim = ".", clean_label = wrap_label)
-
-bars[[4]] <- warningplot
 ```
 
 @fig-qcmapping Plot a barplot of all mapping based QC:
@@ -312,10 +342,7 @@ We can also summarise some of these values (those that are a %) into a violin pl
 #| message: false
 #| warning: false
 
-map_metr <- metrics[,c("Sample.ID","Reads.Mapped.to.Probe.Set", 
-                       "Reads.Mapped.Confidently.to.Probe.Set", 
-                       "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set", 
-                       "Warning")]
+map_metr <- metrics[,c("Sample.ID", metricscols)]
 
 map_metr <- melt(map_metr)
 
@@ -324,7 +351,7 @@ map_metr$Percentage <- map_metr$value
 map_metr$QC <- map_metr$variable
 ```
 
-One violin zooms into the values of each QC measurement, the other enforces a 0 - 100% y axis, and the final includes those with a warning.
+One violin zooms into the values of each QC measurement, the other enforces a 0 - 100% y axis.
 
 ```{r}
 v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
@@ -333,20 +360,17 @@ v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC",
 v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, ylim = c(0,1), 
                clean = 20)
-
-v3 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
-               colour_by = "Warning", show_median = T, clean = 20)
 ```
 
-@fig-qcmappingwarning Summary Violin Plot
+@fig-qcmappingviol Summary Violin Plot
 
 ```{r}
 #| fig.width: 8
 #| fig.height: 8
-#| label: fig-qcmappingwarning
-#| fig-cap: Mapping QC values violin with mapping warnings.
+#| label: fig-qcmappingviol
+#| fig-cap: Mapping QC values violin.
 
-wrap_plots(v1, v2, v3, nrow = 2)
+wrap_plots(v1, v2, nrow = 2)
 ```
 
 #### Spots

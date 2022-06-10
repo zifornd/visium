@@ -6,9 +6,11 @@
 
 /.quarto/
 
-data/*rds
-data/*/outs/*h5
-data/*/*.jpg
+# data/*rds
+# data/*/outs/*h5
+# data/*/*.jpg
+
+data/*
 
 output/*
 

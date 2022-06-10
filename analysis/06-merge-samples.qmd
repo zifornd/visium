@@ -1,7 +1,7 @@
 ---
 title: "Merge samples"
 params:
-  elbow_range:
+  elbow_range: 
     - "1:20"
   cluster:
     - "res.0.3"

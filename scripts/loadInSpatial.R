@@ -43,6 +43,16 @@ loadInSpatial <- function(samplename, prefix, metadata, saveout = T,
 
 }
 
+loadInSpatialList <- function(idx, samples, prefix, 
+                              metadata, saveout, filenames) {
+  
+  seurat <- loadInSpatial(samples[[idx]], prefix, 
+                          metadata, saveout, filenames[[idx]])
+  
+  return(seurat)
+  
+}
+
 ## Add on Meta data to Seurat object
 
 addMeta <- function(seurat, metadata, samplename) {
@@ -70,19 +80,23 @@ addMeta <- function(seurat, metadata, samplename) {
 ## Collect metrics which are output from 10x spaceranger run
 
 collectMetrics <- function(samplename, prefix,
-                           filename = "metrics_summary.csv") {
+                           filename = "_metrics_summary.csv") {
 
   samplefolder <- paste0(prefix, samplename)
 
-  datadir <- paste0(samplefolder, "/outs/", filename)
+  datadir <- paste0(samplefolder, "/outs/", samplename, filename)
 
   print(paste0("Reading in: ", datadir))
 
   # Columns made R safe
   metrics <- read.csv(datadir)
 
-  # Rename last column to original
-  colnames(metrics)[colnames(metrics) == 'Number.of.Panel.Genes....10.UMIs'] <- 'Number.of.Panel.Genes.Greater.Or.Equal.10.UMIs'
+  # Rename last column to original if needed
+  if ('Number.of.Panel.Genes....10.UMIs' %in% colnames(metrics)) {
+
+    colnames(metrics)[colnames(metrics) == 'Number.of.Panel.Genes....10.UMIs'] <- 'Number.of.Panel.Genes.Greater.Or.Equal.10.UMIs'
+
+  }
 
   return(metrics)
 

@@ -2,7 +2,7 @@
 title: "Quality control"
 params:
     protocol:
-      - "FFPE" # Fresh frozen as FF
+      - "FF" # Fresh frozen as FF
 ---
 
 ## Setup
@@ -225,14 +225,31 @@ Spaceranger also produces a set of QC values which we have parsed ready for plot
 
 #### Sequencing
 
-This set of QC values focuses on sequencing QC e.g. total number of reads per sample (`Number.of.Reads`), percentage of valid UMIs (`Valid.UMIs`), the quality of reads and barcodes (`Q30.Bases.in.Barcode`, `Q30.Bases.in.Probe.Read`, `Q30.Bases.in.UMI`) per sample.
+This set of QC values focuses on sequencing QC e.g. total number of reads per sample (`Number.of.Reads`), percentage of valid UMIs (`Valid.UMIs`), the quality of reads and barcodes (`Q30.Bases.in.Barcode`, `Q30.Bases.in.UMI`) per sample.
+
+If you are running FFPE protocol you will also see  `Q30.Bases.in.Probe.Read`, and if you are running FF protocol you will see `Q30 Bases.in.RNA.Read`.
 
 ```{r}
-metricscols <- c("Number.of.Reads", "Valid.Barcodes", "Valid.UMIs", 
-                 "Q30.Bases.in.Barcode", "Q30.Bases.in.Probe.Read", 
-                 "Q30.Bases.in.UMI")
+metricscols <- c("Valid.Barcodes", "Valid.UMIs", 
+                 "Q30.Bases.in.Barcode", "Q30.Bases.in.UMI", 
+                 "Sequencing.Saturation")
 
-bars <- lapply(metricscols, function(x, metrics, clean_label) {
+if (params$protocol == "FFPE"){
+
+  metricscols <- c(metricscols, "Q30.Bases.in.Probe.Read")
+
+} 
+
+if (params$protocol == "FF"){
+
+
+  metricscols <- c(metricscols, "Q30.Bases.in.RNA.Read")
+
+
+}
+
+
+bars <- lapply(c("Number.of.Reads", metricscols), function(x, metrics, clean_label) {
   
   barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID", 
             clean = 11, delim = "_", xdelim = ".", ydelim = ".", 
@@ -255,9 +272,7 @@ wrap_plots(bars)
 We can also summarise some of these values (those that are a %) into a violin plot so that they can be more easily compared across samples.
 
 ```{r}
-seq_metr <- metrics[,c("Sample.ID","Valid.Barcodes", "Valid.UMIs", 
-                       "Q30.Bases.in.Barcode", "Q30.Bases.in.Probe.Read", 
-                       "Q30.Bases.in.UMI")]
+seq_metr <- metrics[,c("Sample.ID", metricscols)]
 
 seq_metr <- melt(seq_metr)
 

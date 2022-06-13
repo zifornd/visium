@@ -54,6 +54,12 @@ You can supply these paramaters upon render.
 
 ### Dependencies
 
+Add child documents
+
+```{r}
+#| child = "analysis/big-data.qmd"
+```
+
 Restore project dependencies:
 
 ```{r}
@@ -212,6 +218,30 @@ write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 
 Print session information:
 
+
+<input type=button class=hideshow></input>
+
 ```{r}
+#| code-fold: false
+
 sessionInfo()
 ```
+
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>

@@ -554,8 +554,8 @@ Now that we have our new annotations from our cell atlas we can plot these annot
 Below we plot an example of this:
 
 ```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr params$plot_height
+#| fig.width: !expr (params$plot_width + 10)
+#| fig.height: !expr (params$plot_height + 10)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels.
 
 DefaultAssay(seurat) <- "predictions"
@@ -584,8 +584,8 @@ sp <- SpatialPlot(object = seurat, features = top.clusters, ncol = 2)
 @fig-spatial-variable
 
 ```{r}
-#| fig.width: !expr (params$plot_width + 5)
-#| fig.height: !expr (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 25)
+#| fig.height: !expr (params$plot_height + 25)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels of those that are spatially variable.
 #| label: fig-spatial-variable
 
@@ -603,8 +603,8 @@ Please specify any labels of interest as params above @tbl-params
 @fig-spatial-interest
 
 ```{r}
-#| fig.width: !expr (params$plot_width + 5)
-#| fig.height: !expr (params$plot_height + 5)
+#| fig.width: !expr (params$plot_width + 25)
+#| fig.height: !expr (params$plot_height + 25)
 #| fig-cap: Spatial plot with predicted Cell Atlas labels - labels of interest.
 #| label: fig-spatial-interest
 
@@ -622,6 +622,28 @@ saveRDS(seurat, file = "output/11-cell-atlas.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
 ```
+
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
+

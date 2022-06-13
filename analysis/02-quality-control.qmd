@@ -117,7 +117,7 @@ vlns <- lapply(meta, function(x, combinedQC, clean_label) {
   violingg(combinedQC, ylab = "nCount_Spatial", colour_by = x, show_median = T, 
            clean = 15, delim = "_", clean_label = clean_label)
 
-  }, combinedQC = combinedQC, clean_label = wrap_label)
+  }, combinedQC = combinedQC, clean_label = trim_label)
 ```
 
 @fig-ncountsviolin Plot combined nCounts Violin plots:
@@ -176,7 +176,7 @@ vlns <- lapply(meta, function(x, combinedQC, clean_label) {
   violingg(combinedQC, ylab = "nFeature_Spatial", colour_by = x, 
            show_median = T, clean = 15, delim = "_", clean_label = clean_label)
 
-  }, combinedQC = combinedQC, clean_label = wrap_label)
+  }, combinedQC = combinedQC, clean_label = trim_label)
 ```
 
 @fig-nfeaturesviolin Plot combined nFeatures plots:
@@ -255,14 +255,14 @@ bars <- lapply(c("Number.of.Reads", metricscols), function(x, metrics, clean_lab
             clean = 11, delim = "_", xdelim = ".", ydelim = ".", 
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = wrap_label)
+  }, metrics = metrics, clean_label = trim_label)
 ```
 
 @fig-qcseq Plot Sequencing QC Barplot
 
 ```{r}
-#| fig.width: 12
-#| fig.height: 8
+#| fig.width: 15
+#| fig.height: 12
 #| label: fig-qcseq
 #| fig-cap: Sequencing QC values.
 
@@ -294,8 +294,8 @@ v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC",
 @fig-qcseqviolin Summary Violin plot
 
 ```{r}
-#| fig.width: 4
-#| fig.height: 6
+#| fig.width: 8
+#| fig.height: 8
 #| label: fig-qcseqviolin
 #| fig-cap: Sequencing QC values summary violin.
 
@@ -337,14 +337,14 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
             clean = 15, delim = "_", xdelim = ".", ydelim = ".", 
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = wrap_label)
+  }, metrics = metrics, clean_label = trim_label)
 ```
 
 @fig-qcmapping Plot a barplot of all mapping based QC:
 
 ```{r}
-#| fig.width: 8
-#| fig.height: 6
+#| fig.width: 15
+#| fig.height: 10
 #| label: fig-qcmapping
 #| fig-cap: Mapping QC values.
 
@@ -402,14 +402,14 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
             clean = 11, delim = "_", xdelim = ".", ydelim = ".",
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = wrap_label)
+  }, metrics = metrics, clean_label = trim_label)
 ```
 
 @fig-qcspot Plot a barplot of all spot based QC (as they are not on the same scale we cannot summarise them as violin plots).
 
 ```{r}
 #| fig.width: 12
-#| fig.height: 4
+#| fig.height: 8
 #| label: fig-qcspot
 #| fig-cap: Spot QC values.
 
@@ -517,6 +517,29 @@ saveRDS(seurat, file = "output/02-quality-control.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

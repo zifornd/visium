@@ -9,9 +9,9 @@ params:
   perplexity: 
     - "N^1/2"
   plot_width: 
-    - 8
+    - 10
   plot_height: 
-    - 4
+    - 8
 ---
 
 # Setup
@@ -621,6 +621,29 @@ saveRDS(seurat, file = "output/04-reduced-dimensions.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

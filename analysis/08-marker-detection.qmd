@@ -80,6 +80,10 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
+```{r, setup, include=TRUE}
+# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
+```
+
 ### Dependencies
 
 Add child documents
@@ -359,6 +363,29 @@ saveRDS(res, file = "output/08-marker-detection-res.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

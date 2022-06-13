@@ -116,6 +116,10 @@ The paramater `split.res` is important as it will split the results table furthe
 
 ### Dependencies
 
+```{r, setup, include=TRUE}
+# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
+```
+
 Add child documents
 
 ```{r}
@@ -362,10 +366,10 @@ Results for C8:
 res_overrep_cells <- unlist(res_overrep_cells, recursive = FALSE)
 
 # remove empty elements for clusters without any significant results
-res_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
+resbind_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
 
 # bind into single results table
-resbind_overrep_cells <- bind_rows(res_overrep_cells, .id = params$group)
+resbind_overrep_cells <- bind_rows(resbind_overrep_cells, .id = params$group)
 
 # Plot as interactive table
 DT::datatable(resbind_overrep_cells, class = 'cell-border stripe', 
@@ -393,10 +397,10 @@ Results for Hallmark:
 res_overrep_hallmarks <- unlist(res_overrep_hallmarks, recursive = FALSE)
 
 # remove empty elements for clusters without any significant results
-res_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks, nrow) > 0]
+resbind_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks, nrow) > 0]
 
 # bind into single results table
-resbind_overrep_hallmarks <- bind_rows(res_overrep_hallmarks, .id = params$group)
+resbind_overrep_hallmarks <- bind_rows(resbind_overrep_hallmarks, .id = params$group)
 
 # Plot as interactive table
 DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe', 
@@ -426,10 +430,10 @@ if (!is.null(custom_genesets_t2g)) {
   res_overrep_custom <- unlist(res_overrep_custom, recursive = FALSE)
 
   # remove empty elements for clusters without any significant results
-  res_overrep_custom <- res_overrep_custom[sapply(res_overrep_custom, nrow) > 0]
+  resbind_overrep_custom <- res_overrep_custom[sapply(res_overrep_custom, nrow) > 0]
 
   # bind into single results table
-  resbind_overrep_custom <- bind_rows(res_overrep_custom, .id = params$group)
+  resbind_overrep_custom <- bind_rows(resbind_overrep_custom, .id = params$group)
 
   # Plot as interactive table
   DT::datatable(resbind_overrep_custom, class = 'cell-border stripe', 
@@ -568,7 +572,7 @@ For Custom:
 ```{r}
 if (!is.null(custom_genesets_t2g)) {
   
-  res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
+  res_gsea_custom <- lapply(obj_gsea_custom, wrap_parse_cp_obj,
                                species = org_species,
                                type = "gsea",
                                db = "Custom")
@@ -588,10 +592,10 @@ Results for C8:
 res_gsea_cells <- unlist(res_gsea_cells, recursive = FALSE)
 
 # remove empty elements for clusters without any significant results
-res_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
+resbind_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
 
 # bind into single results table
-resbind_gsea_cells <- bind_rows(res_gsea_cells, .id = params$group)
+resbind_gsea_cells <- bind_rows(resbind_gsea_cells, .id = params$group)
 
 DT::datatable(resbind_gsea_cells, class = 'cell-border stripe',
               extensions = 'Buttons', rownames = FALSE,
@@ -618,10 +622,10 @@ Results for Hallmark:
 res_gsea_hallmarks <- unlist(res_gsea_hallmarks, recursive = FALSE)
 
 # remove empty elements for clusters without any significant results
-res_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 0]
+resbind_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 0]
 
 # bind into single results table
-resbind_gsea_hallmarks <- bind_rows(res_gsea_hallmarks, .id = params$group)
+resbind_gsea_hallmarks <- bind_rows(resbind_gsea_hallmarks, .id = params$group)
 
 DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe',
               extensions = 'Buttons', rownames = FALSE,
@@ -650,10 +654,10 @@ if (!is.null(custom_genesets_t2g)) {
   res_gsea_custom <- unlist(res_gsea_custom, recursive = FALSE)
 
   # remove empty elements for clusters without any significant results
-  res_gsea_custom <- res_gsea_custom[sapply(res_gsea_custom, nrow) > 0]
+  resbind_gsea_custom <- res_gsea_custom[sapply(res_gsea_custom, nrow) > 0]
 
   # bind into single results table
-  resbind_gsea_custom <- bind_rows(res_gsea_custom, .id = params$group)
+  resbind_gsea_custom <- bind_rows(resbind_gsea_custom, .id = params$group)
 
   DT::datatable(resbind_gsea_custom, class = 'cell-border stripe',
                 extensions = 'Buttons', rownames = FALSE,
@@ -738,7 +742,7 @@ For Overrep C8:
 #| results: hide
 
 barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){ 
-  
+
   plot_barplot(res_overrep_cells[[x]], 
                colnames_select = c("Description", "p.adjust", "GeneRatio"), 
                colour = "steelblue", 
@@ -784,8 +788,8 @@ barplots <- lapply(names(res_overrep_hallmarks), function(x, res_overrep_hallmar
 @fig-barplot-over-h
 
 ```{r}
-#| fig.width: !expr (params$plot_width + 1)
-#| fig.height: !expr (params$plot_height - 5)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot Ovverepresentation analysis Msigdb Hallmarks
 #| label: fig-barplot-over-h
 
@@ -816,10 +820,9 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
-#| fig.height: !expr params$plot_height
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot Overrepresentation analysis Custom geneset
 #| label: fig-barplot-over-custom
 
@@ -854,7 +857,7 @@ barplots <- lapply(names(res_gsea_cells), function(x, res_gsea_cells){
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
-#| fig.height: !expr (params$plot_height + 3)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot GSEA Msigdb C8
 #| label: fig-barplot-gsea-c8
 
@@ -868,24 +871,26 @@ For GSEA Hallmark
 #| warning: false
 #| results: hide
 
-barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){ 
+barplots <- lapply(names(res_gsea_hallmarks), function(x, res_gsea_hallmarks){
+
+    plot_barplot(res_gsea_hallmarks[[x]],
+                 colnames_select = c("Description", "p.adjust", "NES"),
+                 colour = "steelblue",
+                 title = x,
+                 x = "-log10(Adjusted P.value)",
+                 y = "Term",
+                 top = 5)
   
-  plot_barplot(res_gsea_hallmarks[[x]],
-               colnames_select = c("Description", "p.adjust", "NES"), 
-               colour = "steelblue", 
-               title = x, 
-               x = "-log10(Adjusted P.value)", 
-               y = "Term", 
-               top = 5)
-  
-  }, res_gsea_hallmarks = res_gsea_hallmarks)
+  }, res_gsea_hallmarks = res_gsea_hallmarks)  
+
+
 ```
 
 @fig-barplot-gsea-h
 
 ```{r}
-#| fig.width: !expr (params$plot_width + 2)
-#| fig.height: !expr (params$plot_height - 3)
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot GSEA Msigdb Hallmarks
 #| label: fig-barplot-gsea-h
 
@@ -915,16 +920,15 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-
 ```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr params$plot_height
+#| fig.width: !expr (params$plot_width + 5)
+#| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Barplot GSEA Custom geneset
 #| label: fig-barplot-gsea-custom
 
 if (!is.null(custom_genesets_t2g)) {
 
-wrap_plots(barplots, ncol = 2)
+  wrap_plots(barplots, ncol = 2)
   
 }
 ```
@@ -1009,7 +1013,6 @@ enrichplots <- lapply(names(unlist(obj_gsea_custom, recursive = F)), function(x,
 }
 ```
 
-
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
@@ -1054,6 +1057,29 @@ saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

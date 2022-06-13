@@ -378,53 +378,66 @@ plot_fea_results <- function(cp_obj, title, plot_type = "barplot",
 plot_barplot <- function(cp_df,
                          colnames_select = c("Description", "padj", "GeneRatio"),
                          colour = "steelblue", title = "Barplot GO Analysis",
-                         x_log = T, z_log=F,
+                         x_log = T, z_log = F,
                          x = "-log10(Adjusted P.value)", y = "GO Term",
-                         x_thres=0.05, top = 10) {
+                         x_thres = 0.05, top = 10) {
 
   suppressMessages(library(ggplot2))
+  
+  # if given empty df
+  if (nrow(cp_df) > 0) {
 
-  df <- cp_df[, c(colnames_select)]
-
-  df <- head(df, top)
-
-  colnames(df) <- c("y", "x", "z")
-
-  if (x_log) {
-
-    df$x <- -log10(df$x)
-
+    df <- cp_df[, c(colnames_select)]
+  
+    df <- head(df, top)
+  
+    colnames(df) <- c("y", "x", "z")
+  
+    if (x_log) {
+  
+      df$x <- -log10(df$x)
+  
+    }
+  
+    if (x_log) {
+  
+      x_thres <- -log10(x_thres)
+  
+    }
+  
+    if (z_log) {
+  
+      df$z <- -log10(df$z)
+  
+    }
+  
+    if (class(df$z) == "numeric") {
+  
+        df$z <- round(df$z, 2)
+  
+    }
+  
+    df$y <- factor(df$y, levels = rev(df$y))
+  
+    p <- ggplot(data = df, aes(x = x, y = y)) +
+         geom_bar(stat = "identity", fill = colour) +
+         geom_text(aes(label = z), hjust = 1.6, color = "white", size = 3.5) +
+         theme_minimal() +
+         labs(title = title, x = x, y = y) +
+         geom_vline(xintercept = x_thres, linetype = "dashed", color = "red") +
+         theme_classic() +
+         labs(fill = colour, x = trim_label(x), y = trim_label(y)) +
+         scale_y_discrete(labels = function(y) trim_label(y))
+    
+  
+  } else {
+    
+    # return a null ggplot if no results
+    p <- ggplot() +
+      theme_void() +
+      geom_text(aes(0, 0, label = "N/A")) +
+      xlab(NULL)
   }
-
-  if (x_log) {
-
-    x_thres <- -log10(x_thres)
-
-  }
-
-  if (z_log) {
-
-    df$z <- -log10(df$z)
-
-  }
-
-  if (class(df$z) == "numeric") {
-
-      df$z <- round(df$z, 2)
-
-  }
-
-  df$y <- factor(df$y, levels = rev(df$y))
-
-  p <- ggplot(data = df, aes(x = x, y = y)) +
-       geom_bar(stat = "identity", fill = colour) +
-       geom_text(aes(label = z), hjust = 1.6, color = "white", size = 3.5) +
-       theme_minimal() +
-       labs(title = title, x = x, y = y) +
-       geom_vline(xintercept = x_thres, linetype = "dashed", color = "red") +
-       theme_classic() +
-       labs(fill = colour, x = trim_label(x), y = trim_label(y)) +
-       scale_y_discrete(labels = function(y) trim_label(y))
 
   return(p)
 

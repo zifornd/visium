@@ -75,6 +75,10 @@ You can supply these paramaters upon render.
 
 ### Dependencies
 
+```{r, setup, include=TRUE}
+#knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
+```
+
 Add child documents
 
 ```{r}
@@ -229,7 +233,7 @@ Next we get the top spatially variable features ready for plotting.
 
 ```{r}
 top.features <- lapply(seuratprep, SpatiallyVariableFeatures, 
-                       selection.method = params$spatial.method)
+                       selection.method = params$spatial.method, assay = "SCT")
 ```
 
 ### Spatial plots
@@ -328,6 +332,29 @@ saveRDS(seuratprep, file = "output/10-spatial-features.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

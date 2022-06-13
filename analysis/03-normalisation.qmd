@@ -124,8 +124,8 @@ features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures,
 @fig-vsthvg Feature plot n highly variable features
 
 ```{r}
-#| fig.width: 10
-#| fig.height: 5
+#| fig.width: 12
+#| fig.height: 8
 #| fig-cap: Feature plot for variable features with VST method.
 #| warning: false
 #| message: false
@@ -211,8 +211,8 @@ Finally after transformation where there is no relationship between mean and var
 @fig-resvar-sct Feature plot as per SCT
 
 ```{r}
-#| fig.width: 10
-#| fig.height: 5
+#| fig.width: 12
+#| fig.height: 8
 #| warning: false
 #| message: false
 #| fig-cap: Variable feature plot as per SCT normalisation.
@@ -231,6 +231,29 @@ saveRDS(seurat, file = "output/03-normalisation.rds")
 
 Print session information:
 
+<input type=button class=hideshow></input>
+
 ```{r}
 sessionInfo()
+```
+
+```{=html}
+<script>
+$( "input.hideshow" ).each( function ( index, button ) {
+  button.value = 'Hide Output';
+  $( button ).click( function () {
+    var target = this.nextSibling ? this : this.parentNode;
+    target = target.nextSibling.nextSibling;
+    if ( target.style.display == 'block' || target.style.display == '' ) {
+      target.style.display = 'none';
+      this.value = 'Show Output';
+    } else {
+      target.style.display = 'block';
+      this.value = 'Hide Output';
+    }
+  } );
+} );
+
+$("input.hideshow").click()
+</script>
 ```

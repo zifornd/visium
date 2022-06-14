@@ -2,7 +2,7 @@
 title: "Quality control"
 params:
     protocol:
-      - "FF" # Fresh frozen as FF
+      - "FFPE" # Fresh frozen as FF
 ---
 
 ## Setup
@@ -343,7 +343,7 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
 @fig-qcmapping Plot a barplot of all mapping based QC:
 
 ```{r}
-#| fig.width: 15
+#| fig.width: 25
 #| fig.height: 10
 #| label: fig-qcmapping
 #| fig-cap: Mapping QC values.
@@ -408,8 +408,8 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
 @fig-qcspot Plot a barplot of all spot based QC (as they are not on the same scale we cannot summarise them as violin plots).
 
 ```{r}
-#| fig.width: 12
-#| fig.height: 8
+#| fig.width: 20
+#| fig.height: 6
 #| label: fig-qcspot
 #| fig-cap: Spot QC values.
 

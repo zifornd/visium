@@ -1,7 +1,7 @@
 ---
 title: "Reduced Dimensions"
 params: 
-  elbow_range: ["1:20", "1:20", "1:20", "1:20"]
+  elbow_range: "1:20"
   n.neighbors:
     - 30
   min.dist: 
@@ -9,7 +9,7 @@ params:
   perplexity: 
     - "N^1/2"
   plot_width: 
-    - 10
+    - 12
   plot_height: 
     - 8
 ---

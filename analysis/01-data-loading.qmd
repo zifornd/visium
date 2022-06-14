@@ -6,7 +6,7 @@ params:
     marker:
       - "Foxg1"
     sample.sheet:
-      - "V1_Mouse_Brain.csv" # "Visium_FFPE_Mouse_Brain_Samples.csv"
+      - "Visium_FFPE_Mouse_Brain_Samples.csv" # "Visium_FFPE_Mouse_Brain_Samples.csv"
 ---
 
 ## Setup

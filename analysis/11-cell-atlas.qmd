@@ -620,6 +620,31 @@ Save experiment object:
 saveRDS(seurat, file = "output/11-cell-atlas.rds")
 ```
 
+### Output Description 
+
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "seurat",
+Value = "[seurat](../../output/11-cell-atlas.rds)",
+Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with cell atlas annotations added."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
 Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  

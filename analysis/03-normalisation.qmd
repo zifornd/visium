@@ -229,6 +229,32 @@ Save experiment object:
 saveRDS(seurat, file = "output/03-normalisation.rds")
 ```
 
+### Output Description 
+
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "seurat",
+Value = "[seurat](../../output/03-normalisation.rds)",
+Description = "Seurat object saved as rds object filtered and normalised."
+)
+
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
 Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  

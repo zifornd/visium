@@ -330,6 +330,31 @@ Save experiment object:
 saveRDS(seuratprep, file = "output/10-spatial-features.rds")
 ```
 
+### Output Description 
+
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "seuratprep",
+Value = "[seuratprep](../../output/10-spatial-features.rds)",
+Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with PrepSCTFindMarkers run if multiple SCT models present (merged or integrated seurat object), and ScaleData assay added - with Spatially variable features identified with FindSpatiallyVariableFeatures."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
 Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  

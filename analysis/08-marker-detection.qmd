@@ -361,6 +361,36 @@ saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
+### Output Description 
+
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "seuratprep",
+Value = "[seuratprep](../../output/08-marker-detection.rds)",
+Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with PrepSCTFindMarkers run if multiple SCT models present (merged or integrated seurat object), and ScaleData assay added."
+),
+list(
+Parameter = "res",
+Value = "[res](../../output/08-marker-detection-res.rds)",
+Description = "Results table of markers following Seurat::FindAllMarkers."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
 Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  

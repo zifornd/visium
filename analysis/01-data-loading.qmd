@@ -216,8 +216,38 @@ Save out metrics output
 write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 ```
 
-Print session information:
+### Output Description 
 
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "seurat",
+Value = "[seurat](../../output/01-data-loading.rds)",
+Description = "Seurat object saved as rds object."
+),
+list(
+Parameter = "metrics",
+Value = "[metrics](../../output/metrics.csv)",
+Description = "10x QC metrics file saved for all samples as csv."
+)
+
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
+Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
 

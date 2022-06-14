@@ -1055,6 +1055,31 @@ if (!is.null(custom_genesets_t2g)) {
 saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 ```
 
+### Output Description 
+
+@tbl-outputs
+
+```{r}
+#| code-fold: true
+#| label: tbl-outputs
+#| tbl-cap: Description of outputs created.
+
+par <- list(
+
+list(
+Parameter = "res_anno",
+Value = "[res_anno](../../output/09-fea-annotation.rds)",
+Description = "FEA Results table of combined over-representation and GSEA results for a supplied results table."
+)
+)
+
+par <- jsonlite::toJSON(par, pretty = TRUE)
+
+knitr::kable(jsonlite::fromJSON(par))
+```
+
+### Session information 
+
 Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  

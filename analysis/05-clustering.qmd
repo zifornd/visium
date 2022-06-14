@@ -550,29 +550,13 @@ saveRDS(seurat, file = "output/05-clustering.rds")
 
 Print session information:
 
-<input type=button class=hideshow></input>
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
+
+<div id="BlockName" class="collapse show">  
 
 ```{r}
+#| code-fold: false
 sessionInfo()
 ```
 
-```{=html}
-<script>
-$( "input.hideshow" ).each( function ( index, button ) {
-  button.value = 'Hide Output';
-  $( button ).click( function () {
-    var target = this.nextSibling ? this : this.parentNode;
-    target = target.nextSibling.nextSibling;
-    if ( target.style.display == 'block' || target.style.display == '' ) {
-      target.style.display = 'none';
-      this.value = 'Show Output';
-    } else {
-      target.style.display = 'block';
-      this.value = 'Hide Output';
-    }
-  } );
-} );
-
-$("input.hideshow").click()
-</script>
-```
+</div>

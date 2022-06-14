@@ -219,29 +219,16 @@ write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 Print session information:
 
 
-<input type=button class=hideshow></input>
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
+
+<div id="BlockName" class="collapse show">  
 
 ```{r}
 #| code-fold: false
-
 sessionInfo()
 ```
 
-<script>
-$( "input.hideshow" ).each( function ( index, button ) {
-  button.value = 'Hide Output';
-  $( button ).click( function () {
-    var target = this.nextSibling ? this : this.parentNode;
-    target = target.nextSibling.nextSibling;
-    if ( target.style.display == 'block' || target.style.display == '' ) {
-      target.style.display = 'none';
-      this.value = 'Show Output';
-    } else {
-      target.style.display = 'block';
-      this.value = 'Hide Output';
-    }
-  } );
-} );
+</div>
 
-$("input.hideshow").click()
-</script>
+
+

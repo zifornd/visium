@@ -4,7 +4,7 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Mus musculus"
+    - "Homo sapiens" # Mus musculus or Homo sapiens
   feature:
     - "gene"
   split.res:
@@ -18,9 +18,9 @@ params:
   padj.col.name:
     - "p_val_adj"
   pval.adj.thres.filter:
-    - 0.1
+    - 0.05
   lfc.thres.filter:
-    - 1
+    - 0.5
   pval.adj.thres.overrep:
     - 0.05
   pval.adj.thres.gsea:
@@ -516,6 +516,7 @@ For C8:
 ```{r}
 obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, 
                          term2gene = cells_genesets_t2g,
+                         species = params$species,
                          analysis_type = "gsea",
                          pval = params$pval.adj.thres.gsea, 
                          padj = params$pval.adj.thres.gsea, 
@@ -526,7 +527,8 @@ For Hallmark:
 
 ```{r}
 obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, 
-                             term2gene = hallmarks_genesets_t2g, 
+                             term2gene = hallmarks_genesets_t2g,
+                             species = params$species,
                              analysis_type = "gsea", 
                              pval = params$pval.adj.thres.gsea, 
                              padj = params$pval.adj.thres.gsea, 
@@ -539,7 +541,8 @@ For Custom:
 if (!is.null(custom_genesets_t2g)) {
   
   obj_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, 
-                            term2gene = custom_genesets_t2g, 
+                            term2gene = custom_genesets_t2g,
+                            species = params$species, 
                             analysis_type = "gsea", 
                             pval = params$pval.adj.thres.gsea, 
                             padj = params$pval.adj.thres.gsea, 
@@ -1055,7 +1058,7 @@ if (!is.null(custom_genesets_t2g)) {
 saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 ```
 
-### Output Description 
+### Output Description
 
 @tbl-outputs
 
@@ -1078,17 +1081,19 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+### Session information
 
 Print session information:
 
-<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName">
 
-<div id="BlockName" class="collapse show">  
+Show/Hide
 
+</button>
+
+::: {#BlockName .collapse .show}
 ```{r}
 #| code-fold: false
 sessionInfo()
 ```
-
-</div>
+:::

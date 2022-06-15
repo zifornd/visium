@@ -516,7 +516,7 @@ For C8:
 ```{r}
 obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, 
                          term2gene = cells_genesets_t2g,
-                         species = params$species,
+                         species = org_species,
                          analysis_type = "gsea",
                          pval = params$pval.adj.thres.gsea, 
                          padj = params$pval.adj.thres.gsea, 
@@ -528,7 +528,7 @@ For Hallmark:
 ```{r}
 obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, 
                              term2gene = hallmarks_genesets_t2g,
-                             species = params$species,
+                             species = org_species,
                              analysis_type = "gsea", 
                              pval = params$pval.adj.thres.gsea, 
                              padj = params$pval.adj.thres.gsea, 
@@ -542,7 +542,7 @@ if (!is.null(custom_genesets_t2g)) {
   
   obj_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, 
                             term2gene = custom_genesets_t2g,
-                            species = params$species, 
+                            species = org_species, 
                             analysis_type = "gsea", 
                             pval = params$pval.adj.thres.gsea, 
                             padj = params$pval.adj.thres.gsea, 
@@ -1085,15 +1085,13 @@ knitr::kable(jsonlite::fromJSON(par))
 
 Print session information:
 
-<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName">
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
 
-Show/Hide
+<div id="BlockName" class="collapse">  
 
-</button>
-
-::: {#BlockName .collapse .show}
 ```{r}
 #| code-fold: false
 sessionInfo()
 ```
-:::
+
+</div>

@@ -6,7 +6,7 @@ params:
     marker:
       - "EGFR"
     sample.sheet:
-      - "Visium_FFPE_Human_Cervical_Cancer_Samples.csv" # "Visium_FFPE_Mouse_Brain_Samples.csv"
+      - "V1_Breast_Cancer.csv" # "Visium_FFPE_Mouse_Brain_Samples.csv"
 ---
 
 ## Setup
@@ -251,7 +251,7 @@ Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
 
-<div id="BlockName" class="collapse show">  
+<div id="BlockName" class="collapse">  
 
 ```{r}
 #| code-fold: false

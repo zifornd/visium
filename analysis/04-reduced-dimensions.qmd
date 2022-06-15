@@ -1,7 +1,7 @@
 ---
 title: "Reduced Dimensions"
 params: 
-  elbow_range: "1:20"
+  elbow_range: ["1:20", "1:20"]
   n.neighbors:
     - 30
   min.dist: 
@@ -649,7 +649,7 @@ Print session information:
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockName"> Show/Hide </button>  
 
-<div id="BlockName" class="collapse show">  
+<div id="BlockName" class="collapse">  
 
 ```{r}
 #| code-fold: false

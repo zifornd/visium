@@ -1,6 +1,16 @@
 
-# Plot heatmap
-
+#' pheatmap for findMarkers Seurat function
+#'
+#' @param genes_int Marker genes of interest.
+#' @param seuratprep Seurat object prepared for visualisation.
+#' @param seurat_sub seurat object to order heatmap by (is default the same seurat object as seuratprep)
+#' @param order meta data column name used to order seurat object
+#' @param gaps_row Row gaps
+#' @param max.exprs Maximum expression of heatmap
+#' @param min.exprs Minimum expression of heatmap
+#' @param assay Assay for plotting
+#' @param slot Slot for data
+#' @return pheatmap for plotting.
 plotpHeatmap <- function(genes_int, seuratprep, seurat_sub, order = "Cluster",
                          gaps_row = NULL, max.exprs = 3.5, min.exprs = -3.5,
                          assay = "SCT", slot = "data") {

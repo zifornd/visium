@@ -1,6 +1,9 @@
 
-# SNN Script
-
+#' Wrapper for Seurat FindNeighbors function
+#' embeds cells in a graph structure
+#' @param seurat Seurat object.
+#' @param k.param k.param for k nearest neighbours 
+#' @return Seurat object with graph
 snn <- function(seurat, k.param = 30) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
@@ -13,8 +16,11 @@ snn <- function(seurat, k.param = 30) {
 
 }
 
-# cluster Script
-
+#' Wrapper for Seurat FindClusters function
+#' Partition the graph into highly connected communities
+#' @param seurat Seurat object.
+#' @param resolution res param that sets the 'granularity' of the downstream clustering
+#' @return Seurat object with clusters
 cluster <- function(seurat, resolution = 0.8) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
@@ -27,7 +33,14 @@ cluster <- function(seurat, resolution = 0.8) {
 
 }
 
-
+#' Full cluster for seurat object - FindNeighbors and FindClusters
+#' Embeds cells in a graph structure
+#' Partition the graph into highly connected communities
+#' @param seurat Seurat object.
+#' @param k.param k.param for k nearest neighbours.
+#' @param resolution res param that sets the 'granularity' of the downstream clustering.
+#' @param clusters Name of clusters saved into meta data.
+#' @return Seurat object with clusters
 snnCluster <- function(seurat, k.param = NULL, resolution = NULL,
                        clusters = "seurat_clusters") {
 
@@ -60,6 +73,12 @@ snnCluster <- function(seurat, k.param = NULL, resolution = NULL,
 
 }
 
+#' Plot clusters overlayed onto tissue image
+#' @param seurat Seurat object.
+#' @param group Name of group/cluster to plot
+#' @param label Whether to plot cluster labels.
+#' @param label.size Size of labels for clusters.
+#' @return Seurat::SpatialDimPlot
 plotSpatialCluster <- function(seurat, group, label = TRUE, label.size = 3) {
 
   Seurat::Idents(seurat) <- group
@@ -69,6 +88,11 @@ plotSpatialCluster <- function(seurat, group, label = TRUE, label.size = 3) {
   return(sdimplot)
 }
 
+#' Wrapper for clustree 
+#' Creates a cluster dendrogram acros resolution params
+#' @param seurat Seurat object.
+#' @param prefix name of cluster prefix - default = res.
+#' @return Clustree plot
 clustreeRun <- function(seurat, prefix = "res.") {
 
   ctree <- clustree::clustree(seurat, prefix = prefix)
@@ -76,6 +100,13 @@ clustreeRun <- function(seurat, prefix = "res.") {
   return(ctree)
 }
 
+#' Run Silhouette scores for clusters using bluster
+#' @param seurat Seurat object.
+#' @param slot name of cluster prefix - default = res.
+#' @param clustername name of cluster to assess.
+#' @param clusters user supplied clusters instead of retrieving from seurat obj
+#' @param sample sample name - if not supplied - taken from seurat object
+#' @return Silhouette scores
 silhouette <- function(seurat, slot = "data", clustername = "res.0.4",
                        clusters = NULL, sample = NULL) {
 
@@ -107,7 +138,13 @@ silhouette <- function(seurat, slot = "data", clustername = "res.0.4",
   return(sil)
 }
 
-plotSil <- function(sil, clusters = NULL, type = "boxplot", title = "res 0.2",
+#' Plot Silhouette scores
+#' @param sil Silhouette scores from bluster
+#' @param type type of plot.
+#' @param title title of plot.
+#' @param color Color paletter for heatmap
+#' @return Ggplot object
+plotSil <- function(sil, type = "boxplot", title = "res 0.2",
                     color = NULL) {
 
   if (type == "boxplot") {
@@ -147,9 +184,15 @@ plotSil <- function(sil, clusters = NULL, type = "boxplot", title = "res 0.2",
 
 }
 
-
+#' Run Purity scores for clusters using bluster
+#' @param seurat Seurat object.
+#' @param slot name of cluster prefix - default = res.
+#' @param clustername name of cluster to assess.
+#' @param clusters user supplied clusters instead of retrieving from seurat obj
+#' @param sample sample name - if not supplied - taken from seurat object
+#' @return Purity scores
 purity <- function(seurat, slot = "data", clustername = "res.0.4",
-                   clusters = NULL) {
+                   clusters = NULL, sample = NULL) {
 
   # for information on slots https://www.biostars.org/p/9484293/
 
@@ -167,10 +210,27 @@ purity <- function(seurat, slot = "data", clustername = "res.0.4",
 
   pur <- bluster::neighborPurity(mat, clusters[,1])
 
+  if (is.null(sample)) {
+
+    pur$Sample <- rep(unique(seurat$Sample), nrow(pur))
+
+  } else {
+
+    pur$Sample <- rep(sample, nrow(pur))
+
+  }
+
   return(pur)
 }
 
-plotPurity <- function(pur, clusters) {
+#' Plot Purity scores
+#' @param pur Purity scores from bluster
+#' @param type type of plot.
+#' @param title title of plot.
+#' @param color Color paletter for heatmap
+#' @return Ggplot object
+plotPurity <- function(pur, type = "boxplot", title = "res 0.2",
+                       color = NULL) {
 
   if (type == "boxplot") {
 
@@ -206,30 +266,10 @@ plotPurity <- function(pur, clusters) {
   }
 }
 
-## does not work with seurat graph output - g needs to be in igraph format
-graphMod <- function(seurat, clusters = NULL, clustername = "res.0.4", g = NULL,
-                     graph = "SCT_nn") {
-
-  if (is.null(g)) {
-
-    g <- seurat@graphs[[graph]]
-
-  }
-
-  if (is.null(clusters)) {
-
-    clusters <- seurat[[clustername]]
-
-  }
-
-  ratio <- bluster::pairwiseModularity(g, clusters, as.ratio=TRUE)
-
-  p <- pheatmap(log10(ratio + 1), cluster_cols = FALSE, cluster_rows = FALSE,
-                col = rev(heat.colors(100)))
-
-  return(p)
-}
-
+#' Add Chosen Cluster label to Seurat meta data as "Cluster"
+#' @param seurat Seurat object.
+#' @param chosenCluster Chosen cluster.
+#' @return Seurat object.
 addLabel <- function(seurat, chosenCluster = "res.0.2") {
 
   seurat[["Cluster"]] <- seurat[[chosenCluster]]

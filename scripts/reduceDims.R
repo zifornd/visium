@@ -1,6 +1,9 @@
 
-# PCA Script
-
+#' Wrapper for Seurat RunPCA function
+#'
+#' @param seurat Seurat object.
+#' @param assay Seurat assay to run PCA on
+#' @return Seurat object with PCA
 pca <- function(seurat, assay = "SCT") {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
@@ -11,8 +14,14 @@ pca <- function(seurat, assay = "SCT") {
 
 }
 
-# UMAP Script
-
+#' Wrapper for Seurat RunUMAP function
+#'
+#' @param seurat Seurat object.
+#' @param reduction name of dimensionality reduction to run UMAP on.
+#' @param dims Dimensions to run UMAP on - if NULL will take from Seurat object
+#' @param n.neighbors important param for UMAP plotting
+#' @param min.dist important param for UMAP plotting
+#' @return Seurat object with UMAP
 umap <- function(seurat, reduction = "pca", dims = NULL,
                  n.neighbors = NULL, min.dist = NULL) {
 
@@ -55,8 +64,14 @@ umap <- function(seurat, reduction = "pca", dims = NULL,
 
 }
 
-# TSNE Script
-
+#' Wrapper for Seurat RunTSNE function
+#'
+#' @param seurat Seurat object.
+#' @param reduction name of dimensionality reduction to run TSNE on.
+#' @param dims Dimensions to run TSNE on - if NULL will take from Seurat object
+#' @param n.neighbors important param for TSNE plotting
+#' @param max_iter maximum number of iterations for TSNE to converge.
+#' @return Seurat object with TSNE
 tsne <- function(seurat, reduction = "pca", dims = NULL,
                  perplexity = NULL, max_iter = 10000) {
 
@@ -106,10 +121,20 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
 }
 
 
-# dimension plot for seurat
-
-dimplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE, 
-                    group.by = "orig.ident", cols = NULL, 
+#' Dimension plot used for any dimensionality reduction of seurat object (e.g. PCA, UMAP, TSNE)
+#'
+#' @param seurat Seurat object.
+#' @param reduction name of dimensionality reduction to plot (e.g. pca, tsne, umap)
+#' @param dims Dimensions to plot e.g. c(1,2)
+#' @param label Whether to label plots
+#' @param group.by How to colour plots - should be a header in meta data
+#' @param cols custom colours if groups are supplied
+#' @param groups name of groups within group.by meta data column
+#' @param split.by if the plot should be split by a particular meta data variable
+#' @param title title of plot - default to sample name
+#' @return Seurat::DimPlot
+dimplot <- function(seurat, reduction = "umap", dims = c(1, 2), label = TRUE,
+                    group.by = "orig.ident", cols = NULL,
                     groups = NULL, split.by = NULL, title = NULL) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
@@ -131,16 +156,24 @@ dimplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   seuratdim <- Seurat::DimPlot(seurat, reduction = reduction,
                                dims = dims, label = label,
                                group.by =  group.by, cols = cols,
-                               split.by = split.by) + 
+                               split.by = split.by) +
                labs(title = title)
 
   return(seuratdim)
 }
 
-# feature plot
-
-featureplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
-                        features = "nCount_Spatial", title = NULL) {
+#' Feature plot used for any dimensionality reduction of seurat object with Feature overlayed
+#'
+#' @param seurat Seurat object.
+#' @param reduction name of dimensionality reduction to plot (e.g. pca, tsne, umap)
+#' @param dims Dimensions to plot e.g. c(1,2)
+#' @param label Whether to label plots
+#' @param features names of feature to overlay onto dimensionality reduction plot - from meta data
+#' @param title title of plot - default to sample name
+#' @return Seurat::FeaturePlot
+featureplot <- function(seurat, reduction = "umap", dims = c(1, 2),
+                        label = TRUE, features = "nCount_Spatial",
+                        title = NULL) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
 
@@ -159,8 +192,18 @@ featureplot <- function(seurat, reduction = "umap", dims = c(1,2), label = TRUE,
   return(seuratfeature)
 }
 
-# feature plot in Vln format - can access any metadata col or Gene of interest
-
+#' Violin Feature plot to look across groups of interest e.g. batches or samples
+#' For example to see if % Mitochondria or Cell cycle activation much higher in a subset of samples
+#'
+#' @param seurat Seurat object.
+#' @param features names of feature to to plot - from meta data
+#' @param slot Slot used for plotting
+#' @param log Should the value be in log scale?
+#' @param group.by How to colour plots - should be a header in meta data
+#' @param flip Should the plot be flipped?
+#' @param xlabs label for x axis
+#' @param title title of plot - default to sample name
+#' @return Seurat::VlnPlot
 featurevln <- function(seurat, features = "nCount_Spatial",
                        slot = NULL, log = T,
                        group.by = NULL, flip = FALSE,
@@ -180,13 +223,13 @@ featurevln <- function(seurat, features = "nCount_Spatial",
 
   if (is.null(slot)) {
 
-    seuratvln <- VlnPlot(seurat, features = features, group.by = group.by) +
+    seuratvln <- Seurat::VlnPlot(seurat, features = features, group.by = group.by) +
       labs(title = title)
 
   } else {
 
     # for raw counts slot = "counts" else normalised values will be used above
-    seuratvln <- VlnPlot(seurat, features = features, slot = slot, log = log) +
+    seuratvln <- Seurat::VlnPlot(seurat, features = features, slot = slot, log = log) +
       labs(title = title)
   }
 
@@ -205,8 +248,15 @@ featurevln <- function(seurat, features = "nCount_Spatial",
 
 }
 
-# Elbow plot
-
+#' Elbow plot of explained variance per principal component
+#'
+#' @param seurat Seurat object.
+#' @param ndims Number of dimensions to plot
+#' @param reduction name of dimension reduction used for plotting (e.g. pca)
+#' @param vline1 first vertical line to plot
+#' @param vline2 second vertical line to plot
+#' @param title Title of plot
+#' @return Seurat::ElbowPlot
 elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
                   vline2 = 10, title = NULL) {
 
@@ -216,7 +266,7 @@ elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
 
   }
 
-  elbowplot <- ElbowPlot(seurat, ndims = ndims, reduction = reduction) +
+  elbowplot <- Seurat::ElbowPlot(seurat, ndims = ndims, reduction = reduction) +
                geom_vline(xintercept = vline1, linetype = "dashed",
                           color = "red", size = 0.5) +
                geom_vline(xintercept = vline2, linetype = "dashed",
@@ -228,8 +278,11 @@ elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
   return(elbowplot)
 }
 
-# Add elbow to seurat
-
+#' Add chosen elbow range to a seurat object
+#'
+#' @param seurat Seurat object.
+#' @param elbow_vector character vector of elbow ranger (in string - c("1:20")).
+#' @return Seurat object with elbow range added to meta data
 addElbow <- function(seurat, elbow_vector) {
 
   dims <- elbow_vector[[unique(seurat$Sample)]]

@@ -1,6 +1,12 @@
 
-# Normalise Script
-
+#' Wrapper script for SCTransform - to normalise seurat object.
+#'
+#' @param seurat Seurat object.
+#' @param variable.features.n Number of highly variable gene features to use for normalisation.
+#' @param vars.to.regress Variable to regress out and include in SCT normalisation - must be in seurat meta.data.
+#' @param verbose
+#' @param min_cells Only use genes that have been detected in at least this many cells; default is 5.
+#' @return Seurat object normalised
 normalise <- function(seurat, variable.features.n = 3000,
                       vars.to.regress = NULL, verbose = FALSE,
                       min_cells = 5) {
@@ -18,6 +24,12 @@ normalise <- function(seurat, variable.features.n = 3000,
 
 }
 
+#' Wrapper script for FindVariableFeatures
+#'
+#' @param seurat Seurat object.
+#' @param nfeatures Number of variable features to select for.
+#' @param selection.method Method to find variable features.
+#' @return Seurat object with variable features applied
 findFeatures <- function(seurat, nfeatures = 2000, selection.method = "vst") {
 
   seurat_varfeatures <- FindVariableFeatures(seurat,
@@ -28,8 +40,12 @@ findFeatures <- function(seurat, nfeatures = 2000, selection.method = "vst") {
 
 }
 
-# Plot variable features, selection.method can be sct or vst
-
+#' Plot the highly variable features and label the top points
+#'
+#' @param seurat Seurat object.
+#' @param top Number of variable features to label.
+#' @param selection.method Method to find variable features.
+#' @return Seurat::VariableFeaturePlot
 plotVariableGenes <- function(seurat, top = 10, selection.method = "sct") {
 
   # Identify the 10 most variable genes
@@ -44,32 +60,14 @@ plotVariableGenes <- function(seurat, top = 10, selection.method = "sct") {
   return(plot2)
 }
 
-# Merge per sample (pairwise merge)
-# Will require downstream investigation for potential regressing out of batch
 
-mergeSamples <- function(seurat) {
-
-  for (i in 1:(length(seurat) - 1)) {
-
-    print(paste0("Merging: ", names(seurat[[i]])[3],
-                 " ", names(seurat[[i + 1]])[3]))
-
-    if (i == 1) {
-
-      seurat_merged <- merge(seurat[[i]], seurat[[i + 1]])
-
-    }
-    if (i != 1) {
-
-      seurat_merged <- merge(seurat_merged, seurat[[i + 1]])
-
-    }
-  }
-  return(seurat_merged)
-}
-
-# Regress out batch effect
-
+#' Wrapper for ScaleData function to regress out variable of interest
+#'
+#' @param seurat Seurat object.
+#' @param vars.to.regress Variable to regress - must be in seurat meta.data.
+#' @param do.scale Scale data.
+#' @param do.center Center data.
+#' @return Seurat object with populate scale.data slot
 regressOut <- function(seurat, vars.to.regress = "batch",
                        do.scale = FALSE, do.center = FALSE) {
 
@@ -80,7 +78,11 @@ regressOut <- function(seurat, vars.to.regress = "batch",
 
 }
 
-
+#' Normalise with SCtransform using the vst package on assay data
+#'
+#' @param seurat Seurat object.
+#' @param slot Slot to retrieve data from
+#' @return Output from sctransform::vst
 normaliseSctransform <- function(seurat, slot = "counts") {
 
   set.seed(0305)
@@ -95,6 +97,14 @@ normaliseSctransform <- function(seurat, slot = "counts") {
 
 }
 
+#' Plot an example of the SCT model fit for a given set of features.
+#'
+#' @param seurat Seurat object.
+#' @param features Example features
+#' @param vst_outlist Output from sctransform::vst
+#' @param plot_residual Whether to plot residuals
+#' @param slot Slot to retrieve data from
+#' @return Output from sctransform::plot_model
 plotModelSctransform <- function(seurat, features, vst_outlist,
                                  plot_residual = TRUE,
                                  slot = "counts") {

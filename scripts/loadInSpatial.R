@@ -1,7 +1,13 @@
-### RScript for loading in Spatial Transcriptomic data
 
-## Load in Spatial data via Seurat helper functions
-
+#' Load in Spatial data via Seurat helper functions
+#'
+#' @param samplename individual sample name to load in.
+#' @param prefix folder location for samples.
+#' @param metadata Experiment metadata from samplesheet which includes image and sample information
+#' @param saveout Whether the files should be saved out as rds objects instead of returned
+#' @param filename Feature bc matrix in h5 format intended to load in.
+#' @param path path of spatial data folder which holds files such tissue_hires_image.jpg
+#' @return Seurat object
 loadInSpatial <- function(samplename, prefix, metadata, saveout = T,
                           filename = "filtered_feature_bc_matrix.h5",
                           path = "/outs/spatial/") {
@@ -43,18 +49,31 @@ loadInSpatial <- function(samplename, prefix, metadata, saveout = T,
 
 }
 
-loadInSpatialList <- function(idx, samples, prefix, 
+#' Wrapper for loadInSpatial to Load in Spatial data list
+#'
+#' @param idx sample index.
+#' @param samples character vector of sample names.
+#' @param prefix folder location for samples.
+#' @param metadata Experiment metadata from samplesheet which includes image and sample information
+#' @param saveout Whether the files should be saved out as rds objects instead of returned
+#' @param filenames character vector of feature bc matrix files in h5 format intended to load in.
+#' @return Seurat object
+loadInSpatialList <- function(idx, samples, prefix,
                               metadata, saveout, filenames) {
-  
-  seurat <- loadInSpatial(samples[[idx]], prefix, 
+
+  seurat <- loadInSpatial(samples[[idx]], prefix,
                           metadata, saveout, filenames[[idx]])
-  
+
   return(seurat)
-  
+
 }
 
-## Add on Meta data to Seurat object
-
+#' Add Meta data to Seurat object
+#'
+#' @param seurat Seurat object.
+#' @param metadata Experiment metadata from samplesheet which includes image and sample information.
+#' @param samplename Name of sample.
+#' @return Seurat object
 addMeta <- function(seurat, metadata, samplename) {
 
   # Add meta data to seurat objects
@@ -77,8 +96,12 @@ addMeta <- function(seurat, metadata, samplename) {
 }
 
 
-## Collect metrics which are output from 10x spaceranger run
-
+#' Collect metrics which are output from 10x spaceranger run
+#'
+#' @param samplename Seurat object.
+#' @param prefix folder location for samples.
+#' @param filename Name of filename suffix.
+#' @return metrics dataframe of QC metrics.
 collectMetrics <- function(samplename, prefix,
                            filename = "_metrics_summary.csv") {
 
@@ -102,8 +125,10 @@ collectMetrics <- function(samplename, prefix,
 
 }
 
-# Collect QC metrics from seurat metadata into single dataframe for plotting
-
+#' Collect QC metrics from seurat metadata into single dataframe for plotting
+#'
+#' @param seuratList List of Seurat objects.
+#' @return meta dataframe of combined Seurat meta data.
 collectQC <- function(seuratList) {
 
   meta <- lapply(seuratList, function(seurat) {
@@ -119,8 +144,11 @@ collectQC <- function(seuratList) {
 }
 
 
-# merge samples based on seurat supplied extension of merge
-
+#' Merge samples based on seurat supplied extension of merge
+#'
+#' @param seuratList List of Seurat objects.
+#' @param project Name of project used for new merged seurat object.
+#' @return seurat Seurat object merged.
 seuratMerge <- function(seuratList, project = "SeuratProject") {
 
   if (length(seuratList) > 1) {
@@ -141,8 +169,12 @@ seuratMerge <- function(seuratList, project = "SeuratProject") {
   return(seurat)
 }
 
-# run integration of seurat objects rather than straight merge
-
+#' Integrate seurat objects which have been normalised with SCT
+#'
+#' @param seuratList List of Seurat objects.
+#' @param nfeatures Name of project used for new merged seurat object.
+#' @param normalization.method Method of normalisation for integration.
+#' @return seurat Seurat object integrated.
 seuratIntegrate <- function(seuratList, nfeatures = 2000,
                             normalization.method = "SCT") {
 
@@ -171,8 +203,10 @@ seuratIntegrate <- function(seuratList, nfeatures = 2000,
 
 }
 
-# Rename cells so they have the same names as in merge
-
+#' Rename cells post integration to ensure naming correct
+#'
+#' @param seurat Seurat object.
+#' @return seurat Seurat object.
 parseIntegrate <- function(seurat) {
 
   char_remove <- unlist(gregexpr("_", colnames(seurat)))
@@ -184,4 +218,29 @@ parseIntegrate <- function(seurat) {
   seurat <- Seurat::RenameCells(seurat, new.names = clnames)
 
   return(seurat)
+}
+
+#' Pairwise merge command - DEPRECATED
+#'
+#' @param seurat Seurat object.
+#' @return Seurat object merged
+mergeSamples <- function(seurat) {
+
+  for (i in 1:(length(seurat) - 1)) {
+
+    print(paste0("Merging: ", names(seurat[[i]])[3],
+                 " ", names(seurat[[i + 1]])[3]))
+
+    if (i == 1) {
+
+      seurat_merged <- merge(seurat[[i]], seurat[[i + 1]])
+
+    }
+    if (i != 1) {
+
+      seurat_merged <- merge(seurat_merged, seurat[[i + 1]])
+
+    }
+  }
+  return(seurat_merged)
 }

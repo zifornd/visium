@@ -1,6 +1,10 @@
-
-# filter by value in seurat meta data table
-
+#' Filter Seurat object by threshold, direction, and feature
+#'
+#' @param seurat Seurat object.
+#' @param threshold Threshold to filter seurat object by.
+#' @param by Feature to filter by e.g. nCount_Spatial
+#' @param direction Direction of filter - up or down
+#' @return Seurat object filtered.
 filterBy <- function(seurat, threshold, by = "nCount_Spatial",
                      direction = "down") {
 
@@ -25,8 +29,15 @@ filterBy <- function(seurat, threshold, by = "nCount_Spatial",
 
 }
 
+#' Plot filtered Seurat object spots by threshold, direction, and feature
+#'
+#' @param seurat Seurat object.
+#' @param threshold Threshold to filter seurat object by.
+#' @param by Feature to filter by e.g. nCount_Spatial
+#' @param direction Direction of filter - up or down
+#' @return Seurat::SpatialDimPlot
 filterByPlot <- function(seurat, threshold, by = "nCount_Spatial",
-                     direction = "down") {
+                         direction = "down") {
 
   # fetch variable of interest from seurat object as data frame
   df <- Seurat::FetchData(seurat, vars = by)
@@ -51,8 +62,14 @@ filterByPlot <- function(seurat, threshold, by = "nCount_Spatial",
   return(plot)
 }
 
-# filter spots spatially
-
+#' Filter Seurat object by x and y coordinates
+#' Intersection of coordinates defines filtered area
+#' @param seurat Seurat object.
+#' @param x1 x axis coord 1
+#' @param x2 x axis coord 2
+#' @param y1 y axis coord 1
+#' @param y2 y axis coord 2
+#' @return Seurat object filtered.
 filterByXY <- function(seurat, x1, x2, y1, y2) {
 
   # presuming only one image

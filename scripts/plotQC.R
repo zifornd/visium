@@ -1,11 +1,23 @@
 
-# Ggplot2 style violin plotting function for QC from 10x output
-# Alternative to built in seurat functions
-# See below for details on clean label function
-
-violingg <- function(seurat, ylab, colour_by= NULL,
-                     point_alpha = 0.6, point_size = NULL, ylim = NULL,
-                     show_median = F, xlab = "Sample",
+#' Ggplot2 style violin plotting function for QC from 10x output
+#' Alternative to built in seurat functions
+#'
+#' @param seurat Seurat object
+#' @param ylab Y axis label intended to plot present within seurat object meta.data
+#' @param colour_by variable to colour violin plot by - present within seurat meta.data
+#' @param ylim Sets Y axis limits
+#' @param show_median Adds median to violin plot
+#' @param xlab X axis label intended to plot present within seurat object meta.data (Default: Sample)
+#' @param clean Maximum width of the clean label function - if set labels will be managed by function supplied to clean_label
+#' @param xdelim Choice of deliminator to wrap_label by for xaxis label - if set to NA will return original label
+#' @param ydelim Choice of deliminator to wrap_label by for yaxis label - if set to NA will return original label
+#' @param delim Choice of deliminator to wrap_label by for xaxis tick labels - if set to NA will return original label
+#' @param angle Angle for x axis tick labels
+#' @param vjust Vertical adjustment for x axis tick labels
+#' @param clean_label function used to tidy up plot labels (trim_label shortens, wrap_label forces line breaks)
+#' @return ggplot object.
+violingg <- function(seurat, ylab, colour_by = NULL,
+                     ylim = NULL, show_median = F, xlab = "Sample",
                      clean = NULL, xdelim = NA, ydelim = NA, delim = NULL,
                      angle = 45, vjust = 1, clean_label = trim_label) {
 
@@ -78,8 +90,21 @@ violingg <- function(seurat, ylab, colour_by= NULL,
 
 }
 
-## Ggplot2 style barplot for 10x QC output
-
+#' Ggplot2 style Barplots for QC from 10x output
+#'
+#' @param seurat Seurat object
+#' @param ylab Y axis label intended to plot present within seurat object meta.data
+#' @param colour_by variable to colour violin plot by - present within seurat meta.data
+#' @param xlab X axis label intended to plot present within seurat object meta.data (Default: Sample)
+#' @param ylim Sets Y axis limits
+#' @param clean Maximum width of the clean label function - if set labels will be managed by function supplied to clean_label
+#' @param xdelim Choice of deliminator to wrap_label by for xaxis label - if set to NA will return original label
+#' @param ydelim Choice of deliminator to wrap_label by for yaxis label - if set to NA will return original label
+#' @param delim Choice of deliminator to wrap_label by for xaxis tick labels - if set to NA will return original label
+#' @param angle Angle for x axis tick labels
+#' @param vjust Vertical adjustment for x axis tick labels
+#' @param clean_label function used to tidy up plot labels (trim_label shortens, wrap_label forces line breaks)
+#' @return ggplot object.
 barplotgg <- function(seurat, ylab, colour_by = NULL,
                       xlab = "Sample", ylim = NULL, clean = NULL,
                       xdelim = NULL, ydelim = NULL, delim = NULL,
@@ -135,10 +160,13 @@ return(plot_out)
 
 }
 
-
-# Try and deal with long labels by trimming them
-# Returns original where delim = NA
-
+#' Try and deal with long labels by trimming them
+#' Returns original where delim = NA
+#'
+#' @param lab string label
+#' @param width Maximum width for a label before being trimmed and "..." appended
+#' @param delim If NA then original label will be returned
+#' @return trimmed label.
 trim_label <- function(lab, width = 20, delim = NULL) {
 
   if (!is.null(delim)) {
@@ -159,9 +187,13 @@ trim_label <- function(lab, width = 20, delim = NULL) {
   return(lab)
 }
 
-# Try and deal with long labels by wrapping them
-# Returns original where delim = NA
-
+#' Try and deal with long labels by wrapping them
+#' Returns original where delim = NA
+#'
+#' @param lab string label
+#' @param width Maximum width for a label before being wrapped
+#' @param delim Deliminator used to split text - If NA then original label will be returned
+#' @return wrapped label.
 wrap_label <- function(lab, width = 20, delim = NULL) {
 
   library(stringr)

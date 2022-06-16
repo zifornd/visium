@@ -1,13 +1,16 @@
 
-# Scale seurat object prior to visualisation
+#' Scale seurat object prior to visualisation
+#' Have the option to regress out variable
+#' @param seuratprep Seurat object.
+#' @param regress name of variable to regress out - if FALSE will not regress out just Scale.
+#' @return Seurat object
+scaleData <- function(seuratprep, regress) {
 
-scaleData <- function(seuratprep, params) {
-
-    if (params$regress != FALSE) {
+    if (regress != FALSE) {
 
         seuratscale <- Seurat::ScaleData(seuratprep@assays$SCT,
                                          features = rownames(seuratprep),
-                                         vars.to.regress = params$regress)
+                                         vars.to.regress = regress)
 
     } else {
 
@@ -22,8 +25,11 @@ scaleData <- function(seuratprep, params) {
 
 }
 
-# Run Seurat FindAllMarkers
-
+#' Run Seurat FindAllMarkers
+#' @param seuratprep Seurat object.
+#' @param params full params from 08-marker-detection.qmd (only.pos, min.pct, logfc.threshold, pval.adj.thres).
+#' @param sample_name User defined sample name will be used where multiple samples are saved within seurat object (merged/integrated)
+#' @return Result table containing markers per cluster.
 findAllMarkers <- function(seuratprep, params,
                            sample_name = "Combined.Seurat") {
 
@@ -50,8 +56,11 @@ findAllMarkers <- function(seuratprep, params,
     return(res)
 }
 
-# Get top genes per cluster from results table
-
+#' Get top genes per cluster from results table
+#' @param clust Which cluster of interest to select from
+#' @param res Results table supplied
+#' @param head_num Number of genes to retrieve
+#' @return Top genes of interest
 topFeatClust <- function(clust, res, head_num = 10) {
 
     features <- head(res$gene[res$cluster == clust], head_num)
@@ -59,8 +68,12 @@ topFeatClust <- function(clust, res, head_num = 10) {
     return(features)
 }
 
-# Get top genes per seurat object from results table
-
+#' Get top genes per seurat object from results table
+#' @param seurat Seurat object
+#' @param resList List of results tables
+#' @param head_num Number of genes to retrieve
+#' @param sample_name User defined sample name will be used where multiple samples are saved within single seurat object (merged/integrated)
+#' @return Top genes of interest
 topFeatClustList <- function(seurat, resList, head_num = 10,
                              sample_name = "Combined.Seurat") {
 
@@ -85,7 +98,14 @@ topFeatClustList <- function(seurat, resList, head_num = 10,
 }
 
 # Wrapper for DoHeatmap and pheatmap functions
-
+#' Wrapper for DoHeatmap and pheatmap functions
+#' @param seuratprep Seurat object prepared for plotting
+#' @param featureList List of features of interest
+#' @param head_num Number of genes to plot per group
+#' @param type Type of plot to complete
+#' @param legend Whether to plot legend
+#' @param sample_name User defined sample name will be used where multiple samples are saved within single seurat object (merged/integrated)
+#' @return Seurat::DoHeatmap or pheatmap plot
 plotHeatmap <- function(seuratprep, featureList, head_num = 10,
                         type = "DoHeatmap", legend = TRUE,
                         sample_name = "Combined.Seurat") {

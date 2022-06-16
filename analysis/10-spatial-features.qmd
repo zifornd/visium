@@ -281,7 +281,7 @@ The seurat object can be a bit tricky and we it can often get confusing what ass
 #| message: false
 #| warning: false
 
-seuratprep <- lapply(seuratprep, scaleData, params = params)
+seuratprep <- lapply(seuratprep, scaleData, regress = params$regress)
 ```
 
 ### DoHeatmap

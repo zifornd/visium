@@ -4,9 +4,9 @@ params:
     prefix:
       - "data/"
     marker:
-      - "EGFR"
+      - "Foxg1"
     sample.sheet:
-      - "V1_Breast_Cancer.csv" # "Visium_FFPE_Mouse_Brain_Samples.csv"
+      - "Visium_FFPE_Mouse_Brain_Samples.csv"
 ---
 
 ## Setup

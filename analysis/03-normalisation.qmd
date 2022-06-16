@@ -6,7 +6,7 @@ params:
   min_cells:
     - 2
   example:
-    - "MUC16"
+    - "Foxg1"
 ---
 
 ## Setup

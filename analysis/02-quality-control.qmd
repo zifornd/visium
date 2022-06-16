@@ -2,7 +2,7 @@
 title: "Quality control"
 params:
     protocol:
-      - "FF" # Fresh frozen as FF, or FFPE
+      - "FFPE" # Fresh frozen as FF, or FFPE
 ---
 
 ## Setup
@@ -343,7 +343,7 @@ bars <- lapply(metricscols, function(x, metrics, clean_label) {
 @fig-qcmapping Plot a barplot of all mapping based QC:
 
 ```{r}
-#| fig.width: 25
+#| fig.width: 22
 #| fig.height: 10
 #| label: fig-qcmapping
 #| fig-cap: Mapping QC values.

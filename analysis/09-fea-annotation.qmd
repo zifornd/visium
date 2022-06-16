@@ -4,7 +4,7 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Homo sapiens" # Mus musculus or Homo sapiens
+    - "Mus musculus" # Mus musculus or Homo sapiens
   feature:
     - "gene"
   split.res:

@@ -1,7 +1,7 @@
 ---
 title: "Reduced Dimensions"
 params: 
-  elbow_range: ["1:20", "1:20"]
+  elbow_range: "1:20"
   n.neighbors:
     - 30
   min.dist: 
@@ -9,9 +9,9 @@ params:
   perplexity: 
     - "N^1/2"
   plot_width: 
-    - 12
-  plot_height: 
     - 8
+  plot_height: 
+    - 4
 ---
 
 # Setup
@@ -110,7 +110,7 @@ Much of the visium quarto workflow include Rscripts which are not part of a exte
 
 # Processing
 
-### Reading in experiment object
+## Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `03-normalisation.qmd` for more details).
 
@@ -136,25 +136,17 @@ seurat <- bplapply(seurat, pca, BPPARAM = BPPARAM)
 
 ### Plot PCAs
 
-Below we plot the first two components of the PCA that we completed on each seurat object coloured by group.
+Next we plot our PCA and overlay a number of additional pieces of information which are often useful - PCA coloured by `Group`, by `nCount_Spatial`, and `nFeature_Spatial`.
+
+Below we plot the first two components of the PCA that we completed on each seurat object coloured by `Group`.
 
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
 pca_plots_dim <- lapply(seurat, dimplot, reduction = "pca", label = FALSE, 
                         group.by = "Group")
-```
-
-@fig-pca-group Wrap plot PCAs dimplots
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr params$plot_height
-#| fig-cap: PCA plots by group.
-#| label: fig-pca-group
-
-wrap_plots(pca_plots_dim, ncol = 2)
 ```
 
 It can also be a very useful exploratory data analysis step to look at the PCA coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches. Other things like a known batch could be plotted as a labelled PCA plot for diagnosis of potential batch effects.
@@ -164,42 +156,69 @@ Below we plot the first two components of the PCA that we completed on each seur
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
-pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca", 
+pca_plots_feature1 <- lapply(seurat, featureplot, reduction = "pca", 
                             label = FALSE, feature = "nCount_Spatial")
 ```
 
-@fig-pca-ncount Wrap plot PCAs featureplot ncount
-
-```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr params$plot_height
-#| fig-cap: PCA plots by nCount.
-#| label: fig-pca-ncount
-
-wrap_plots(pca_plots_feature, ncol = 2)
-```
 
 Below we plot the first two components of the PCA that we completed on each seurat object coloured by `nFeature_Spatial`.
 
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
-pca_plots_feature <- lapply(seurat, featureplot, reduction = "pca", 
+pca_plots_feature2 <- lapply(seurat, featureplot, reduction = "pca", 
                             label = FALSE, feature = "nFeature_Spatial")
 ```
+
+We visualise these PCA plots below:
+
+::: {.panel-tabset}
+
+## PCA Groups
+
+@fig-pca-group Wrap plot PCAs dimplots
+
+```{r}
+#| results: "asis"
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
+#| fig-cap: PCA plots by group.
+#| label: fig-pca-group
+
+wrap_plots(pca_plots_dim, ncol = 2)
+```
+
+## PCA nCount
+
+@fig-pca-ncount Wrap plot PCAs featureplot ncount
+
+```{r}
+#| results: "asis"
+#| fig.width: !expr params$plot_width
+#| fig.height: !expr params$plot_height
+#| fig-cap: PCA plots by nCount.
+#| label: fig-pca-ncount
+wrap_plots(pca_plots_feature1, ncol = 2)
+```
+
+## PCA nFeature
 
 @fig-pca-nfeature Wrap plot PCAs featureplot nfeature
 
 ```{r}
+#| results: "asis"
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nFeature.
 #| label: fig-pca-nfeature
- 
-wrap_plots(pca_plots_feature, ncol = 2)
+wrap_plots(pca_plots_feature2, ncol = 2)
 ```
+:::
+
 
 ## Finding dimensionality of dataset
 
@@ -282,6 +301,10 @@ seurat_4 <- bplapply(seurat, umap, n.neighbors = 20, min.dist = 0.1, BPPARAM = B
 seurat_5 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.001, BPPARAM = BPPARAM)
 ```
 
+::: {.panel-tabset}
+
+## n.n 30 min.dist 0.3
+
 @fig-umap-30-03 Plot UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
@@ -293,6 +316,8 @@ seurat_5 <- bplapply(seurat, umap, n.neighbors = 10, min.dist = 0.001, BPPARAM =
 wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+
+## n.n 5 min.dist 0.25
 
 @fig-umap-05-025 Plot UMAP n.neighbors = 5, min.dist = 0.25
 
@@ -306,6 +331,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "umap",
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
+## n.n 10 min.dist 0.1
+
 @fig-umap-10-01 Plot UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
@@ -317,6 +344,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+
+## n.n 20 min.dist 0.1
 
 @fig-umap-20-01 Plot UMAP n.neighbors = 20, min.dist = 0.1
 
@@ -330,6 +359,8 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "umap",
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
+## n.n 10 min.dist 0.001
+
 @fig-umap-10-0001 Plot UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
@@ -341,6 +372,7 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+:::
 
 Clean up workspace
 
@@ -355,20 +387,16 @@ gc()
 Please take the values for `n.neighbors` and `min.dist` that are representative across UMAP plots and set them as params.
 :::
 
-Below we run UMAP with the paramaters of choice.
+Below we run UMAP with the paramaters of choice n.neighbors: `r params$n.neighbors` and min.dist: `r params$min.dist`.
 
 ```{r}
 #| warning: false
-
-print(paste0("n.neighbors: ", params$n.neighbors))
-
-print(paste0("min.dist: ", params$min.dist))
 
 seurat <- bplapply(seurat, umap, n.neighbors = params$n.neighbors, 
                    min.dist = params$min.dist, BPPARAM = BPPARAM)
 ```
 
-Below we plot the UMAP of choice
+Below we plot the UMAP of choice n.neighbors: `r params$n.neighbors` and min.dist: `r params$min.dist`. Coloured by `Group`.
 
 ```{r}
 #| message: false
@@ -377,6 +405,34 @@ Below we plot the UMAP of choice
 umap_plots <- lapply(seurat, dimplot, reduction = "umap", 
                      label = FALSE, group.by = "Group")
 ```
+
+As in PCA plotting it can also be a very useful exploratory data analysis step to look at the UMAP coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). Other things like a known batch could be plotted as a labelled UMAP plot for diagnosis of potential batch effects as well.
+
+Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
+
+```{r}
+#| message: false
+#| warning: false
+
+umap_plots_feature1 <- lapply(seurat, featureplot, reduction = "umap", 
+                             label = FALSE, feature = "nCount_Spatial")
+```
+
+Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
+
+```{r}
+#| message: false
+#| warning: false
+
+umap_plots_feature2 <- lapply(seurat, featureplot, reduction = "umap", 
+                             label = FALSE, feature = "nFeature_Spatial")
+```
+
+We visualise these PCA plots below:
+
+::: {.panel-tabset}
+
+## UMAP Group
 
 @fig-umap-choice Plot UMAP of choice
 
@@ -389,17 +445,7 @@ umap_plots <- lapply(seurat, dimplot, reduction = "umap",
 wrap_plots(umap_plots, ncol = 2)
 ```
 
-As in PCA plotting it can also be a very useful exploratory data analysis step to look at the UMAP coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). Other things like a known batch could be plotted as a labelled UMAP plot for diagnosis of potential batch effects as well.
-
-Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
-
-```{r}
-#| message: false
-#| warning: false
-
-umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap", 
-                             label = FALSE, feature = "nCount_Spatial")
-```
+## UMAP nCount
 
 @fig-umap-chosen-ncounts Wrap plot UMAP featureplot nCounts
 
@@ -409,18 +455,10 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
 #| fig-cap: UMAP chosen params nCounts
 #| label: fig-umap-chosen-ncounts
 
-wrap_plots(umap_plots_feature, ncol = 2)
+wrap_plots(umap_plots_feature1, ncol = 2)
 ```
 
-Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
-
-```{r}
-#| message: false
-#| warning: false
-
-umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap", 
-                             label = FALSE, feature = "nFeature_Spatial")
-```
+## UMAP nFeature
 
 @fig-umap-chosen-nfeatures Wrap plot UMAP featureplot nFeatures
 
@@ -430,8 +468,9 @@ umap_plots_feature <- lapply(seurat, featureplot, reduction = "umap",
 #| fig-cap: UMAP chosen params nCounts
 #| label: fig-umap-chosen-nfeatures
 
-wrap_plots(umap_plots_feature, ncol = 2)
+wrap_plots(umap_plots_feature2, ncol = 2)
 ```
+:::
 
 ## TSNE
 
@@ -463,6 +502,10 @@ seurat_4 <- bplapply(seurat, tsne, perplexity = 20, BPPARAM = BPPARAM)
 seurat_5 <- bplapply(seurat, tsne, perplexity = 100, BPPARAM = BPPARAM)
 ```
 
+::: {.panel-tabset}
+
+## perplexity = N\^1/2
+
 @fig-tsne-n12 Plot perplexity = N\^1/2
 
 ```{r}
@@ -474,6 +517,8 @@ seurat_5 <- bplapply(seurat, tsne, perplexity = 100, BPPARAM = BPPARAM)
 wrap_plots(lapply(seurat_1, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+
+## perplexity = 5
 
 @fig-tsne-5 Plot perplexity = 5
 
@@ -487,6 +532,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne",
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
+## perplexity = 10
+
 @fig-tsne-10 Plot perplexity = 10
 
 ```{r}
@@ -498,6 +545,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "tsne",
 wrap_plots(lapply(seurat_3, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+
+## perplexity = 20
 
 @fig-tsne-20 Plot perplexity = 20
 
@@ -511,6 +560,8 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne",
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
 
+## perplexity = 100
+
 @fig-tsne-100 Plot perplexity = 100
 
 ```{r}
@@ -522,6 +573,7 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "tsne",
 wrap_plots(lapply(seurat_5, dimplot, reduction = "tsne", 
                   label = FALSE, group.by = "Group"), ncol = 2)
 ```
+:::
 
 Clean up workspace
 
@@ -536,12 +588,10 @@ gc()
 Please take the values for `perplexity` that are representative across TSNE plots and set them as params.
 :::
 
-Below we run TSNE with the paramaters of choice.
+Below we run TSNE with the paramaters of choice perplexity: `r params$perplexity`.
 
 ```{r}
 #| warning: false
-
-print(paste0("perplexity: ", params$perplexity))
 
 seurat <- bplapply(seurat, tsne, perplexity = params$perplexity, BPPARAM = BPPARAM)
 ```
@@ -556,6 +606,32 @@ tsne_plots <- lapply(seurat, dimplot, reduction = "tsne",
                      label = FALSE, group.by = "Group")
 ```
 
+As in UMAP plotting we will also complete an exploratory data analysis step and colour the UMAP by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`).
+
+Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
+
+```{r}
+#| warning: false
+#| message: false
+
+tsne_plots_feature1 <- lapply(seurat, featureplot, reduction = "tsne", 
+                             label = FALSE, feature = "nCount_Spatial")
+```
+
+Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
+
+```{r}
+#| warning: false
+#| message: false
+
+tsne_plots_feature2 <- lapply(seurat, featureplot, reduction = "tsne", 
+                             label = FALSE, feature = "nFeature_Spatial")
+```
+
+::: {.panel-tabset}
+
+## TSNE Group
+
 @fig-tsne-chosen Wrap plot TSNE
 
 ```{r}
@@ -567,17 +643,7 @@ tsne_plots <- lapply(seurat, dimplot, reduction = "tsne",
 wrap_plots(tsne_plots, ncol = 2)
 ```
 
-As in UMAP plotting we will also complete an exploratory data analysis step and colour the UMAP by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`).
-
-Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
-
-```{r}
-#| warning: false
-#| message: false
-
-tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne", 
-                             label = FALSE, feature = "nCount_Spatial")
-```
+## TSNE nCount
 
 @fig-tsne-chosen-ncounts Wrap plot TSNE featureplot ncounts
 
@@ -587,18 +653,10 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
 #| fig-cap: TSNE chosen params nCounts.
 #| label: fig-tsne-chosen-ncounts
 
-wrap_plots(tsne_plots_feature, ncol = 2)
+wrap_plots(tsne_plots_feature1, ncol = 2)
 ```
 
-Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
-
-```{r}
-#| warning: false
-#| message: false
-
-tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne", 
-                             label = FALSE, feature = "nFeature_Spatial")
-```
+## TSNE nFeature
 
 @fig-tsne-chosen-nfeatures Wrap plot TSNE featureplot nfeatures
 
@@ -608,8 +666,9 @@ tsne_plots_feature <- lapply(seurat, featureplot, reduction = "tsne",
 #| fig-cap: TSNE chosen params nFeatures.
 #| label: fig-tsne-chosen-nfeatures
 
-wrap_plots(tsne_plots_feature, ncol = 2)
+wrap_plots(tsne_plots_feature2, ncol = 2)
 ```
+:::
 
 # Output
 

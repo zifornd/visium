@@ -1,8 +1,16 @@
 
-# Annotate seurat obj metadata (per spot) with T/F if meets thres of expression
-# Labels column based on some user defined name
-# Can take multiple genes at once - T when both genes meet threshold
-
+#' Annotate seurat obj metadata (per spot) with T/F if meets thres of expression for a given set of genes.
+#' Labels column based on some user defined name
+#' Can take multiple genes at once - T when all genes meet > threshold
+#'
+#' @param seurat Seurat object.
+#' @param features Name of gene features to check.
+#' @param anno Name of annotation column to apply to seurat meta data and name of annotation given to spot if it meets threshold.
+#' @param assay Name of Seurat assay to retrieve feature expression values.
+#' @param slot Name of data slot to retrieve feature expression values.
+#' @param threshold threshold for annotation.
+#' @param other Name of applied to spot if it does not meet threshold.
+#' @return Seurat object with additional annotation.
 annotate <- function(seurat, features, anno, assay = "Spatial",
                      slot = "data", threshold = 1, other = "Other") {
 
@@ -21,12 +29,19 @@ annotate <- function(seurat, features, anno, assay = "Spatial",
   return(seurat)
 }
 
-
-#  Annotate seurat obj metadata (per spot) with T/F if meets thres of expression
-# And if other gene feature is lower than some threshold
-# Labels column based on some user defined name
-# Can take multiple genes at once - T when both genes meet threshold
-
+#' Annotate seurat obj metadata (per spot) with T/F if meets thres of expression
+#' And if other gene feature is lower than some threshold
+#' Labels column based on some user defined name
+#' Can take multiple genes at once - T when both genes meet threshold
+#'
+#' @param seurat Seurat object.
+#' @param features_high Name of gene features to check > threshold.
+#' @param features_low Name of gene features to check < threshold.
+#' @param anno Name of annotation column to apply to seurat meta data and name of annotation given to spot if it meets threshold.
+#' @param slot Name of data slot to retrieve feature expression values.
+#' @param threshold threshold for annotation.
+#' @param other Name of applied to spot if it does not meet threshold.
+#' @return Seurat object with additional annotation.
 annotate_highlow <- function(seurat, features_high, features_low, anno,
                              slot = "data", threshold = 0.5, other = "Other") {
 
@@ -49,19 +64,11 @@ annotate_highlow <- function(seurat, features_high, features_low, anno,
 
 }
 
-# combing annotation
-
-combineAnno <- function(seurat, anno) {
-
-  anno_interest <- seurat[[anno]]
-
-  seurat[["Annotation"]] <- apply(anno_interest, 1, defineLabel)
-
-  return(seurat)
-}
-
-# Defines the returned label for a set of labels for combining
-
+#' Parses label for combining
+#'
+#' @param rowlabel Name of a annotation label.
+#' @param other Name of annotation label which defines spots not defined by thresholds.
+#' @return Parsed label.
 defineLabel <- function(rowlabel, other = "Other") {
 
   if (length(unique(rowlabel)) == 1 & unique(rowlabel)[1] == other) {
@@ -70,7 +77,7 @@ defineLabel <- function(rowlabel, other = "Other") {
 
   }
 
-  if (other %in% rowlabel){
+  if (other %in% rowlabel) {
 
     label <- unique(rowlabel)
 
@@ -88,8 +95,29 @@ defineLabel <- function(rowlabel, other = "Other") {
   }
 }
 
-# Define expressed genes and plot distribution
+#' Combine annotation together
+#'
+#' @param seurat Seurat object.
+#' @param anno Name of annotation column in seurat meta data
+#' @return Seurat object with additional annotation.
+combineAnno <- function(seurat, anno) {
 
+  anno_interest <- seurat[[anno]]
+
+  seurat[["Annotation"]] <- apply(anno_interest, 1, defineLabel)
+
+  return(seurat)
+}
+
+#' Plots the distribution of expression for a marker of interest to help define what is "expressed" vs "not expressed"
+#' Use this visual guide to feed into functions above.
+#'
+#' @param seurat Seurat object.
+#' @param features Name of gene features to check.
+#' @param assay Name of Seurat assay to retrieve feature expression values.
+#' @param slot Name of data slot to retrieve feature expression values.
+#' @param threshold threshold to plot on x axis of distribution.
+#' @return Seurat object with additional annotation.
 defineExpressed <- function(seurat, features, assay = "Spatial", slot = "data",
                             threshold = NULL) {
 

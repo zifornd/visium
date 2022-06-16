@@ -1,7 +1,8 @@
 
-# Load OrgDb package
-# e.g. x = "Hs"
-
+#' Load OrgDb package
+#'
+#' @param x Organism - Mm for mouse, Hs for Human
+#' @return None
 OrgDb <- function(x) {
 
     pkg <- paste0("org.", x, ".eg.db")
@@ -10,13 +11,23 @@ OrgDb <- function(x) {
 
 }
 
-# Parses results table
-# Splits results table by group e.g. cluster annotation
-# Filters results with filter_df function ready for downstream ovverep or gsea
-# Then outputs vector of gene names or ranked named vector
-
+#' Parse results table to retrieve a filtered vector of genes names or ranked named vector.
+#' Splits results table by group e.g. cluster annotation.
+#' Filters results with filter_df function ready for downstream overrep or gsea.
+#' Then outputs vector of gene names or ranked named vector.
+#'
+#' @param res Results table (with padj, lfc, gene symbol) typically from Seurat::FindAllMarkers
+#' @param group Name of group column that table would be split by if split.res = TRUE
+#' @param p_adj Adjusted p-value threshold for filtering results table (set as Inf if no filtering wanted)
+#' @param lfc Log2fold change threshold for filtering results table (set as 0 if no filtering wanted)
+#' @param type type of parsing required - for GSEA ranked named vector is outputed.
+#' @param lfc_name Name of lfc col in results table
+#' @param padj_name Name of padj col in results table
+#' @param gene_id_name Name of gene symbol col in results table
+#' @param split.res Whether to split table based on group.
+#' @return parsed results
 parse_res <- function(res, group = "cluster", p_adj = Inf, lfc = 0,
-                      type= "overrep", lfc_name = "avg_log2FC",
+                      type = "overrep", lfc_name = "avg_log2FC",
                       padj_name = "p_val_adj", gene_id_name = "gene",
                       split.res = TRUE) {
 
@@ -51,14 +62,20 @@ parse_res <- function(res, group = "cluster", p_adj = Inf, lfc = 0,
     return(vector_res)
 }
 
-# Splits results into list of results by given group column
-
+#' Splits results into list of results by given group column
+#'
+#' @param res Results table (with padj, lfc, gene symbol) typically from Seurat::FindAllMarkers
+#' @param group Name of group column that table would be split
+#' @return List of results split by group
 split_res <- function(res, group = "cluster") {
 
     groups <- unique(res[[group]])
 
     resList <- lapply(groups, function(x, res, group) {
-      res[res[[group]] == x, ]}, res = res, group = group)
+
+      res[res[[group]] == x, ]
+
+    }, res = res, group = group)
 
     names(resList) <- groups
 
@@ -66,21 +83,19 @@ split_res <- function(res, group = "cluster") {
 }
 
 
-# Filter DESeq2 df prior to functional enrichment analysis
-# (e.g. p_adj, LFC, no gene symbol etc.)
-
-# Note - GSEA does not require pre-filtering based on LFC/p-value thres
-# - but will need valid gene sybmols or ens_ids
-# Standard options here for filtering are adjusted p value of 0.05
-# LFC is something people often do as well.
-# Genes "of interest" should be defined by an a priori threshold
-# - based on study design and rationale
-# this is classically an alpha value of 0.05
-
-# If you dont want to filter on lfc - leave as 0
-# if you dont want to filter on p value leave as Inf
-
-filter_df <- function(df, p_adj = Inf, lfc = 0, type= "overrep",
+#' Filter Results table prior to overrepresentation functional enrichment analysis
+#' If you dont want to filter on lfc - leave as 0
+#' If you dont want to filter on p value leave as Inf
+#'
+#' @param df Results table (with padj, lfc, gene symbol) typically from Seurat::FindAllMarkers
+#' @param p_adj Adjusted p-value threshold for filtering results table (set as Inf if no filtering wanted)
+#' @param lfc Log2fold change threshold for filtering results table (set as 0 if no filtering wanted)
+#' @param type type of parsing required - for GSEA ranked named vector is outputed.
+#' @param lfc_name Name of lfc col in results table
+#' @param padj_name Name of padj col in results table
+#' @param gene_id_name Name of gene symbol col in results table
+#' @return parsed results
+filter_df <- function(df, p_adj = Inf, lfc = 0, type = "overrep",
                       lfc_name = "avg_log2FC", padj_name = "p_val_adj",
                       gene_id_name = "gene") {
 
@@ -127,8 +142,12 @@ filter_df <- function(df, p_adj = Inf, lfc = 0, type= "overrep",
   return(filtered_df)
 }
 
-# Make lfc vector for gsea
-
+#' Make lfc vector for gsea
+#'
+#' @param filtered_df Results table parsed by filter_df.
+#' @param col_name Name of column with gene symbols.
+#' @param lfc_name Name of lfc col in results table.
+#' @return Ranked named vector.
 make_lfc_vector <- function(filtered_df, col_name = "gene",
                             lfc_name = "avg_log2FC") {
 
@@ -139,10 +158,11 @@ make_lfc_vector <- function(filtered_df, col_name = "gene",
   return(named_lfc)
 }
 
-
-
-# Map Symbol to Entrez
-
+#' Map Symbol to Entrez
+#'
+#' @param keys Vector of gene symbols.
+#' @param org Org db.
+#' @return Vector of Entrez IDs.
 map_symbols_entrez <- function(keys, org = org.Hs.eg.db) {
 
   entrez_ids <- mapIds(x = org, keys = keys,
@@ -154,12 +174,21 @@ map_symbols_entrez <- function(keys, org = org.Hs.eg.db) {
 
 }
 
-# Wrapper for clusterprofiler for running with custom supplied annotations
-
+#' Wrapper for clusterprofiler for running with custom supplied annotations.
+#'
+#' @param gene_ids_vector Vector of gene symbols.
+#' @param term2gene User input annotation of TERM TO GENE mapping, a data.frame of 2 column with term and gene.
+#' @param species Species name for Org db (Mm or Hs).
+#' @param org Org db.
+#' @param analysis_type Analysis type - GSEA or overrep.
+#' @param pval p-value threshold cutoff for tests to report.
+#' @param padj p-adjusted threshold cutoff for tests to report.
+#' @param pmethod p-adjust method - one of "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none" (Default: BH)
+#' @return clusterProfiler results object
 run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
                                        species = "Mm", org = org.Hs.eg.db,
                                        analysis_type = "overrep",
-                                       pval = 0.01, padj = 0.05,
+                                       pval = 0.05, padj = 0.25,
                                        pmethod = "BH") {
 
     if (analysis_type == "overrep") {
@@ -169,7 +198,10 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
         gene_ids_vector <- gene_ids_vector[complete.cases(gene_ids_vector)]
 
         cp_obj <- clusterProfiler::enricher(gene = as.character(gene_ids_vector),
-                                            TERM2GENE = term2gene)
+                                            TERM2GENE = term2gene,
+                                            pvalueCutoff = pval,
+                                            qvalueCutoff = padj,
+                                            pAdjustMethod = pmethod)
 
     }
 
@@ -180,8 +212,11 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
 
         gene_ids_vector <- gene_ids_vector[complete.cases(names(gene_ids_vector))]
 
+        # for GSEA pvalueCutoff is adjusted p value cutoff
         cp_obj <- clusterProfiler::GSEA(gene = gene_ids_vector,
-                                        TERM2GENE = term2gene)
+                                        TERM2GENE = term2gene,
+                                        pvalueCutoff = padj,
+                                        pAdjustMethod = pmethod)
 
     }
 
@@ -189,8 +224,16 @@ run_clusterprofiler_custom <- function(gene_ids_vector, term2gene,
 
 }
 
-# Wrap clusterprofiler calling and parse output
-
+#' Wrap clusterprofiler calling
+#'
+#' @param gene_ids_vector List of gene symbol vectors.
+#' @param term2gene User input annotation of TERM TO GENE mapping, a data.frame of 2 column with term and gene.
+#' @param species Species name for Org db (Mm or Hs).
+#' @param analysis_type Analysis type - GSEA or overrep.
+#' @param pval p-value threshold cutoff for tests to report.
+#' @param padj p-adjusted threshold cutoff for tests to report.
+#' @param pmethod p-adjust method - one of "holm", "hochberg", "hommel", "bonferroni", "BH", "BY", "fdr", "none" (Default: BH)
+#' @return List of clusterProfiler results objects.
 wrap_cp_custom <- function(gene_ids_vector, term2gene,
                            species = "Mm",
                            analysis_type = "overrep",
@@ -207,25 +250,13 @@ wrap_cp_custom <- function(gene_ids_vector, term2gene,
 
 }
 
-
-# Wrap clusterprofiler calling and parse output
-
-wrap_parse_cp_obj <- function(cp_obj_list, type = "overrep",
-                              db = "Custom", species = "Mm") {
-
-    cp_df_list <- lapply(cp_obj_list, parse_cp_object,
-                         type = type, db = db, species = species)
-
-    return(cp_df_list)
-}
-
-#############################################
-####  Parse clusterprofiler object ##########
-#############################################
-
-# Input: clusterprofiler object
-# Output: Df of clusterprofiler results
-
+#' Parse clusterprofiler object
+#'
+#' @param cp_obj Clusterprofiler object
+#' @param type Type of analysis conducted.
+#' @param db Type of database used for analysis - Those run with GO database will have gene symbols output. 
+#' @param species Species name for Org db (Mm or Hs).
+#' @return Df of clusterprofiler results.
 parse_cp_object <- function(cp_obj, type = "overrep",
                             db = "GO", species = "Mm") {
 
@@ -244,7 +275,7 @@ parse_cp_object <- function(cp_obj, type = "overrep",
     if (db != "GO") {
 
       cp_df$gene_name  <- sapply(cp_df$geneID, parse_entrez_col,
-                                map = T, org.db = org)
+                                 map = T, org.db = org)
 
      }
   }
@@ -253,7 +284,7 @@ parse_cp_object <- function(cp_obj, type = "overrep",
     if (db != "GO") {
 
       cp_df$gene_name <- sapply(cp_df$core_enrichment, parse_entrez_col,
-                               map = T, org.db = org)
+                                map = T, org.db = org)
 
      }
   }
@@ -261,7 +292,28 @@ parse_cp_object <- function(cp_obj, type = "overrep",
   return(cp_df)
 }
 
+#' Wrap clusterprofiler parse
+#'
+#' @param cp_obj_list List of clusterprofiler objects
+#' @param type Type of analysis conducted.
+#' @param db Type of database used for analysis - Those run with GO database will have gene symbols output.
+#' @param species Species name for Org db (Mm or Hs).
+#' @return List of clusterprofiler results as data frames.
+wrap_parse_cp_obj <- function(cp_obj_list, type = "overrep",
+                              db = "Custom", species = "Mm") {
 
+    cp_df_list <- lapply(cp_obj_list, parse_cp_object,
+                         type = type, db = db, species = species)
+
+    return(cp_df_list)
+}
+
+#' Parse the entrez column of some of the outputs for clusterprofiler into gene symbols.
+#'
+#' @param entrez_id_str Entrez ids
+#' @param map Does this col need to be mapped into symbols or not?
+#' @param org.db Org db.
+#' @return Str Gene symbols
 parse_entrez_col <- function(entrez_id_str, map = F, org.db = org.Hs.eg.db) {
 
   symbol_str <- strsplit(entrez_id_str, "/")[[1]]
@@ -282,37 +334,21 @@ parse_entrez_col <- function(entrez_id_str, map = F, org.db = org.Hs.eg.db) {
   return(symbol_str_for_csv)
 }
   
-#############################################
-####  Write clusterprofiler object ##########
-#############################################
-
-# Input: Df of clusterprofiler results
-# Output: Text file of enriched go/pathways/terms
-
-write_fea_results <- function(cp_df, filename, file = "csv") {
-
-  # This includes both the terms themselves which are ranked
-  # But also the genes of interest
-
-  if (file == "csv") {separator <- ","}
-  if (file == "tsv") {separator <- "\t"}
-
-  write.table(x = cp_df, file = filename, quote = F, sep = separator,
-              col.names = T, row.names = F)
-
-}
-
-###########################################
-####  Plot clusterprofiler object #########
-###########################################
-
-# Input: Df of clusterprofiler results following parsing
-# Output: User specified plot
-
+#' Plot clusterprofiler object.
+#'
+#' @param cp_obj ClusterProfiler results object.
+#' @param title Title of plot.
+#' @param plot_type Type of plot (barplot, dotplot, gsea_enrichment).
+#' @param x_axis What to plot on x axis (must be in ClusterProfiler results object).
+#' @param row_gsea Row number of GSEA results to plot - default top.
+#' @param toptable Number of terms to plot for barplot or dotplot.
+#' @param size What variable to base the dotplot point size on (e.g. Count).
+#' @param color What variable to base the dotplot point colour on (e.g. p.adjust).
+#' @return Plot object
 plot_fea_results <- function(cp_obj, title, plot_type = "barplot",
-                             top_num=15, x_axis="GeneRatio",
-                             row_gsea = 1, toptable=25, size="Count",
-                             color = "p.adjust", width=5, height=10) {
+                             x_axis = "GeneRatio", row_gsea = 1,
+                             toptable = 25, size = "Count",
+                             color = "p.adjust") {
 
   if (plot_type == "barplot") {
 
@@ -373,8 +409,19 @@ plot_fea_results <- function(cp_obj, title, plot_type = "barplot",
   return(p)
 }
 
-######### Generic barplot function
-
+#' Generic barplot function
+#'
+#' @param cp_df ClusterProfiler result data frame.
+#' @param colnames_select Name of columns to take from the dataframe.
+#' @param colour Colour of plot.
+#' @param title Title of plot.
+#' @param x_log Should x axis be log scale?
+#' @param z_log Should z axis be log scale?
+#' @param x Name of x axis.
+#' @param y Name of y axis.
+#' @param x_thres Threshold to draw on x axis plot.
+#' @param top Number of terms to plot.
+#' @return Plot object
 plot_barplot <- function(cp_df,
                          colnames_select = c("Description", "padj", "GeneRatio"),
                          colour = "steelblue", title = "Barplot GO Analysis",
@@ -383,42 +430,42 @@ plot_barplot <- function(cp_df,
                          x_thres = 0.05, top = 10) {
 
   suppressMessages(library(ggplot2))
-  
+
   # if given empty df
   if (nrow(cp_df) > 0) {
 
     df <- cp_df[, c(colnames_select)]
-  
+
     df <- head(df, top)
-  
+
     colnames(df) <- c("y", "x", "z")
-  
+
     if (x_log) {
-  
+
       df$x <- -log10(df$x)
-  
+
     }
-  
+
     if (x_log) {
-  
+
       x_thres <- -log10(x_thres)
-  
+
     }
-  
+
     if (z_log) {
-  
+
       df$z <- -log10(df$z)
-  
+
     }
-  
+
     if (class(df$z) == "numeric") {
-  
+
         df$z <- round(df$z, 2)
-  
+
     }
-  
+
     df$y <- factor(df$y, levels = rev(df$y))
-  
+
     p <- ggplot(data = df, aes(x = x, y = y)) +
          geom_bar(stat = "identity", fill = colour) +
          geom_text(aes(label = z), hjust = 1.6, color = "white", size = 3.5) +
@@ -428,10 +475,10 @@ plot_barplot <- function(cp_df,
          theme_classic() +
          labs(fill = colour, x = trim_label(x), y = trim_label(y)) +
          scale_y_discrete(labels = function(y) trim_label(y))
-    
-  
+
+
   } else {
-    
+
     # return a null ggplot if no results
     p <- ggplot() +
       theme_void() +
@@ -443,9 +490,12 @@ plot_barplot <- function(cp_df,
 
 }
 
-# Try and deal with long labels by trimming them
-# Returns original where delim = NA
-
+#' Trim labels of barplot
+#'
+#' @param lab label
+#' @param width Width threshold for trimming
+#' @param delim Returns original where delim = NA
+#' @return label trimmed
 trim_label <- function(lab, width = 20, delim = NULL) {
 
   if (!is.null(delim)) {
@@ -463,160 +513,4 @@ trim_label <- function(lab, width = 20, delim = NULL) {
 
   }
   return(lab)
-}
-
-##########################################################################
-#### Wrapper for clusterprofiler which does all the actual analysis ######
-##########################################################################
-
-# Input: deseq_df, filtered DF
-# Output: clusterprofiler object
-
-# Other Options
-# Analysis type: gsea, overrep
-# DB choice: GO,KEGG, REACTOME, Hallmark
-# DB sub cat fo GO as ont:  ALL, BP, CC, MF
-# P.val threshold: standard as 0.05 (set to "Inf" if no filter wanted)
-
-# org.Hs.eg.db as default is org.Hs.eg.db and should be loaded prior
-# - can be alternative species if needed
-
-# Background is imporant to define in function enrichment and can effect results
-# by default all expressed genes is often a standard approach
-
-run_clusterprofiler <- function(deseq_df, filtered_df, col_name = "gene_name",
-                                analysis_type = "overrep",
-                                database = "GO", ont = "ALL",
-                                kegg_org = "hsa",
-                                reactomepa = "human",
-                                org.db = org.Hs.eg.db, keytype = "SYMBOL",
-                                pval = 0.01, padj = 0.05, pmethod = "BH") {
-
-  # for range of overrepresentation and GSEA approaches:
-  suppressMessages(library(clusterProfiler))
-
-  # DB (Can be changed for other species):
-  suppressMessages(library(org.Hs.eg.db))
-
-  if (analysis_type == "overrep") {
-
-    print("Running Overrepresentation test...")
-
-    #### In case a run needs entrez ids:
-
-    entrez_ids <- mapIds(x = org.Hs.eg.db, keys = filtered_df[, col_name],
-                        keytype = "SYMBOL", column = "ENTREZID",
-                        multiVals = "first")
-
-    entrez_ids_universe <- mapIds(x = org.Hs.eg.db, keys = deseq_df[, col_name],
-                                 keytype = "SYMBOL", column = "ENTREZID",
-                                 multiVals = "first")
-
-    if (database == "GO") {
-
-      cp_obj <- enrichGO(gene       = filtered_df[, col_name],
-                      universe      = deseq_df[, col_name],
-                      keyType       = keytype,
-                      OrgDb         = org.db,
-                      ont           = ont,
-                      pAdjustMethod = pmethod,
-                      pvalueCutoff  = pval,
-                      qvalueCutoff  = padj)
-    }
-
-    if (database == "KEGG") {
-
-      # Needs entrez id
-      cp_obj <- enrichKEGG(gene     = entrez_ids[complete.cases(entrez_ids)],
-                           universe = entrez_ids_universe[complete.cases(entrez_ids_universe)],
-                           organism = kegg_org,
-                           pAdjustMethod = pmethod,
-                           pvalueCutoff  = pval,
-                           qvalueCutoff  = padj)
-    }
-
-    if(database == "ReactomePA"){
-
-      suppressMessages(library(ReactomePA))
-
-      # Needs entrez id
-      cp_obj <- enrichPathway(gene = entrez_ids[complete.cases(entrez_ids)], 
-                              universe = entrez_ids_universe[complete.cases(entrez_ids_universe)],
-                              organism = reactomepa,
-                              pAdjustMethod = pmethod,
-                              pvalueCutoff  = pval,
-                              qvalueCutoff  = padj)
-
-    }
-
-  } else {
-
-    print("Running GSEA...")
-
-    # must be ordered by LFC
-    # if filtered by prior function - should already be sorted by descending lfc
-    named_lfc <- filtered_df[, "log2FoldChange"]
-
-    names(named_lfc) <- filtered_df[, col_name]
-
-    ## Incase needs as entrez ids
-    named_lfc_entrez <- named_lfc
-
-    entrez_ids <- mapIds(x = org.Hs.eg.db, keys = names(named_lfc),
-                         keytype = "SYMBOL", column = "ENTREZID",
-                         multiVals = "first")
-
-    names(named_lfc_entrez) <- entrez_ids
-
-    # remove those without a entrez id
-    named_lfc_entrez <- named_lfc_entrez[complete.cases(names(named_lfc_entrez))]
-
-    if (database == "GO") {
-
-      cp_obj <- gseGO(geneList     = named_lfc,
-                      OrgDb        = org.db,
-                      keyType      = keytype,
-                      ont          = ont,
-                      minGSSize    = 50,
-                      maxGSSize    = 500,
-                      eps = 0,
-                      nPermSimple = 20000,
-                      pvalueCutoff = pval,
-                      pAdjustMethod = pmethod,
-                      verbose      = FALSE)
-    }
-
-    if (database == "KEGG") {
-
-      # KEYTYPE HERE HAS TO BE SOMETHING ELSE!
-      # one of "kegg", 'ncbi-geneid', 'ncib-proteinid' and 'uniprot'
-
-      cp_obj <- gseKEGG(geneList     = named_lfc_entrez,
-                        organism     = kegg_org,
-                        minGSSize    = 50,
-                        maxGSSize    = 500,
-                        eps = 0,
-                        nPermSimple = 20000,
-                        pvalueCutoff = pval,
-                        pAdjustMethod = pmethod,
-                        verbose      = FALSE)
-
-    }
-
-    if (database == "ReactomePA") {
-
-      # I think gene might need to be as entrez gene id...
-
-      cp_obj <- gsePathway(named_lfc_entrez,
-                           organism = reactomepa,
-                           minGSSize = 50,
-                           maxGSSize = 500,
-                           eps = 0,
-                           nPermSimple = 20000,
-                           pvalueCutoff = pval,
-                           pAdjustMethod = pmethod,
-                           verbose = FALSE)
-    }
-  }
-  return(cp_obj)
 }

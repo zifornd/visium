@@ -1,6 +1,30 @@
 
-## parse cloupe csv - adding in sample name to cell ids and standardising colnames
+#' Read in loupe annotation and return as merged single column annotation
+#'
+#' @param cloupeLoc Location of cloupe files.
+#' @return Merged single column cloupe annotation.
+readCloupe <- function(cloupeLoc) {
 
+  suppressMessages(library(dplyr))
+
+  cloupes <- list.files(path = cloupeLoc, pattern = "*_cloupe.csv")
+
+  cloupes <- lapply(paste0(cloupeLoc, cloupes), read.csv, check.names = F)
+
+  cloupes <- lapply(cloupes, parseCloupe)
+
+  print(head(cloupes[[1]]))
+
+  cloupes <- dplyr::bind_rows(cloupes)
+
+  return(cloupes)
+}
+
+#' Parse cloupe csv - adding in sample name to cell ids and standardising colnames
+#'
+#' @param cloupe Output from cloupe manual annotation of interesting cell types.
+#' @param sample Name of sample - if NULL taken from cloupe output.
+#' @return Parsed cloupe output dataframe.
 parseCloupe <- function(cloupe, sample = NULL) {
 
   if (is.null(sample)) {
@@ -19,27 +43,11 @@ parseCloupe <- function(cloupe, sample = NULL) {
   return(cloupe)
 }
 
-## Read in loupe annotation and return as merged single col annotation
-
-readCloupe <- function(cloupeLoc) {
-
-  suppressMessages(library(dplyr))
-
-  cloupes <- list.files(path = cloupeLoc, pattern = "*_cloupe.csv")
-
-  cloupes <- lapply(paste0(cloupeLoc, cloupes), read.csv, check.names = F)
-
-  cloupes <- lapply(cloupes, parseCloupe)
-
-  print(head(cloupes[[1]]))
-
-  cloupes <- dplyr::bind_rows(cloupes)
-
-  return(cloupes)
-}
-
-## Add annotation to seurat object
-
+#' Add cloupe annotation to seurat object
+#'
+#' @param seurat Seurat object.
+#' @param cloupe Parsed cloupe output dataframe.
+#' @return Seurat object with cloupe annotation added.
 addCloupe <- function(seurat, cloupe) {
 
   # find those spots not in annotation
@@ -70,20 +78,4 @@ addCloupe <- function(seurat, cloupe) {
   print(table(seurat$Loupe))
 
   return(seurat)
-}
-
-
-testDoHeatmap <- function(doHeatmapCell, doHeatmap, metadata) {
-
-  doHeatmapLoupe <- unique(doHeatmap$Identity[doHeatmap$Cell == doHeatmapCell])
-
-  if (grep("^[0-9]", doHeatmapCell)) {
-
-    print(metadata$Loupe[rownames(metadata) == doHeatmapCell])
-
-    print(doHeatmapLoupe)
-
-    stopifnot(metadata$Loupe[rownames(metadata) == doHeatmapCell] == doHeatmapLoupe)
-
-    }
 }

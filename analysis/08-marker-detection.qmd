@@ -84,6 +84,10 @@ You can supply these paramaters upon render.
 # knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
 ```
 
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
 Add child documents
@@ -136,6 +140,8 @@ source("scripts/findMarkers.R")
 ::: callout-note
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
+
+</div>
 
 # Processing
 

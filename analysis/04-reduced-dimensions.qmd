@@ -58,6 +58,10 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
 Add child documents
@@ -108,6 +112,8 @@ source("scripts/reduceDims.R")
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
 
+</div>
+
 # Processing
 
 ## Reading in experiment object
@@ -138,6 +144,8 @@ seurat <- bplapply(seurat, pca, BPPARAM = BPPARAM)
 
 Next we plot our PCA and overlay a number of additional pieces of information which are often useful - PCA coloured by `Group`, by `nCount_Spatial`, and `nFeature_Spatial`.
 
+It can also be a very useful exploratory data analysis step to look at the PCA coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches. As standard we plot the `Group` which comes from the sample table - however other things like a known batch could be plotted as a labelled PCA plot for diagnosis of potential batch effects (if they exist within the seurat meta data). 
+
 Below we plot the first two components of the PCA that we completed on each seurat object coloured by `Group`.
 
 ```{r}
@@ -149,7 +157,6 @@ pca_plots_dim <- lapply(seurat, dimplot, reduction = "pca", label = FALSE,
                         group.by = "Group")
 ```
 
-It can also be a very useful exploratory data analysis step to look at the PCA coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches. Other things like a known batch could be plotted as a labelled PCA plot for diagnosis of potential batch effects.
 
 Below we plot the first two components of the PCA that we completed on each seurat object coloured by `nCount_Spatial`.
 
@@ -202,6 +209,7 @@ wrap_plots(pca_plots_dim, ncol = 2)
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nCount.
 #| label: fig-pca-ncount
+
 wrap_plots(pca_plots_feature1, ncol = 2)
 ```
 
@@ -215,6 +223,7 @@ wrap_plots(pca_plots_feature1, ncol = 2)
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plots by nFeature.
 #| label: fig-pca-nfeature
+
 wrap_plots(pca_plots_feature2, ncol = 2)
 ```
 :::
@@ -250,7 +259,7 @@ wrap_plots(elbows, ncol = 2)
 Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
 :::
 
-Below we take number of PCs from visual inspection defined by the parameter elbow vector:
+Below we take number of PCs from visual inspection defined by the parameter elbow vector: `r params$elbow_range`
 
 ```{r}
 #| warning: false
@@ -258,8 +267,6 @@ Below we take number of PCs from visual inspection defined by the parameter elbo
 elbow_vector <- params$elbow_range
 
 names(elbow_vector) <- names(seurat)
-
-print(elbow_vector)
 ```
 
 And we add that information to the seurat object
@@ -396,23 +403,25 @@ seurat <- bplapply(seurat, umap, n.neighbors = params$n.neighbors,
                    min.dist = params$min.dist, BPPARAM = BPPARAM)
 ```
 
+As in PCA plotting it can also be a very useful exploratory data analysis step to look at the UMAP coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). As standard we plot the `Group` which comes from the sample table - however other things like a known batch could also be plotted as a labelled UMAP plot if it is within the seurat meta data object.
+
 Below we plot the UMAP of choice n.neighbors: `r params$n.neighbors` and min.dist: `r params$min.dist`. Coloured by `Group`.
 
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
 umap_plots <- lapply(seurat, dimplot, reduction = "umap", 
                      label = FALSE, group.by = "Group")
 ```
-
-As in PCA plotting it can also be a very useful exploratory data analysis step to look at the UMAP coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). Other things like a known batch could be plotted as a labelled UMAP plot for diagnosis of potential batch effects as well.
 
 Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
 
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
 umap_plots_feature1 <- lapply(seurat, featureplot, reduction = "umap", 
                              label = FALSE, feature = "nCount_Spatial")
@@ -423,6 +432,7 @@ Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
 umap_plots_feature2 <- lapply(seurat, featureplot, reduction = "umap", 
                              label = FALSE, feature = "nFeature_Spatial")
@@ -596,23 +606,25 @@ Below we run TSNE with the paramaters of choice perplexity: `r params$perplexity
 seurat <- bplapply(seurat, tsne, perplexity = params$perplexity, BPPARAM = BPPARAM)
 ```
 
-Below we plot each individual TSNE.
+As in UMAP plotting we will also complete an exploratory data analysis step and colour the UMAP by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`).
+
+Below we plot each individual TSNE coloured by `Group`.
 
 ```{r}
 #| warning: false
 #| message: false
+#| results: hide
 
 tsne_plots <- lapply(seurat, dimplot, reduction = "tsne", 
                      label = FALSE, group.by = "Group")
 ```
-
-As in UMAP plotting we will also complete an exploratory data analysis step and colour the UMAP by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`).
 
 Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
 
 ```{r}
 #| warning: false
 #| message: false
+#| results: hide
 
 tsne_plots_feature1 <- lapply(seurat, featureplot, reduction = "tsne", 
                              label = FALSE, feature = "nCount_Spatial")
@@ -623,6 +635,7 @@ Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
 ```{r}
 #| warning: false
 #| message: false
+#| results: hide
 
 tsne_plots_feature2 <- lapply(seurat, featureplot, reduction = "tsne", 
                              label = FALSE, feature = "nFeature_Spatial")

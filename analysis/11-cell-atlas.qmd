@@ -123,6 +123,10 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
 Add child documents
@@ -168,6 +172,8 @@ source("scripts/reduceDims.R")
 ::: callout-note
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
+
+</div>
 
 ## Reading in experiment object
 

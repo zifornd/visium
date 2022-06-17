@@ -4,9 +4,9 @@ params:
   cluster: "res.0.3"
   cluster.plot: ["res.0.2", "res.0.3"]
   plot_width:
-    - 12
-  plot_height:
     - 8
+  plot_height:
+    - 4
 ---
 
 # Setup
@@ -42,6 +42,10 @@ knitr::kable(jsonlite::fromJSON(par))
 ::: callout-tip
 You can supply these paramaters upon render.
 :::
+
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
 
 ### Dependencies
 
@@ -95,9 +99,11 @@ source("scripts/cluster.R")
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
 
+</div>
+
 # Processing
 
-### Reading in experiment object
+## Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `04-reduced-dimensions.qmd` for more details).
 
@@ -141,6 +147,10 @@ An good way of initially assessing the quality of clustering is to visually insp
 
 Here we plot using the '`seurat_clusters`' column name which seurat uses to save the latest clustering results in the object metadata.
 
+::: {.panel-tabset}
+
+## k.param = 5, resolution = 0.1
+
 @fig-kparam-05-res-01 Plot UMAP k.param = 5, resolution = 0.1
 
 ```{r}
@@ -152,6 +162,8 @@ Here we plot using the '`seurat_clusters`' column name which seurat uses to save
 wrap_plots(lapply(seurat_1, dimplot, reduction = "umap", 
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
+## k.param = 10, resolution = 0.3
 
 @fig-kparam-10-res-03 Plot UMAP k.param = 10, resolution = 0.3
 
@@ -165,6 +177,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "umap",
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 
+## k.param = 15, resolution = 0.5
+
 @fig-kparam-15-res-05 Plot UMAP k.param = 15, resolution = 0.5
 
 ```{r}
@@ -176,6 +190,8 @@ wrap_plots(lapply(seurat_2, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat_3, dimplot, reduction = "umap", 
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+
+## k.param = 20, resolution = 0.6
 
 @fig-kparam-20-res-061 Plot UMAP k.param = 20, resolution = 0.6
 
@@ -189,6 +205,8 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "umap",
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
 
+## k.param = 50, resolution = 0.8
+
 @fig-kparam-50-res-08 Plot UMAP k.param = 50, resolution = 0.8
 
 ```{r}
@@ -200,6 +218,7 @@ wrap_plots(lapply(seurat_4, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat_5, dimplot, reduction = "umap", 
                   label = T, group.by = "seurat_clusters"), ncol = 2)
 ```
+:::
 
 Clean up workspace
 
@@ -239,6 +258,10 @@ seurat <- bplapply(seurat, snnCluster, k.param = 20,
 
 Here we plot using the meta data column name associated with a given resolution.
 
+::: {.panel-tabset}
+
+## k.param = 20, resolution = 0.1
+
 @fig-kparam-20-res-01 Plot UMAP k.param = 20, resolution = 0.1
 
 ```{r}
@@ -250,6 +273,8 @@ Here we plot using the meta data column name associated with a given resolution.
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
                   label = T, group.by = "res.0.1"), ncol = 2)
 ```
+
+## k.param = 20, resolution = 0.2
 
 @fig-kparam-20-res-02 Plot UMAP k.param = 20, resolution = 0.2
 
@@ -263,6 +288,8 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
                   label = T, group.by = "res.0.2"), ncol = 2)
 ```
 
+## k.param = 20, resolution = 0.3
+
 @fig-kparam-20-res-03 Plot UMAP k.param = 20, resolution = 0.3
 
 ```{r}
@@ -274,6 +301,8 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
                   label = T, group.by = "res.0.3"), ncol = 2)
 ```
+
+## k.param = 20, resolution = 0.5
 
 @fig-kparam-20-res-05 Plot UMAP k.param = 20, resolution = 0.5
 
@@ -287,6 +316,8 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
                   label = T, group.by = "res.0.5"), ncol = 2)
 ```
 
+## k.param = 20, resolution = 0.6
+
 @fig-kparam-20-res-06 Plot UMAP k.param = 20, resolution = 0.6
 
 ```{r}
@@ -299,6 +330,8 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
                   label = T, group.by = "res.0.6"), ncol = 2)
 ```
 
+## k.param = 20, resolution = 0.8
+
 @fig-kparam-20-res-08 Plot UMAP k.param = 20, resolution = 0.8
 
 ```{r}
@@ -310,6 +343,7 @@ wrap_plots(lapply(seurat, dimplot, reduction = "umap",
 wrap_plots(lapply(seurat, dimplot, reduction = "umap", 
                   label = T, group.by = "res.0.8"), ncol = 2)
 ```
+:::
 
 ## Clustering stability
 
@@ -393,6 +427,10 @@ gc()
 
 Below we plot these scores as boxplots:
 
+::: {.panel-tabset}
+
+## res.0.2
+
 @fig-sil-res.02 Plot silhouette scores for clusters of param res.0.2
 
 ```{r}
@@ -403,6 +441,8 @@ Below we plot these scores as boxplots:
 
 wrap_plots(silhouette_plots_1, ncol = 2)
 ```
+
+## res.0.3
 
 @fig-sil-res.03 Plot silhouette scores for clusters of res.0.3
 
@@ -415,6 +455,8 @@ wrap_plots(silhouette_plots_1, ncol = 2)
 wrap_plots(silhouette_plots_2, ncol = 2)
 ```
 
+## res.0.5
+
 @fig-sil-res.05 Plot silhouette scores for clusters of res.0.5
 
 ```{r}
@@ -425,6 +467,8 @@ wrap_plots(silhouette_plots_2, ncol = 2)
 
 wrap_plots(silhouette_plots_3, ncol = 2)
 ```
+
+## res.0.6
 
 @fig-sil-res.06 Plot silhouette scores for clusters of res.0.6
 
@@ -437,6 +481,8 @@ wrap_plots(silhouette_plots_3, ncol = 2)
 wrap_plots(silhouette_plots_4, ncol = 2)
 ```
 
+## res.0.8
+
 @fig-sil-res.08 Plot silhouette scores for clusters of res.0.8
 
 ```{r}
@@ -447,6 +493,7 @@ wrap_plots(silhouette_plots_4, ncol = 2)
 
 wrap_plots(silhouette_plots_5, ncol = 2)
 ```
+:::
 
 ## Spatial Clusters
 
@@ -468,6 +515,10 @@ spatial_dim2 <- lapply(seurat, plotSpatialCluster,
                        group = params$cluster.plot[[2]])
 ```
 
+::: {.panel-tabset}
+
+## `r params$cluster.plot[[1]]`
+
 @fig-spatial-res1 Plot spatial plot clusters for `r params$cluster.plot[[1]]`
 
 ```{r}
@@ -479,6 +530,8 @@ spatial_dim2 <- lapply(seurat, plotSpatialCluster,
 wrap_plots(spatial_dim1, ncol = 2)
 ```
 
+## `r params$cluster.plot[[2]]`
+
 @fig-spatial-res2 Plot spatial plot clusters for `r params$cluster.plot[[2]]`
 
 ```{r}
@@ -489,6 +542,7 @@ wrap_plots(spatial_dim1, ncol = 2)
 
 wrap_plots(spatial_dim2, ncol = 2)
 ```
+:::
 
 ## Apply chosen cluster labels
 
@@ -504,6 +558,7 @@ Below we plot the UMAP with clustering resolution of choice `r params$cluster`.
 
 ```{r}
 #| warning: false
+#| results: hide
 
 umap_plots <- lapply(seurat, dimplot, reduction = "umap", group.by = "Cluster")
 ```
@@ -525,6 +580,7 @@ Below we plot the TSNE with clustering resolution of choice.
 
 ```{r}
 #| warning: false
+#| results: hide
 
 tsne_plots <- lapply(seurat, dimplot, reduction = "tsne", group.by = "Cluster")
 ```

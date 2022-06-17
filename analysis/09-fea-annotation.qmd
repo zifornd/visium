@@ -114,6 +114,10 @@ You can supply these paramaters upon render.
 The paramater `split.res` is important as it will split the results table further prior to running fea. This may be useful if you have run marker detection on clusters and have a results table which contains the results for many different clusters. In this case if `split.res` is set to `TRUE`, the table will be split into separate clusters based on the `param$group` name and the workflow will be run separately on each independent cluster.
 :::
 
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
 ```{r, setup, include=TRUE}
@@ -172,6 +176,8 @@ source("scripts/functionalEnrichment.R")
 ::: callout-note
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
+
+</div>
 
 # Processing
 

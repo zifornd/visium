@@ -72,6 +72,10 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+
+<div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
 Add child documents
@@ -122,9 +126,11 @@ source("scripts/cluster.R")
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
 
+</div>
+
 # Processing
 
-### Reading in experiment object
+## Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `05-clustering.qmd` for more details).
 
@@ -178,33 +184,41 @@ Below we perform PCA on the merged seurat object:
 ```{r}
 #| message: false
 #| warning: false
+#| results: hide
 
 seurat <- pca(seurat)
 ```
 
 ### Plot PCAs
 
-Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by group.
+Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by `Group`, `nCount_Spatial` and `nFeature_Spatial`.
+
+::: {.panel-tabset}
+
+## Group
+
+@fig-pca-group-merged Plot PCA Group merged
 
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr params$plot_width 
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by group.
+#| label: fig-pca-group-merged
 
 dimplot(seurat, reduction = "pca", label = FALSE, 
         group.by = "Group", title = "PCA-Merged")
 ```
 
-Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by `nCount_Spatial`.
+## nCount
 
 @fig-pca-ncount Plot PCA nCount merged
 
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nCount.
 #| label: fig-pca-ncount
@@ -213,14 +227,14 @@ featureplot(seurat, reduction = "pca", label = FALSE,
             feature = "nCount_Spatial", title = "PCA-Merged")
 ```
 
-Below we plot the first two components of the PCA that we completed on the merged seurat object coloured by `nFeature_Spatial`.
+## nFeature
 
 @fig-pca-nfeature Plot PCA nFeature merged
 
 ```{r}
 #| message: false
 #| warning: false
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: PCA plot Merged by nFeature.
 #| label: fig-pca-nfeature
@@ -228,6 +242,7 @@ Below we plot the first two components of the PCA that we completed on the merge
 featureplot(seurat, reduction = "pca", label = FALSE, 
             feature = "nFeature_Spatial", title = "PCA-Merged")
 ```
+:::
 
 ### Elbow
 
@@ -252,21 +267,15 @@ elbow(seurat, vline1 = 10, vline2 = 20, title = "Elbow-Merged")
 Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
 :::
 
-Below we take number of PCs from visual inspection defined by the parameter elbow vector:
+Below we take number of PCs from visual inspection defined by the parameter elbow vector: `r params$elbow_range`.
 
-```{r}
-#| warning: false
-
-elbow_vector <- params$elbow_range
-
-print(elbow_vector)
-```
-
-And we add that information to the seurat object
+And we add that information to the seurat object.
 
 ```{r}
 #| message: false
 #| warning: false
+
+elbow_vector <- params$elbow_range
 
 seurat$Elbow <- rep(elbow_vector, length(seurat$Sample))
 ```
@@ -294,6 +303,10 @@ seurat_4 <- umap(seurat, n.neighbors = 20, min.dist = 0.1)
 seurat_5 <- umap(seurat, n.neighbors = 10, min.dist = 0.001)
 ```
 
+::: {.panel-tabset}
+
+## n.neighbors = 30, min.dist = 0.3
+
 @fig-umap-30-03 Plot UMAP n.neighbors = 30, min.dist = 0.3
 
 ```{r}
@@ -305,6 +318,8 @@ seurat_5 <- umap(seurat, n.neighbors = 10, min.dist = 0.001)
 dimplot(seurat_1, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 30, min.dist = 0.3")
 ```
+
+## n.neighbors = 5, min.dist = 0.25
 
 @fig-umap-05-025 Plot UMAP n.neighbors = 5, min.dist = 0.25
 
@@ -318,6 +333,8 @@ dimplot(seurat_2, reduction = "umap", label = FALSE,
         group.by = "Group", title = "UMAP-Merged n.neighbors = 5, min.dist = 0.25")
 ```
 
+## n.neighbors = 10, min.dist = 0.1
+
 @fig-umap-10-01 Plot UMAP n.neighbors = 10, min.dist = 0.1
 
 ```{r}
@@ -329,6 +346,8 @@ dimplot(seurat_2, reduction = "umap", label = FALSE,
 dimplot(seurat_3, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.1")
 ```
+
+## n.neighbors = 20, min.dist = 0.1
 
 @fig-umap-20-01 Plot UMAP n.neighbors = 20, min.dist = 0.1
 
@@ -342,6 +361,8 @@ dimplot(seurat_4, reduction = "umap", label = FALSE,
         group.by = "Group", title = "UMAP-Merged n.neighbors = 20, min.dist = 0.1")
 ```
 
+## n.neighbors = 10, min.dist = 0.001
+
 @fig-umap-10-0001 Plot UMAP n.neighbors = 10, min.dist = 0.001
 
 ```{r}
@@ -353,6 +374,7 @@ dimplot(seurat_4, reduction = "umap", label = FALSE,
 dimplot(seurat_5, reduction = "umap", label = FALSE, 
         group.by = "Group", title = "UMAP-Merged n.neighbors = 10, min.dist = 0.001")
 ```
+:::
 
 Clean up workspace
 
@@ -375,17 +397,17 @@ Below we run UMAP with the paramaters of choice `r paste0("n.neighbors: ", param
 #| message: false
 #| results: hide
 
-print(paste0("n.neighbors: ", params$n.neighbors))
-
-print(paste0("min.dist: ", params$min.dist))
-
 seurat <- umap(seurat, n.neighbors = params$n.neighbors, 
                min.dist = params$min.dist)
 ```
 
-Below we plot the merged UMAP.
+As previously discussed it can also be a very useful exploratory data analysis step to look at the UMAP/TSNE coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident). As standard we plot the `Group` which comes from the sample table.
 
-@fig-umap-chosen Plot UMAP merged
+::: {.panel-tabset}
+
+## Group
+
+@fig-umap-chosen Plot UMAP merged Group
 
 ```{r}
 #| fig.width: !expr params$plot_width
@@ -398,14 +420,12 @@ dimplot(seurat, reduction = "umap", label = FALSE, group.by = "Group",
         title = "UMAP-Merged")
 ```
 
-As previously discussed it can also be a very useful exploratory data analysis step to look at the UMAP/TSNE coloured by QC values such as overall counts (`nCount_Spatial`) and number of features per spot (`nFeature_Spatial`). The idea here is that a cluster may be driven by a technical reason such as a difference in library size which could be amenable to normalisation approaches - or should be interpreted with caution downstream (some biological regions are also known to reliably have low counts and this may be evident).
-
-Below we plot a UMAP with chosen params coloured by `nCount_Spatial`.
+## nCount
 
 @fig-umap-chosen-ncounts Plot UMAP nCount merged
 
 ```{r}
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nCounts.
 #| label: fig-umap-chosen-ncounts
@@ -414,12 +434,12 @@ featureplot(seurat, reduction = "umap", label = FALSE,
             feature = "nCount_Spatial", title = "UMAP-Merged")
 ```
 
-Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
+## nFeature
 
 @fig-umap-chosen-nfeature Plot UMAP nFeature merged
 
 ```{r}
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: UMAP Merged chosen params nFeatures.
 #| label: fig-umap-chosen-nfeature
@@ -427,6 +447,7 @@ Below we plot a UMAP with chosen params coloured by `nFeature_Spatial`.
 featureplot(seurat, reduction = "umap", label = FALSE, 
             feature = "nFeature_Spatial", title = "UMAP-Merged")
 ```
+:::
 
 ### TSNE
 
@@ -441,12 +462,14 @@ Below we run TSNE with the paramaters of choice - `r params$perplexity`
 #| message: false
 #| results: hide
 
-print(paste0("perplexity: ", params$perplexity))
-
 seurat <- tsne(seurat, perplexity = params$perplexity)
 ```
 
-Below we plot the merged TSNE.
+Below we plot the merged TSNE by `Group`, `nCount_Spatial`, and `nFeature_Spatial`.
+
+::: {.panel-tabset}
+
+## Group
 
 @fig-tsne-chosen Plot TSNE merged
 
@@ -460,12 +483,12 @@ dimplot(seurat, reduction = "tsne", label = FALSE,
         group.by = "Group", title = "TSNE-Merged")
 ```
 
-Below we plot a TSNE with chosen params coloured by `nCount_Spatial`.
+## nCount
 
 @fig-tsne-chosen-ncounts Plot TSNE nCount merged
 
 ```{r}
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nCounts.
 #| label: fig-tsne-chosen-ncounts
@@ -474,12 +497,12 @@ featureplot(seurat, reduction = "tsne", label = FALSE,
             feature = "nCount_Spatial", title = "TSNE-Merged")
 ```
 
-Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
+## nFeature
 
 @fig-tsne-chosen-ncounts Plot TSNE nFeature merged
 
 ```{r}
-#| fig.width: !expr params$plot_width
+#| fig.width: !expr (params$plot_width + 0.5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: TSNE Merged chosen params nFeatures.
 #| label: fig-tsne-chosen-nfeature
@@ -487,6 +510,7 @@ Below we plot a TSNE with chosen params coloured by `nFeature_Spatial`.
 featureplot(seurat, reduction = "tsne", label = FALSE, 
             feature = "nFeature_Spatial", title = "TSNE-Merged")
 ```
+:::
 
 ## Cluster
 
@@ -516,6 +540,10 @@ seurat <- snnCluster(seurat, k.param = 20, resolution = 0.8)
 
 Here we plot using the meta data column name associated with a given resolution.
 
+::: {.panel-tabset}
+
+## k.param = 20, resolution = 0.1
+
 @fig-kparam-20-res-01 Plot UMAP k.param = 20, resolution = 0.1
 
 ```{r}
@@ -528,6 +556,8 @@ dimplot(seurat, reduction = "umap", label = T,
         group.by = "res.0.1", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.1")
 ```
+
+## k.param = 20, resolution = 0.2
 
 @fig-kparam-20-res-02 Plot UMAP k.param = 20, resolution = 0.2
 
@@ -542,6 +572,8 @@ dimplot(seurat, reduction = "umap", label = T,
         title = "UMAP-Merged, k.param = 20, resolution = 0.2")
 ```
 
+## k.param = 20, resolution = 0.3
+
 @fig-kparam-20-res-03 Plot UMAP k.param = 20, resolution = 0.3
 
 ```{r}
@@ -554,6 +586,8 @@ dimplot(seurat, reduction = "umap", label = T,
         group.by = "res.0.3", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.3")
 ```
+
+## k.param = 20, resolution = 0.5
 
 @fig-kparam-20-res-05 Plot UMAP k.param = 20, resolution = 0.5
 
@@ -568,6 +602,8 @@ dimplot(seurat, reduction = "umap", label = T,
         title = "UMAP-Merged, k.param = 20, resolution = 0.5")
 ```
 
+## k.param = 20, resolution = 0.6
+
 @fig-kparam-20-res-06 Plot UMAP k.param = 20, resolution = 0.6
 
 ```{r}
@@ -581,6 +617,8 @@ dimplot(seurat, reduction = "umap", label = T,
         title = "UMAP-Merged, k.param = 20, resolution = 0.6")
 ```
 
+## k.param = 20, resolution = 0.8
+
 @fig-kparam-20-res-08 Plot UMAP k.param = 20, resolution = 0.8
 
 ```{r}
@@ -593,6 +631,7 @@ dimplot(seurat, reduction = "umap", label = T,
         group.by = "res.0.8", 
         title = "UMAP-Merged, k.param = 20, resolution = 0.8")
 ```
+:::
 
 ### Clustering stability
 
@@ -605,8 +644,8 @@ We complete this process with `k.param = 20` (seurat default)
 ```{r}
 #| warning: false
 #| message: false
-#| fig.width: 10
-#| fig.height: 10
+#| fig.width: 6
+#| fig.height: 6
 #| fig-cap: Clustree dendrogram across chosen k param.
 #| label: fig-clustree
 
@@ -697,6 +736,10 @@ sdplot2 <- plotSpatialCluster(seurat, label = TRUE,
                               label.size = 3, group = params$cluster.plot[[2]])
 ```
 
+::: {.panel-tabset}
+
+## `r params$cluster.plot[[1]]`
+
 @fig-spatial-res1 Plot spatial plot clusters for `r params$cluster.plot[[1]]`
 
 ```{r}
@@ -708,6 +751,8 @@ sdplot2 <- plotSpatialCluster(seurat, label = TRUE,
 wrap_plots(sdplot1)
 ```
 
+## `r params$cluster.plot[[2]]`
+
 @fig-spatial-res2 Plot spatial plot clusters for `r params$cluster.plot[[2]]`
 
 ```{r}
@@ -718,6 +763,7 @@ wrap_plots(sdplot1)
 
 wrap_plots(sdplot2)
 ```
+:::
 
 ### Apply chosen cluster labels
 

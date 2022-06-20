@@ -358,9 +358,27 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
                      type = "DoHeatmap", legend = FALSE)
 ```
 
-@fig-doheatmap
+::: {.panel-tabset}
+```{r}
+#| results: "asis"
+#| echo: false
 
-## Testo {.tabset}
+sample_names <- c("test1", "test2")
+
+for (n in sample_names) {
+
+  cat("###", n, "\n")
+
+  cat("some stuff")
+
+  cat("\n\n")
+}
+```
+:::
+
+::: {.panel-tabset}
+
+@fig-doheatmap
 
 ```{r}
 #| fig.width: !expr params$plot_width
@@ -374,18 +392,18 @@ sample_names <- names(res)
 
 for (n in sample_names) {
 
-  cat("###", n, "\n")
+  cat("####", n, "\n")
 
-  cat("some stuff")
+  # cat("some stuff")
   #plot.new()
 
-  #print(plot(doheatmaps[[n]]))
-
-  #cat("\n\n")
+  print(plot(doheatmaps[[n]]))
+  dev.off()
+  cat("\n\n")
 }
 ```
 
-## {-}
+:::
 
 Below we plot the same heatmap but include a legend.
 

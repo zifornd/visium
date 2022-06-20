@@ -20,24 +20,13 @@ project:
     message: false
     warning: false
 
-knitr:
-  opts_chunk: 
-    message: false
-    warning: false
-    dev: "png"
-    echo: true
-    fig.align: "center"
-    number-sections: true
-    number-depth: 3
-
 format:
   html:
     toc: true
     theme: cosmo
     css: styles.css
-    highlight: textmate
-    df_print: paged
     code-fold: show
+
 editor: visual
 
 website:

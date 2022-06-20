@@ -397,7 +397,7 @@ for (n in sample_names) {
   # cat("some stuff")
   # plot.new()
 
-  print(plot(doheatmaps[[n]]))
+  print(doheatmaps[[n]])
   #dev.off()
   cat('\n\n')
 }

@@ -270,8 +270,8 @@ Below we write these results to csv file:
 #| warning: false
 #| results: hide
 
-# lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), 
-#                                                     "-FindMarkersClusters.csv"))})
+lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), 
+                                                    "-FindMarkersClusters.csv"))})
 ```
 
 ### Interactive results
@@ -283,14 +283,19 @@ Below we use the DT package to plot these results interactively:
 #| echo: false
 #| results: hide
 
-# DT::datatable(matrix())
+DT::datatable(matrix())
 ```
 
 ```{r}
 #| results: "asis"
 #| echo: false
 
-# resbind <- bind_rows(res)
+resbind <- bind_rows(res)
+
+DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', 
+                      options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
+                      filter = "top", 
+                      width = "100%")
 
 # sample_names <- names(res)
 
@@ -299,10 +304,10 @@ Below we use the DT package to plot these results interactively:
 
 #   header <- htmltools::tags$h4(sample_name)
 
-#   dt <- DT::datatable(res[[sample_name]], class = 'cell-border stripe', extensions = 'Buttons', 
-#                       options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
-#                       filter = "top", 
-#                       width = "100%")
+  # dt <- DT::datatable(res[[sample_name]], class = 'cell-border stripe', extensions = 'Buttons', 
+  #                     options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
+  #                     filter = "top", 
+  #                     width = "100%")
   
 #   br1 <- htmltools::tags$br()
 #   br2 <- htmltools::tags$br()  
@@ -322,24 +327,23 @@ Below we use the DT package to plot these results interactively:
 
 # for (n in sample_names) {
   
-#   cat("###", n, "\n")
+#   cat("####", n, "\n")
   
-  # cat(knitr::knit_print(DT::datatable(res[[n]], class = 'cell-border stripe', extensions = 'Buttons', 
-  #                                     options = list(dom = 'Bfrtip', 
-  #                                                    buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-  #                                                    scrollX = TRUE),
-  #                                     filter = "top", 
-  #                                     width = "100%")))
+#   cat(knitr::knit_print(DT::datatable(res[[n]], class = 'cell-border stripe', extensions = 'Buttons', 
+#                                       options = list(dom = 'Bfrtip', 
+#                                                      buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+#                                                      scrollX = TRUE),
+#                                       filter = "top", 
+#                                       width = "100%")))
 
-  # cat(knitr::knit_print(DT::datatable(res[[n]], height = "100%", width = "100%")))
+#   # cat(knitr::knit_print(DT::datatable(res[[n]], height = "100%", width = "100%")))
 
-  # cat("\n\n")
-  # cat("\n\n\n")
-  # cat("\n\n\n")
+#   cat("\n\n")
+#   # cat("\n\n\n")
+#   # cat("\n\n\n")
 
 # }
 ```
-
 
 ### Define genes interest
 
@@ -359,32 +363,11 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 ```
 
 ::: {.panel-tabset}
-```{r}
-#| results: "asis"
-#| echo: false
-
-sample_names <- c("test1", "test2")
-
-for (n in sample_names) {
-
-  cat("###", n, "\n")
-
-  cat("some stuff")
-
-  cat("\n\n")
-}
-```
-:::
-
-::: {.panel-tabset}
-
-@fig-doheatmap
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster.
-#| label: fig-doheatmap
 #| results: "asis"
 #| echo: false
 
@@ -394,11 +377,8 @@ for (n in sample_names) {
 
   cat("####", n, "\n")
 
-  # cat("some stuff")
-  # plot.new()
-
   print(doheatmaps[[n]])
-  #dev.off()
+
   cat('\n\n')
 }
 ```
@@ -408,20 +388,31 @@ for (n in sample_names) {
 Below we plot the same heatmap but include a legend.
 
 ```{r}
-# doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
-#                            type = "DoHeatmap", legend = TRUE)
+doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+                           type = "DoHeatmap", legend = TRUE)
 ```
 
-@fig-doheatmap-legend
+::: {.panel-tabset}
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap of top genes per cluster with legend.
-#| label: fig-doheatmap-legend
+#| results: "asis"
+#| echo: false
 
-# wrap_plots(doheatmapslegend)
+sample_names <- names(res)
+
+for (n in sample_names) {
+
+  cat("####", n, "\n")
+
+  print(doheatmapslegend[[n]])
+
+  cat('\n\n')
+}
 ```
+:::
 
 ### pheatmap
 
@@ -432,31 +423,45 @@ Below we plot the same features but do this using the pheatmap function.
 #| warning: false
 #| fig.show: hide
 
-# pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
-#                     type = "pheatmap", head_num = 5)
+pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+                    type = "pheatmap", head_num = 5)
 ```
 
-@fig-pheatmap-custom
+::: {.panel-tabset}
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr params$plot_height
 #| fig-cap: pHeatmap of top genes per cluster with legend.
-#| label: fig-pheatmap-custom
+#| results: "asis"
+#| echo: false
 
-# wrap_plots(pheatmaps)
+library(ggplotify)
+
+sample_names <- names(res)
+
+for (n in sample_names) {
+
+  cat("####", n, "\n")
+
+  print(as.ggplot(pheatmaps[[n]]))
+
+  cat('\n\n')
+}
+
 ```
+:::
 
 # Output
 
 Save experiment object:
 
 ```{r}
-# saveRDS(seuratprep, file = "output/08-marker-detection.rds")
+saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 ```
 
 ```{r}
-# saveRDS(res, file = "output/08-marker-detection-res.rds")
+saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
 ### Output Description 

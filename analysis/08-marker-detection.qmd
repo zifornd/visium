@@ -270,8 +270,8 @@ Below we write these results to csv file:
 #| warning: false
 #| results: hide
 
-lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), 
-                                                    "-FindMarkersClusters.csv"))})
+# lapply(res, function(x) {write.csv(x, file = paste0("output/", unique(x$Sample), 
+#                                                     "-FindMarkersClusters.csv"))})
 ```
 
 ### Interactive results
@@ -292,32 +292,32 @@ Below we use the DT package to plot these results interactively:
 
 # resbind <- bind_rows(res)
 
-sample_names <- names(res)
+# sample_names <- names(res)
 
-createDT <- function(sample_name, res){
+# createDT <- function(sample_name, res){
 
 
-  header <- htmltools::tags$h4(sample_name)
+#   header <- htmltools::tags$h4(sample_name)
 
-  dt <- DT::datatable(res[[sample_name]], class = 'cell-border stripe', extensions = 'Buttons', 
-                      options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
-                      filter = "top", 
-                      width = "100%")
+#   dt <- DT::datatable(res[[sample_name]], class = 'cell-border stripe', extensions = 'Buttons', 
+#                       options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
+#                       filter = "top", 
+#                       width = "100%")
   
-  br1 <- htmltools::tags$br()
-  br2 <- htmltools::tags$br()  
-  br3 <- htmltools::tags$br()
-  br4 <- htmltools::tags$br()
-  br5 <- htmltools::tags$br()
-  br6 <- htmltools::tags$br()
-  br7 <- htmltools::tags$br()
-  br8 <- htmltools::tags$br()
+#   br1 <- htmltools::tags$br()
+#   br2 <- htmltools::tags$br()  
+#   br3 <- htmltools::tags$br()
+#   br4 <- htmltools::tags$br()
+#   br5 <- htmltools::tags$br()
+#   br6 <- htmltools::tags$br()
+#   br7 <- htmltools::tags$br()
+#   br8 <- htmltools::tags$br()
 
 
-  return(list(header, dt, br1, br2, br3, br4, br5, br6, br7, br8))
-}
+#   return(list(header, dt, br1, br2, br3, br4, br5, br6, br7, br8))
+# }
 
-htmltools::tagList(lapply(sample_names, createDT, res = res))
+# htmltools::tagList(lapply(sample_names, createDT, res = res))
 
 
 # for (n in sample_names) {
@@ -355,7 +355,7 @@ Below we plot these markers in two ways - using the heatmap functions supplied b
 
 ```{r}
 doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
-                     type = "DoHeatmap", legend = FALSE)
+                     type = "DoHeatmap", legend = TRUE)
 ```
 
 ::: {.panel-tabset}
@@ -395,11 +395,11 @@ for (n in sample_names) {
   cat("####", n, "\n")
 
   # cat("some stuff")
-  #plot.new()
+  # plot.new()
 
   print(plot(doheatmaps[[n]]))
-  dev.off()
-  cat("\n\n")
+  #dev.off()
+  cat('\n\n')
 }
 ```
 
@@ -408,8 +408,8 @@ for (n in sample_names) {
 Below we plot the same heatmap but include a legend.
 
 ```{r}
-doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
-                           type = "DoHeatmap", legend = TRUE)
+# doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+#                            type = "DoHeatmap", legend = TRUE)
 ```
 
 @fig-doheatmap-legend
@@ -420,7 +420,7 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 #| fig-cap: Heatmap of top genes per cluster with legend.
 #| label: fig-doheatmap-legend
 
-wrap_plots(doheatmapslegend)
+# wrap_plots(doheatmapslegend)
 ```
 
 ### pheatmap
@@ -432,8 +432,8 @@ Below we plot the same features but do this using the pheatmap function.
 #| warning: false
 #| fig.show: hide
 
-pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
-                    type = "pheatmap", head_num = 5)
+# pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes, 
+#                     type = "pheatmap", head_num = 5)
 ```
 
 @fig-pheatmap-custom
@@ -444,7 +444,7 @@ pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 #| fig-cap: pHeatmap of top genes per cluster with legend.
 #| label: fig-pheatmap-custom
 
-wrap_plots(pheatmaps)
+# wrap_plots(pheatmaps)
 ```
 
 # Output
@@ -452,11 +452,11 @@ wrap_plots(pheatmaps)
 Save experiment object:
 
 ```{r}
-saveRDS(seuratprep, file = "output/08-marker-detection.rds")
+# saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 ```
 
 ```{r}
-saveRDS(res, file = "output/08-marker-detection-res.rds")
+# saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
 ### Output Description 

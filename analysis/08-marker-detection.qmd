@@ -19,6 +19,8 @@ params:
     - 7
   colours:
     - "RdBu"
+  combined_table:
+    - TRUE
 ---
 
 # Setup
@@ -68,6 +70,11 @@ list(
 Parameter = "colours",
 Value = params$colours,
 Description = "RdBu"
+),
+list(
+Parameter = "combined_table",
+Value = params$combined_table,
+Description = "Boolean whether to combine DT tables into single table across groups and samples or plot them separately."
 )
 )
 
@@ -126,6 +133,7 @@ library(clustree)
 library(RColorBrewer)
 library(pheatmap)
 library(DT)
+library(ggplotify)
 ```
 
 Source user-defined functions:
@@ -135,6 +143,7 @@ source("scripts/parseCloupe.R")
 source("scripts/plotpHeatmap.R")
 source("scripts/reduceDims.R")
 source("scripts/findMarkers.R")
+source("scripts/createDT.R")
 ```
 
 ::: callout-note
@@ -207,8 +216,6 @@ if (class(seurat) == "Seurat") {
 
     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
     seuratprep <- seuratList
-
-    seuratprep$FUBAR <- seuratprep[[unique(seurat@meta.data$Sample)]]
 
   }
 
@@ -284,65 +291,30 @@ Below we use the DT package to plot these results interactively:
 #| results: hide
 
 DT::datatable(matrix())
+options(DT.warn.size = FALSE)
 ```
 
 ```{r}
 #| results: "asis"
-#| echo: false
+#| echo: true
 
-resbind <- bind_rows(res)
+if (params$combined_table == TRUE) {
 
-DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', 
+  resbind <- bind_rows(res)
+
+
+  DT::datatable(resbind, class = 'cell-border stripe', extensions = 'Buttons', 
                       options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
                       filter = "top", 
                       width = "100%")
+} else {
 
-# sample_names <- names(res)
+  sample_names <- names(res)
 
-# createDT <- function(sample_name, res){
+  htmltools::tagList(lapply(sample_names, createDT, res = res))
 
+}
 
-#   header <- htmltools::tags$h4(sample_name)
-
-  # dt <- DT::datatable(res[[sample_name]], class = 'cell-border stripe', extensions = 'Buttons', 
-  #                     options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print')),
-  #                     filter = "top", 
-  #                     width = "100%")
-  
-#   br1 <- htmltools::tags$br()
-#   br2 <- htmltools::tags$br()  
-#   br3 <- htmltools::tags$br()
-#   br4 <- htmltools::tags$br()
-#   br5 <- htmltools::tags$br()
-#   br6 <- htmltools::tags$br()
-#   br7 <- htmltools::tags$br()
-#   br8 <- htmltools::tags$br()
-
-
-#   return(list(header, dt, br1, br2, br3, br4, br5, br6, br7, br8))
-# }
-
-# htmltools::tagList(lapply(sample_names, createDT, res = res))
-
-
-# for (n in sample_names) {
-  
-#   cat("####", n, "\n")
-  
-#   cat(knitr::knit_print(DT::datatable(res[[n]], class = 'cell-border stripe', extensions = 'Buttons', 
-#                                       options = list(dom = 'Bfrtip', 
-#                                                      buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-#                                                      scrollX = TRUE),
-#                                       filter = "top", 
-#                                       width = "100%")))
-
-#   # cat(knitr::knit_print(DT::datatable(res[[n]], height = "100%", width = "100%")))
-
-#   cat("\n\n")
-#   # cat("\n\n\n")
-#   # cat("\n\n\n")
-
-# }
 ```
 
 ### Define genes interest
@@ -436,8 +408,6 @@ pheatmaps <- lapply(seuratprep, plotHeatmap, featureList = topgenes,
 #| results: "asis"
 #| echo: false
 
-library(ggplotify)
-
 sample_names <- names(res)
 
 for (n in sample_names) {
@@ -476,13 +446,13 @@ saveRDS(res, file = "output/08-marker-detection-res.rds")
 par <- list(
 
 list(
-Parameter = "seuratprep",
-Value = "[seuratprep](../../output/08-marker-detection.rds)",
+File = "seuratprep",
+Link = "[seuratprep](../../output/08-marker-detection.rds)",
 Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with PrepSCTFindMarkers run if multiple SCT models present (merged or integrated seurat object), and ScaleData assay added."
 ),
 list(
-Parameter = "res",
-Value = "[res](../../output/08-marker-detection-res.rds)",
+File = "res",
+Link = "[res](../../output/08-marker-detection-res.rds)",
 Description = "Results table of markers following Seurat::FindAllMarkers."
 )
 )

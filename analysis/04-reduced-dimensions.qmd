@@ -703,8 +703,8 @@ saveRDS(seurat, file = "output/04-reduced-dimensions.rds")
 par <- list(
 
 list(
-Parameter = "seurat",
-Value = "[seurat](../../output/04-reduced-dimensions.rds)",
+File = "seurat",
+Link = "[seurat](../../output/04-reduced-dimensions.rds)",
 Description = "Seurat object saved as rds object filtered and normalised with dimensionality reduction completed."
 )
 

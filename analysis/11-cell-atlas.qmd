@@ -638,8 +638,8 @@ saveRDS(seurat, file = "output/11-cell-atlas.rds")
 par <- list(
 
 list(
-Parameter = "seurat",
-Value = "[seurat](../../output/11-cell-atlas.rds)",
+File = "seurat",
+Link = "[seurat](../../output/11-cell-atlas.rds)",
 Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with cell atlas annotations added."
 )
 )

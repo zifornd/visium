@@ -29,6 +29,8 @@ params:
     - 10
   plot_height:
     - 10
+  combined_table:
+    - TRUE
 ---
 
 # Setup
@@ -44,6 +46,11 @@ params:
 
 par <- list(
 
+list(
+Parameter = "res",
+Value = params$res,
+Description = "List of results tables following marker detection."
+),
 list(
 Parameter = "species",
 Value = params$species,
@@ -98,6 +105,11 @@ list(
 Parameter = "pval.adj.thres.gsea",
 Value = params$pval.adj.thres.gsea,
 Description = "Adjusted p value filter threshold used to filter results table after GSEA analysis is completed."
+),
+list(
+Parameter = "combined_table",
+Value = params$combined_table,
+Description = "Boolean whether to combine DT tables into single table across groups and samples or plot them separately."
 )
 )
 
@@ -164,6 +176,7 @@ library(clustree)
 library(RColorBrewer)
 library(pheatmap)
 library(DT)
+library(ggplotify)
 ```
 
 Source user-defined functions:
@@ -171,6 +184,7 @@ Source user-defined functions:
 ```{r}
 source("scripts/annotate.R")
 source("scripts/functionalEnrichment.R")
+source("scripts/createDT.R")
 ```
 
 ::: callout-note
@@ -378,20 +392,7 @@ resbind_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
 resbind_overrep_cells <- bind_rows(resbind_overrep_cells, .id = params$group)
 
 # Plot as interactive table
-DT::datatable(resbind_overrep_cells, class = 'cell-border stripe', 
-              extensions = 'Buttons', rownames = FALSE, 
-              options = list(
-                dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                pageLength = 5,
-                columnDefs = list(
-                  list(targets = c(8,10),
-                       render = JS(
-                         "function(data, type, row, meta) {",
-                         "return type === 'display' && data.length > 6 ?",
-                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                         "}")))),
-              filter = "top")
+plotFeaDT(resbind_overrep_cells, pageLength = 5, targets = c(8,10))
 ```
 
 Results for Hallmark:
@@ -409,20 +410,7 @@ resbind_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks,
 resbind_overrep_hallmarks <- bind_rows(resbind_overrep_hallmarks, .id = params$group)
 
 # Plot as interactive table
-DT::datatable(resbind_overrep_hallmarks, class = 'cell-border stripe', 
-              extensions = 'Buttons', rownames = FALSE, 
-              options = list(
-                dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                pageLength = 5,
-                columnDefs = list(
-                  list(targets = c(8,10),
-                       render = JS(
-                         "function(data, type, row, meta) {",
-                         "return type === 'display' && data.length > 6 ?",
-                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                         "}")))),
-              filter = "top")
+plotFeaDT(resbind_overrep_hallmarks, pageLength = 5, targets = c(8,10))
 ```
 
 Results for Custom:
@@ -442,20 +430,8 @@ if (!is.null(custom_genesets_t2g)) {
   resbind_overrep_custom <- bind_rows(resbind_overrep_custom, .id = params$group)
 
   # Plot as interactive table
-  DT::datatable(resbind_overrep_custom, class = 'cell-border stripe', 
-                extensions = 'Buttons', rownames = FALSE, 
-                options = list(
-                  dom = 'Bfrtip',
-                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                  pageLength = 5,
-                  columnDefs = list(
-                    list(targets = c(8,10),
-                         render = JS(
-                           "function(data, type, row, meta) {",
-                           "return type === 'display' && data.length > 6 ?",
-                           "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                           "}")))),
-                filter = "top")
+  plotFeaDT(resbind_overrep_custom, pageLength = 5, targets = c(8,10))
+
 }
 ```
 
@@ -606,20 +582,8 @@ resbind_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
 # bind into single results table
 resbind_gsea_cells <- bind_rows(resbind_gsea_cells, .id = params$group)
 
-DT::datatable(resbind_gsea_cells, class = 'cell-border stripe',
-              extensions = 'Buttons', rownames = FALSE,
-              options = list(
-                dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                pageLength = 5,
-                columnDefs = list(
-                  list(targets = c(11,12),
-                       render = JS(
-                         "function(data, type, row, meta) {",
-                         "return type === 'display' && data.length > 6 ?",
-                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                         "}")))),
-              filter = "top")
+plotFeaDT(resbind_gsea_cells, pageLength = 5, targets = c(11, 12))
+
 ```
 
 Results for Hallmark:
@@ -636,20 +600,8 @@ resbind_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 
 # bind into single results table
 resbind_gsea_hallmarks <- bind_rows(resbind_gsea_hallmarks, .id = params$group)
 
-DT::datatable(resbind_gsea_hallmarks, class = 'cell-border stripe',
-              extensions = 'Buttons', rownames = FALSE,
-              options = list(
-                dom = 'Bfrtip',
-                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                pageLength = 5,
-                columnDefs = list(
-                  list(targets = c(11,12),
-                       render = JS(
-                         "function(data, type, row, meta) {",
-                         "return type === 'display' && data.length > 6 ?",
-                         "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                         "}")))),
-              filter = "top")
+plotFeaDT(resbind_gsea_hallmarks, pageLength = 5, targets = c(11, 12))
+
 ```
 
 Results for Custom:
@@ -668,20 +620,8 @@ if (!is.null(custom_genesets_t2g)) {
   # bind into single results table
   resbind_gsea_custom <- bind_rows(resbind_gsea_custom, .id = params$group)
 
-  DT::datatable(resbind_gsea_custom, class = 'cell-border stripe',
-                extensions = 'Buttons', rownames = FALSE,
-                options = list(
-                  dom = 'Bfrtip',
-                  buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-                  pageLength = 5,
-                  columnDefs = list(
-                    list(targets = c(11,12),
-                         render = JS(
-                           "function(data, type, row, meta) {",
-                           "return type === 'display' && data.length > 6 ?",
-                           "'<span title=\"' + data + '\">' + data.substr(0, 6) + '...</span>' : data;",
-                           "}")))),
-                filter = "top")
+  plotFeaDT(resbind_gsea_custom, pageLength = 5, targets = c(11, 12))
+
   }
 ```
 
@@ -749,6 +689,10 @@ For Overrep C8:
 #| message: false
 #| warning: false
 #| results: hide
+
+# just need to add a for loop here! Just as in the marker detection! 
+# Will need to keep wrap_plots as returns a list! Also need to NOT flatten the results table
+# Not flattening will mean will stay in a interesting list heirarchy so we can access it 
 
 barplots <- lapply(names(res_overrep_cells), function(x, res_overrep_cells){ 
 
@@ -1076,8 +1020,8 @@ saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 par <- list(
 
 list(
-Parameter = "res_anno",
-Value = "[res_anno](../../output/09-fea-annotation.rds)",
+File = "res_anno",
+Link = "[res_anno](../../output/09-fea-annotation.rds)",
 Description = "FEA Results table of combined over-representation and GSEA results for a supplied results table."
 )
 )

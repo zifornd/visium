@@ -234,13 +234,13 @@ write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 par <- list(
 
 list(
-Parameter = "seurat",
-Value = "[seurat](../../output/01-data-loading.rds)",
+File = "seurat",
+Link = "[seurat](../../output/01-data-loading.rds)",
 Description = "Seurat object saved as rds object."
 ),
 list(
-Parameter = "metrics",
-Value = "[metrics](../../output/metrics.csv)",
+File = "metrics",
+Link = "[metrics](../../output/metrics.csv)",
 Description = "10x QC metrics file saved for all samples as csv."
 )
 

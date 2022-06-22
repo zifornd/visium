@@ -533,8 +533,8 @@ saveRDS(seurat, file = "output/02-quality-control.rds")
 par <- list(
 
 list(
-Parameter = "seurat",
-Value = "[seurat](../../output/02-quality-control.rds)",
+File = "seurat",
+Link = "[seurat](../../output/02-quality-control.rds)",
 Description = "Seurat object saved as rds object filtered for common QC values."
 )
 

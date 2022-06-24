@@ -240,6 +240,9 @@ names(seuratprep) <- samples
 Next we get the top spatially variable features ready for plotting.
 
 ```{r}
+#| message: false
+#| warning: false
+
 top.features <- lapply(seuratprep, SpatiallyVariableFeatures, 
                        selection.method = params$spatial.method, assay = "SCT")
 ```
@@ -322,6 +325,8 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features,
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features.
+#| results: "asis"
+#| echo: false
 
 sample_names <- names(seuratprep)
 
@@ -351,6 +356,8 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features,
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features with legend.
+#| results: "asis"
+#| echo: false
 
 sample_names <- names(seuratprep)
 

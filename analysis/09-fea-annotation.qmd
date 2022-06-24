@@ -30,7 +30,7 @@ params:
   plot_height:
     - 10
   combined_table:
-    - TRUE
+    - FALSE
 ---
 
 # Setup
@@ -126,10 +126,9 @@ You can supply these paramaters upon render.
 The paramater `split.res` is important as it will split the results table further prior to running fea. This may be useful if you have run marker detection on clusters and have a results table which contains the results for many different clusters. In this case if `split.res` is set to `TRUE`, the table will be split into separate clusters based on the `param$group` name and the workflow will be run separately on each independent cluster.
 :::
 
-<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
+<button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>
 
 <div id="BlockNamedep" class="collapse">  
-
 ### Dependencies
 
 ```{r, setup, include=TRUE}
@@ -190,7 +189,6 @@ source("scripts/createDT.R")
 ::: callout-note
 Much of the visium quarto workflow include Rscripts which are not part of a external library but are sourced at the start of each workflow. Each script is stored within `scripts/`. Please see the start of each .qmd file for the details of which scripts have been sourced.
 :::
-
 </div>
 
 # Processing
@@ -203,6 +201,8 @@ In theory this module could be used to process other results tables with genes a
 
 ```{r}
 res <- readRDS(paste0("output/", params$res))
+res$FUBAR <- res[["Visium_FFPE_Mouse_Brain"]]
+res$FUBAR$Sample <- rep("FUBAR", nrow(res$FUBAR))
 ```
 
 ### Reading in gene sets
@@ -304,6 +304,10 @@ Below we perform the hypergeometric sample wise and per `r params$group` if the 
 For C8:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom, 
                             term2gene = cells_genesets_t2g, 
                             species = org_species,
@@ -316,6 +320,10 @@ obj_overrep_cells <- lapply(vector_res_overrep, wrap_cp_custom,
 For Hallmark:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, 
                                 term2gene = hallmarks_genesets_t2g,
                                 species = org_species, 
@@ -328,6 +336,10 @@ obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom,
 For Custom:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 if (!is.null(custom_genesets_t2g)) {
   
   obj_overrep_hallmarks <- lapply(vector_res_overrep, wrap_cp_custom, 
@@ -376,6 +388,15 @@ if (!is.null(custom_genesets_t2g)) {
 #### Interactive results
 
 We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
+
+```{r}
+#| include: false
+#| echo: false
+#| results: hide
+
+DT::datatable(matrix())
+options(DT.warn.size = FALSE)
+```
 
 Results for C8:
 
@@ -504,8 +525,12 @@ if (!is.null(custom_genesets_t2g)) {
 
 res_overrep_cells_collapse <- unlist(res_overrep_cells, recursive = FALSE)
 res_overrep_hallmarks_collapse <- unlist(res_overrep_hallmarks, recursive = FALSE)
-res_overrep_custom_collapse <- unlist(res_overrep_custom, recursive = FALSE)
 
+if (!is.null(custom_genesets_t2g)) {
+
+  res_overrep_custom_collapse <- unlist(res_overrep_custom, recursive = FALSE)
+
+}
 ```
 
 #### Save out as CSV
@@ -569,6 +594,10 @@ Below we perform GSEA sample wise and per `r params$group` if the table is split
 For C8:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom, 
                          term2gene = cells_genesets_t2g,
                          species = org_species,
@@ -581,6 +610,10 @@ obj_gsea_cells <- lapply(vector_res_gsea, wrap_cp_custom,
 For Hallmark:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom, 
                              term2gene = hallmarks_genesets_t2g,
                              species = org_species,
@@ -593,6 +626,10 @@ obj_gsea_hallmarks <- lapply(vector_res_gsea, wrap_cp_custom,
 For Custom:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 if (!is.null(custom_genesets_t2g)) {
   
   obj_gsea_custom <- lapply(vector_res_gsea, wrap_cp_custom, 
@@ -610,6 +647,10 @@ Finally we parse the output of `GSEA` so we can use it for downstream plotting a
 For C8:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 res_gsea_cells <- lapply(obj_gsea_cells, wrap_parse_cp_obj,  
                          species = org_species,
                          type = "gsea",
@@ -619,6 +660,10 @@ res_gsea_cells <- lapply(obj_gsea_cells, wrap_parse_cp_obj,
 For Hallmark:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
                              species = org_species,
                              type = "gsea",
@@ -628,6 +673,10 @@ res_gsea_hallmarks <- lapply(obj_gsea_hallmarks, wrap_parse_cp_obj,
 For Custom:
 
 ```{r}
+#| message: false
+#| warning: false
+#| results: hide
+
 if (!is.null(custom_genesets_t2g)) {
   
   res_gsea_custom <- lapply(obj_gsea_custom, wrap_parse_cp_obj,
@@ -767,8 +816,12 @@ if (!is.null(custom_genesets_t2g)) {
 
 res_gsea_cells_collapse <- unlist(res_gsea_cells, recursive = FALSE)
 res_gsea_hallmarks_collapse <- unlist(res_gsea_hallmarks, recursive = FALSE)
-res_gsea_custom_collapse <- unlist(res_gsea_custom, recursive = FALSE)
 
+if (!is.null(custom_genesets_t2g)) {
+
+  res_gsea_custom_collapse <- unlist(res_gsea_custom, recursive = FALSE)
+
+}
 ```
 
 #### Save out as CSV
@@ -831,8 +884,7 @@ Next we will plot some of the output of the enrichment analyses. We will only pl
 
 For Overrep C8:
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -864,21 +916,18 @@ for (n in sample_names) {
 
   cat("####", n, "\n")
 
-  wrap_plots(barplots, ncol = 2)
+  print(wrap_plots(barplots, ncol = 2))
 
   cat('\n\n')
 
 
 }
 ```
-
 :::
-
 
 For Overrep Hallmark:
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -906,19 +955,17 @@ for (n in sample_names) {
 
   cat("####", n, "\n")
 
-  wrap_plots(barplots, ncol = 2)
+  print(wrap_plots(barplots, ncol = 2))
 
   cat('\n\n')
 
 }
 ```
-
 :::
 
 For Overrep Custom:
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -948,7 +995,7 @@ if (!is.null(custom_genesets_t2g)) {
   
     cat("####", n, "\n")
 
-    wrap_plots(barplots, ncol = 2)
+    print(wrap_plots(barplots, ncol = 2))
 
     cat('\n\n')
 
@@ -956,13 +1003,11 @@ if (!is.null(custom_genesets_t2g)) {
   
 }
 ```
-
 :::
 
 For GSEA C8
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -990,20 +1035,18 @@ for (n in sample_names) {
 
   cat("####", n, "\n")
 
-  wrap_plots(barplots, ncol = 2)
+  print(wrap_plots(barplots, ncol = 2))
 
   cat('\n\n')
 }
 
 
 ```
-
 :::
 
 For GSEA Hallmark
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -1031,20 +1074,18 @@ for (n in sample_names) {
 
   cat("####", n, "\n")
 
-  wrap_plots(barplots, ncol = 2)
+  print(wrap_plots(barplots, ncol = 2))
 
   cat('\n\n')
 
 }
 
 ```
-
 :::
 
 For GSEA Custom
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -1074,13 +1115,12 @@ if (!is.null(custom_genesets_t2g)) {
 
     cat("####", n, "\n")
 
-    wrap_plots(barplots, ncol = 2)
+    print(wrap_plots(barplots, ncol = 2))
 
     cat('\n\n')
   }
 }
 ```
-
 :::
 
 #### GSEA enrichment
@@ -1089,8 +1129,7 @@ Finally we will plot the top enrichment plot per results table or group if the t
 
 For GSEA C8
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -1116,19 +1155,17 @@ for (n in sample_names) {
 
     cat("####", n, "\n")
 
-    wrap_plots(enrichplots, ncol = 2)
+    print(wrap_plots(enrichplots, ncol = 2))
 
     cat('\n\n')
 
 }
 ```
-
 :::
 
 For GSEA Hallmark
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -1153,19 +1190,17 @@ for (n in sample_names) {
 
     cat("####", n, "\n")
 
-    wrap_plots(enrichplots, ncol = 2)
+    print(wrap_plots(enrichplots, ncol = 2))
 
     cat('\n\n')
 
 }
 ```
-
 :::
 
 For GSEA Custom
 
-::: {.panel-tabset}
-
+::: panel-tabset
 ```{r}
 #| message: false
 #| warning: false
@@ -1192,14 +1227,13 @@ if (!is.null(custom_genesets_t2g)) {
   
     cat("####", n, "\n")
 
-    wrap_plots(enrichplots, ncol = 2)
+    print(wrap_plots(enrichplots, ncol = 2))
 
     cat('\n\n')
   }
 
 }
 ```
-
 :::
 
 # Output
@@ -1266,5 +1300,4 @@ Print session information:
 #| code-fold: false
 sessionInfo()
 ```
-
 </div>

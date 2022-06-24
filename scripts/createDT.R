@@ -60,7 +60,7 @@ createDTFea <- function(sample_name, res, group,
   }
 
   # get dt table object
-  dt <- plotFeaDT(resbind, pageLength = 5, targets = c(11, 12))
+  dt <- plotFeaDT(resbind, pageLength = 5, targets = targets)
 
   # get html tags from html tools if required for multiple dt tables.
   if (html) {

@@ -6,7 +6,7 @@ params:
   min_cells:
     - 2
   example:
-    - "Foxg1"
+    - "ACTA2"
 ---
 
 ## Setup

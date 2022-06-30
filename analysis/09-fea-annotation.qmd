@@ -4,7 +4,7 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Mus musculus" # Mus musculus or Homo sapiens
+    - "Homo sapiens" # Mus musculus or Homo sapiens
   feature:
     - "gene"
   split.res:
@@ -18,13 +18,13 @@ params:
   padj.col.name:
     - "p_val_adj"
   pval.adj.thres.filter:
-    - 0.05
+    - 0.1
   lfc.thres.filter:
     - 0.5
   pval.adj.thres.overrep:
-    - 0.05
+    - 0.1
   pval.adj.thres.gsea:
-    - 0.05
+    - 0.1
   plot_width:
     - 10
   plot_height:
@@ -201,8 +201,6 @@ In theory this module could be used to process other results tables with genes a
 
 ```{r}
 res <- readRDS(paste0("output/", params$res))
-res$FUBAR <- res[["Visium_FFPE_Mouse_Brain"]]
-res$FUBAR$Sample <- rep("FUBAR", nrow(res$FUBAR))
 ```
 
 ### Reading in gene sets

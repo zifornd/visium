@@ -53,7 +53,7 @@ createDTFea <- function(sample_name, res, group,
   } else {
 
     # remove empty elements for clusters without any significant results
-    resbind <- res[sapply(res[[sample_name]], nrow) > 0]
+    resbind <- res[[sample_name]][sapply(res[[sample_name]], nrow) > 0]
 
     # bind into single results table
     resbind <- dplyr::bind_rows(resbind, .id = group)

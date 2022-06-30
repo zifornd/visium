@@ -194,7 +194,7 @@ if (class(seurat) == "Seurat") {
     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
     seuratprep <- seuratList
 
-    seuratprep$FUBAR <- seuratprep[[unique(seurat@meta.data$Sample)]]
+    # seuratprep$FUBAR <- seuratprep[[unique(seurat@meta.data$Sample)]]
   }
 
 } else {

@@ -2,7 +2,7 @@
 title: "Quality control"
 params:
     protocol:
-      - "FFPE" # Fresh frozen as FF, or FFPE
+      - "FF" # Fresh frozen as FF, or FFPE
 ---
 
 ## Setup

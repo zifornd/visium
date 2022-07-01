@@ -122,6 +122,7 @@ Source user-defined functions:
 ```{r}
 source("scripts/plotpHeatmap.R")
 source("scripts/findMarkers.R")
+source("scripts/createDT.R")
 ```
 
 ::: callout-note
@@ -193,6 +194,7 @@ if (class(seurat) == "Seurat") {
     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
     seuratprep <- seuratList
 
+    # seuratprep$FUBAR <- seuratprep[[unique(seurat@meta.data$Sample)]]
   }
 
 } else {
@@ -238,6 +240,9 @@ names(seuratprep) <- samples
 Next we get the top spatially variable features ready for plotting.
 
 ```{r}
+#| message: false
+#| warning: false
+
 top.features <- lapply(seuratprep, SpatiallyVariableFeatures, 
                        selection.method = params$spatial.method, assay = "SCT")
 ```
@@ -258,18 +263,33 @@ spatialPlots <- lapply(names(seuratprep), function(x, seuratprep, top.features, 
     labs(title = x)
   
   }, seuratprep = seuratprep, top.features = top.features, top = params$top.features)
+
+names(spatialPlots) <- names(seuratprep)
 ```
 
-@fig-spatial-var-top
+::: {.panel-tabset}
 
 ```{r}
 #| fig.width: !expr (params$plot_width + 10)
 #| fig.height: !expr (params$plot_height + 13)
 #| fig-cap: Spatial plot top spatially variable features.
-#| label: fig-spatial-var-top
+#| results: "asis"
+#| echo: false
 
-wrap_plots(spatialPlots)
+sample_names <- names(seuratprep)
+
+for (n in sample_names) {
+
+  cat("####", n, "\n")
+
+  print(spatialPlots[[n]])
+
+  cat('\n\n')
+}
+
 ```
+
+:::
 
 ## ScaleData
 
@@ -299,16 +319,29 @@ doheatmaps <- lapply(seuratprep, plotHeatmap, featureList = top.features,
                      type = "DoHeatmap", legend = FALSE)
 ```
 
-@fig-doheatmap-var-top
+::: {.panel-tabset}
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features.
-#| label: fig-doheatmap-var-top
+#| results: "asis"
+#| echo: false
 
-wrap_plots(doheatmaps)
+sample_names <- names(seuratprep)
+
+for (n in sample_names) {
+
+  cat("####", n, "\n")
+
+  print(doheatmaps[[n]])
+
+  cat('\n\n')
+}
+
 ```
+
+:::
 
 Below we plot these markers using DoHeatmap with a legend.
 
@@ -317,16 +350,29 @@ doheatmapslegend <- lapply(seuratprep, plotHeatmap, featureList = top.features,
                            type = "DoHeatmap", legend = TRUE)
 ```
 
-@fig-doheatmap-var-top-legend
+::: {.panel-tabset}
 
 ```{r}
 #| fig.width: !expr params$plot_width
 #| fig.height: !expr params$plot_height
 #| fig-cap: Heatmap top spatially variable features with legend.
-#| label: fig-doheatmap-var-top-legend
+#| results: "asis"
+#| echo: false
 
-wrap_plots(doheatmapslegend)
+sample_names <- names(seuratprep)
+
+for (n in sample_names) {
+
+  cat("####", n, "\n")
+
+  print(doheatmapslegend[[n]])
+
+  cat('\n\n')
+}
+
 ```
+
+:::
 
 # Output
 
@@ -348,8 +394,8 @@ saveRDS(seuratprep, file = "output/10-spatial-features.rds")
 par <- list(
 
 list(
-Parameter = "seuratprep",
-Value = "[seuratprep](../../output/10-spatial-features.rds)",
+File = "seuratprep",
+Link = "[seuratprep](../../output/10-spatial-features.rds)",
 Description = "Seurat object saved as rds object filtered, normalised, dimensionality reduced, clustered, with PrepSCTFindMarkers run if multiple SCT models present (merged or integrated seurat object), and ScaleData assay added - with Spatially variable features identified with FindSpatiallyVariableFeatures."
 )
 )

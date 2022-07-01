@@ -1,7 +1,7 @@
 ---
 title: "Reduced Dimensions"
 params: 
-  elbow_range: "1:20"
+  elbow_range: ["1:20", "1:20"]
   n.neighbors:
     - 30
   min.dist: 
@@ -703,8 +703,8 @@ saveRDS(seurat, file = "output/04-reduced-dimensions.rds")
 par <- list(
 
 list(
-Parameter = "seurat",
-Value = "[seurat](../../output/04-reduced-dimensions.rds)",
+File = "seurat",
+Link = "[seurat](../../output/04-reduced-dimensions.rds)",
 Description = "Seurat object saved as rds object filtered and normalised with dimensionality reduction completed."
 )
 

@@ -6,7 +6,7 @@ params:
   min_cells:
     - 2
   example:
-    - "Foxg1"
+    - "ACTA2"
 ---
 
 ## Setup
@@ -23,18 +23,18 @@ params:
 par <- list(
 
 list(
-Parameter = "nfeatures",
-Value = params$nfeatures,
+File = "nfeatures",
+Link = params$nfeatures,
 Description = "Number of highly variable gene features to use for normalisation."
 ),
 list(
-Parameter = "min_cells",
-Value = params$min_cells,
+File = "min_cells",
+Link = params$min_cells,
 Description = "Only use genes that have been detected in at least this many cells; default is 5."
 ),
 list(
-Parameter = "example",
-Value = params$example,
+File = "example",
+Link = params$example,
 Description = "Example gene to display model."
 )
 )

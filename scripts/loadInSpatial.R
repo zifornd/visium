@@ -244,3 +244,50 @@ mergeSamples <- function(seurat) {
   }
   return(seurat_merged)
 }
+
+#' Prepare seurat object prior to FindMarkers, or Spatial analysis
+#'
+#' @param seurat Single seurat object or list of seurat objects.
+#' @return List of seurat objects
+prepSeuratLoad <- function(seurat) {
+
+  if (class(seurat) == "Seurat") {
+
+    seuratList <- list(seurat)
+
+    # If merged or combined will have multiple samples in meta data
+    # so save into list as combined seurat
+
+    if (length(unique(seurat@meta.data$Sample)) > 1) {
+
+      names(seuratList) <- "Combined.Seurat"
+
+      # Run PrepSCTFindMarkers
+      seuratprep <- lapply(seuratList, Seurat::PrepSCTFindMarkers)
+
+    }
+
+    # If single sample save into list as sample name
+    if (length(unique(seurat@meta.data$Sample)) == 1) {
+
+      names(seuratList) <- unique(seurat@meta.data$Sample)
+
+      # If only a single un merged/combined experiment
+      # - do not need to run PrepSCTFindMarkers
+
+      seuratprep <- seuratList
+
+    }
+
+  } else {
+
+      # If only list of un merged/combined experiments
+      # - do not need to run PrepSCTFindMarkers
+
+      stopifnot(class(seurat) == "list")
+
+      seuratprep <- seurat
+  }
+
+  return(seuratprep)
+}

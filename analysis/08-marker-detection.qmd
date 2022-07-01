@@ -2,7 +2,7 @@
 title: "Marker gene detection"
 params:
   seurat:
-    - "07-integrate-samples.rds"
+    - "05-clustering.rds" # "07-integrate-samples.rds"
   regress:
     - FALSE
   min.pct:
@@ -215,7 +215,9 @@ if (class(seurat) == "Seurat") {
 } else {
 
     # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
-    seuratprep <- seuratList
+    stopifnot(class(seurat) == "list")
+    
+    seuratprep <- seurat
 }
 ```
 

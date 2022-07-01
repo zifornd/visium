@@ -12,13 +12,14 @@
 #' @param xdelim Choice of deliminator to wrap_label by for xaxis label - if set to NA will return original label
 #' @param ydelim Choice of deliminator to wrap_label by for yaxis label - if set to NA will return original label
 #' @param delim Choice of deliminator to wrap_label by for xaxis tick labels - if set to NA will return original label
+#' @param custom_lab custom labels of choice if want to overrite xaxis labels.
 #' @param angle Angle for x axis tick labels
 #' @param vjust Vertical adjustment for x axis tick labels
 #' @param clean_label function used to tidy up plot labels (trim_label shortens, wrap_label forces line breaks)
 #' @return ggplot object.
 violingg <- function(seurat, ylab, colour_by = NULL,
                      ylim = NULL, show_median = F, xlab = "Sample",
-                     clean = NULL, xdelim = NA, ydelim = NA, delim = NULL,
+                     clean = NULL, xdelim = NA, ydelim = NA, delim = NULL, custom_lab = NULL,
                      angle = 45, vjust = 1, clean_label = trim_label) {
 
   suppressMessages(library(ggbeeswarm))
@@ -80,9 +81,9 @@ violingg <- function(seurat, ylab, colour_by = NULL,
 
     plot_out <- plot_out +
                 labs(fill = colour_by,
-                     x = clean_label(xlab, width = clean, delim = xdelim),
+                     x = clean_label(xlab, width = clean, delim = xdelim, custom_lab = custom_lab),
                      y = clean_label(ylab, width = clean, delim = ydelim)) +
-                scale_x_discrete(labels = function(x) clean_label(x, width = as.numeric(clean), delim = delim))
+                scale_x_discrete(labels = function(x) clean_label(x, width = as.numeric(clean), delim = delim, custom_lab = custom_lab))
 
   }
 
@@ -101,13 +102,14 @@ violingg <- function(seurat, ylab, colour_by = NULL,
 #' @param xdelim Choice of deliminator to wrap_label by for xaxis label - if set to NA will return original label
 #' @param ydelim Choice of deliminator to wrap_label by for yaxis label - if set to NA will return original label
 #' @param delim Choice of deliminator to wrap_label by for xaxis tick labels - if set to NA will return original label
+#' @param custom_lab custom labels of choice if want to overrite xaxis labels.
 #' @param angle Angle for x axis tick labels
 #' @param vjust Vertical adjustment for x axis tick labels
 #' @param clean_label function used to tidy up plot labels (trim_label shortens, wrap_label forces line breaks)
 #' @return ggplot object.
 barplotgg <- function(seurat, ylab, colour_by = NULL,
                       xlab = "Sample", ylim = NULL, clean = NULL,
-                      xdelim = NULL, ydelim = NULL, delim = NULL,
+                      xdelim = NULL, ydelim = NULL, delim = NULL, custom_lab = NULL,
                       angle = 45, vjust = 1, clean_label = trim_label) {
 
   df_to_plot <- data.frame(X = seurat[[xlab]], Y = seurat[[ylab]])
@@ -150,9 +152,9 @@ barplotgg <- function(seurat, ylab, colour_by = NULL,
 
   plot_out <- plot_out +
               labs(fill = colour_by,
-                   x = clean_label(xlab, width = clean, delim = xdelim),
+                   x = clean_label(xlab, width = clean, delim = xdelim, custom_lab = custom_lab),
                    y = clean_label(ylab, width = clean, delim = ydelim)) +
-              scale_x_discrete(labels = function(x) clean_label(x, width = clean, delim = delim))
+              scale_x_discrete(labels = function(x) clean_label(x, width = clean, delim = delim, custom_lab = custom_lab))
 
   }
 
@@ -160,23 +162,36 @@ return(plot_out)
 
 }
 
+#' Try and deal with long labels by returning custom labels
+#'
+#' @param lab string label
+#' @param custom_lab named vector of custom labels of choice (names are based on original labels)
+#' @return custom labels of choice
+custom_label <- function(lab, custom_lab = NULL, ...) {
+
+  if (!is.null(custom_lab)) {
+
+    stopifnot((lab %in% names(custom_lab)))
+
+    new_labs <- custom_lab[[lab]]
+
+    return(new_labs)
+
+  } else {
+
+    return(lab)
+
+  }
+
+}
+
 #' Try and deal with long labels by trimming them
-#' Returns original where delim = NA
 #'
 #' @param lab string label
 #' @param width Maximum width for a label before being trimmed and "..." appended
 #' @param delim If NA then original label will be returned
 #' @return trimmed label.
-trim_label <- function(lab, width = 20, delim = NULL) {
-
-  if (!is.null(delim)) {
-
-    if (is.na(delim)) {
-
-      return(lab)
-
-    }
-  }
+trim_label <- function(lab, width = 20, ...) {
 
   if (nchar(lab) > width) {
 
@@ -194,7 +209,7 @@ trim_label <- function(lab, width = 20, delim = NULL) {
 #' @param width Maximum width for a label before being wrapped
 #' @param delim Deliminator used to split text - If NA then original label will be returned
 #' @return wrapped label.
-wrap_label <- function(lab, width = 20, delim = NULL) {
+wrap_label <- function(lab, width = 20, delim = NULL, ...) {
 
   library(stringr)
 

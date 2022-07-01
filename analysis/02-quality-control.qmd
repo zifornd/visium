@@ -3,6 +3,7 @@ title: "Quality control"
 params:
     protocol:
       - "FF" # Fresh frozen as FF, or FFPE
+    custom_sample_names: ["V1_Breast_Ca_1", "V1_Breast_Ca_2"]
 ---
 
 ## Setup
@@ -22,6 +23,11 @@ list(
 Parameter = "protocol",
 Value = params$protocol,
 Description = "Name of the 10x Visium protocol used - either FFPE or FF (Fresh Frozen)."
+),
+list(
+Parameter = "custom_sample_names",
+Value = params$custom_sample_names,
+Description = "Custom names of samples for plotting."
 )
 )
 
@@ -118,12 +124,27 @@ Ideally, we are looking for well enriched samples with good number of overall UM
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
+custom_names <- meta
+
+if (length(params$custom_sample_names) > 0) {
+
+  custom_names <- c(params$custom_sample_names, custom_names)
+
+} else {
+
+  custom_names <- c(metrics$Sample.ID, custom_names)
+
+}
+
+names(custom_names) <- c(metrics$Sample.ID, meta)
+
+
 vlns <- lapply(meta, function(x, combinedQC, clean_label) {
 
   violingg(combinedQC, ylab = "nCount_Spatial", colour_by = x, show_median = T, 
-           clean = 15, delim = "_", clean_label = clean_label)
+           clean = 15, delim = "_", custom_lab = custom_lab, clean_label = clean_label)
 
-  }, combinedQC = combinedQC, clean_label = trim_label)
+  }, combinedQC = combinedQC, clean_label = custom_label, custom_lab = custom_names)
 ```
 
 @fig-ncountsviolin Plot combined nCounts Violin plots:
@@ -177,12 +198,29 @@ Ideally we would be able to spend lots of money on sequencing to be able to samp
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
-vlns <- lapply(meta, function(x, combinedQC, clean_label) {
+custom_names <- meta
+
+if (length(params$custom_sample_names) > 0) {
+
+  custom_names <- c(params$custom_sample_names, custom_names)
+
+} else {
+
+  custom_names <- c(metrics$Sample.ID, custom_names)
+
+}
+
+names(custom_names) <- c(metrics$Sample.ID, meta)
+
+
+
+vlns <- lapply(meta, function(x, combinedQC, clean_label, custom_lab) {
 
   violingg(combinedQC, ylab = "nFeature_Spatial", colour_by = x, 
-           show_median = T, clean = 15, delim = "_", clean_label = clean_label)
+           show_median = T, clean = 15, delim = "_", custom_lab = custom_lab, 
+           clean_label = clean_label)
 
-  }, combinedQC = combinedQC, clean_label = trim_label)
+  }, combinedQC = combinedQC, clean_label = custom_label, custom_lab = custom_names)
 ```
 
 @fig-nfeaturesviolin Plot combined nFeatures plots:
@@ -251,17 +289,31 @@ if (params$protocol == "FF"){
 
   metricscols <- c(metricscols, "Q30.Bases.in.RNA.Read")
 
+}
+
+custom_names <- c("Number.of.Reads", metricscols)
+
+if (length(params$custom_sample_names) > 0) {
+
+  custom_names <- c(params$custom_sample_names, custom_names)
+
+} else {
+
+  custom_names <- c(metrics$Sample.ID, custom_names)
 
 }
 
+names(custom_names) <- c(metrics$Sample.ID, metricscols)
 
-bars <- lapply(c("Number.of.Reads", metricscols), function(x, metrics, clean_label) {
+
+
+bars <- lapply(c("Number.of.Reads", metricscols), function(x, metrics, clean_label, custom_lab) {
   
   barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID", 
-            clean = 11, delim = "_", xdelim = ".", ydelim = ".", 
+            clean = 11, delim = "_", xdelim = ".", ydelim = ".", custom_lab = custom_lab, 
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = trim_label)
+  }, metrics = metrics, clean_label = custom_label, custom_lab = custom_names)
 ```
 
 @fig-qcseq Plot Sequencing QC Barplot
@@ -321,6 +373,10 @@ if (params$protocol == "FFPE"){
                    "Reads.Mapped.Confidently.to.Probe.Set", 
                    "Reads.Mapped.Confidently.to.the.Filtered.Probe.Set")
 
+  custom_names <- c("Probe.Set", 
+                   "Confidently.Probe.Set", 
+                   "Confidently.Filtered.Probe.Set")
+
 } 
 
 if (params$protocol == "FF"){
@@ -334,16 +390,35 @@ if (params$protocol == "FF"){
                    "Reads.Mapped.Confidently.to.Transcriptome", 
                    "Reads.Mapped.Antisense.to.Gene")
 
+  custom_names <- c("Mapped.Genome", 
+                   "Mapped.Confidently.Genome", 
+                   "Mapped.Confidently.Intergenic", 
+                   "Mapped.Confidently.Intronic", 
+                   "Mapped.Confidently.Exonic", 
+                   "Mapped.Confidently.Transcriptome", 
+                   "Mapped.Antisense.to.Gene")
+
 }
 
+if (length(params$custom_sample_names) > 0) {
 
-bars <- lapply(metricscols, function(x, metrics, clean_label) {
+  custom_names <- c(params$custom_sample_names, custom_names)
+
+} else {
+
+  custom_names <- c(metrics$Sample.ID, custom_names)
+
+}
+
+names(custom_names) <- c(metrics$Sample.ID, metricscols)
+
+bars <- lapply(metricscols, function(x, metrics, clean_label, custom_lab) {
   
   barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID", 
-            clean = 15, delim = "_", xdelim = ".", ydelim = ".", 
+            clean = 15, delim = "_", xdelim = ".", ydelim = ".", custom_lab = custom_lab,
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = trim_label)
+  }, metrics = metrics, clean_label = custom_label, custom_lab = custom_names) # was clean_label trim_label
 ```
 
 @fig-qcmapping Plot a barplot of all mapping based QC:
@@ -362,6 +437,15 @@ We can also summarise some of these values (those that are a %) into a violin pl
 ```{r}
 #| message: false
 #| warning: false
+clean_label <- c("Mapped.Genome", 
+                 "Mapped.Confidently.Genome", 
+                 "Mapped.Confidently.Intergenic", 
+                 "Mapped.Confidently.Intronic", 
+                 "Mapped.Confidently.Exonic", 
+                 "Mapped.Confidently.Transcriptome", 
+                 "Mapped.Antisense.to.Gene")
+
+names(custom_names) <- c(metricscols)
 
 map_metr <- metrics[,c("Sample.ID", metricscols)]
 
@@ -376,11 +460,12 @@ One violin zooms into the values of each QC measurement, the other enforces a 0 
 
 ```{r}
 v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
-               colour_by = "Sample.ID", show_median = T, clean = 20)
+               colour_by = "Sample.ID", show_median = T, clean = 20, 
+               custom_lab = custom_lab, clean_label = clean_label)
 
 v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, ylim = c(0,1), 
-               clean = 20)
+               clean = 20, custom_lab = custom_lab, clean_label = clean_label)
 ```
 
 @fig-qcmappingviol Summary Violin Plot
@@ -402,13 +487,27 @@ This set of QC values focuses on spot associated QC e.g. total number of spots u
 metricscols <- c("Number.of.Spots.Under.Tissue", "Mean.Reads.per.Spot", 
                  "Median.Genes.per.Spot")
 
-bars <- lapply(metricscols, function(x, metrics, clean_label) {
+custom_names <- metricscols
+
+if (length(params$custom_sample_names) > 0) {
+
+  custom_names <- c(params$custom_sample_names, custom_names)
+
+} else {
+
+  custom_names <- c(metrics$Sample.ID, custom_names)
+
+}
+
+names(custom_names) <- c(metrics$Sample.ID, metricscols)
+
+bars <- lapply(metricscols, function(x, metrics, clean_label, custom_label) {
 
   barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID",
-            clean = 11, delim = "_", xdelim = ".", ydelim = ".",
+            clean = 11, delim = "_", xdelim = ".", ydelim = ".", custom_lab = custom_lab,
             clean_label = clean_label)
 
-  }, metrics = metrics, clean_label = trim_label)
+  }, metrics = metrics, clean_label = custom_label, custom_lab = custom_names)
 ```
 
 @fig-qcspot Plot a barplot of all spot based QC (as they are not on the same scale we cannot summarise them as violin plots).

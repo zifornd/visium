@@ -139,6 +139,7 @@ library(ggplotify)
 Source user-defined functions:
 
 ```{r}
+source("scripts/loadInSpatial.R")
 source("scripts/parseCloupe.R")
 source("scripts/plotpHeatmap.R")
 source("scripts/reduceDims.R")
@@ -195,37 +196,40 @@ Please see vignette for further details: https://satijalab.org/seurat/articles/s
 #| warning: false
 
 # If running on single seurat object or output from merged or integrated qmd
-if (class(seurat) == "Seurat") { 
 
-  seuratList <- list(seurat)
+seuratprep <- prepSeuratLoad(seurat)
 
-  # If merged or combined will have multiple samples in meta data so save into list as combined seurat
-  if (length(unique(seurat@meta.data$Sample)) > 1) {
+# if (class(seurat) == "Seurat") { 
+
+#   seuratList <- list(seurat)
+
+#   # If merged or combined will have multiple samples in meta data so save into list as combined seurat
+#   if (length(unique(seurat@meta.data$Sample)) > 1) {
       
-    names(seuratList) <- "Combined.Seurat"
+#     names(seuratList) <- "Combined.Seurat"
 
-    # Run PrepSCTFindMarkers
-    seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
+#     # Run PrepSCTFindMarkers
+#     seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
 
-  }
+#   }
 
-  # If single sample save into list as sample name
-  if (length(unique(seurat@meta.data$Sample)) == 1) {
+#   # If single sample save into list as sample name
+#   if (length(unique(seurat@meta.data$Sample)) == 1) {
 
-    names(seuratList) <- unique(seurat@meta.data$Sample)
+#     names(seuratList) <- unique(seurat@meta.data$Sample)
 
-    # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
-    seuratprep <- seuratList
+#     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
+#     seuratprep <- seuratList
 
-  }
+#   }
 
-} else {
+# } else {
 
-    # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
-    stopifnot(class(seurat) == "list")
+#     # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
+#     stopifnot(class(seurat) == "list")
     
-    seuratprep <- seurat
-}
+#     seuratprep <- seurat
+# }
 ```
 
 ## ScaleData

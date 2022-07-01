@@ -20,7 +20,7 @@ params:
   colours:
     - "RdBu"
   combined_table:
-    - TRUE
+    - FALSE
 ---
 
 # Setup

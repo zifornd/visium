@@ -46,6 +46,10 @@ You can supply these paramaters upon render.
 
 ### Dependencies
 
+```{r, setup, include=TRUE}
+# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
+```
+
 Restore project dependencies:
 
 ```{r}
@@ -124,22 +128,10 @@ Ideally, we are looking for well enriched samples with good number of overall UM
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
-custom_names <- meta
+custom_names <- get_custom_names(custom_names = c("nCount_Spatial", "nFeature_Spatial"), original_names = c("nCount_Spatial", "nFeature_Spatial"), 
+                                 custom_sample_names = params$custom_sample_names, sample_ids = metrics$Sample.ID) 
 
-if (length(params$custom_sample_names) > 0) {
-
-  custom_names <- c(params$custom_sample_names, custom_names)
-
-} else {
-
-  custom_names <- c(metrics$Sample.ID, custom_names)
-
-}
-
-names(custom_names) <- c(metrics$Sample.ID, meta)
-
-
-vlns <- lapply(meta, function(x, combinedQC, clean_label) {
+vlns <- lapply(meta, function(x, combinedQC, clean_label, custom_lab) {
 
   violingg(combinedQC, ylab = "nCount_Spatial", colour_by = x, show_median = T, 
            clean = 15, delim = "_", custom_lab = custom_lab, clean_label = clean_label)
@@ -198,21 +190,8 @@ Ideally we would be able to spend lots of money on sequencing to be able to samp
 ```{r}
 meta <- c("Sample", "Group", "Slide", "Area")
 
-custom_names <- meta
-
-if (length(params$custom_sample_names) > 0) {
-
-  custom_names <- c(params$custom_sample_names, custom_names)
-
-} else {
-
-  custom_names <- c(metrics$Sample.ID, custom_names)
-
-}
-
-names(custom_names) <- c(metrics$Sample.ID, meta)
-
-
+custom_names <- get_custom_names(custom_names = c("nCount_Spatial", "nFeature_Spatial"), original_names = c("nCount_Spatial", "nFeature_Spatial"), 
+                                 custom_sample_names = params$custom_sample_names, sample_ids = metrics$Sample.ID) 
 
 vlns <- lapply(meta, function(x, combinedQC, clean_label, custom_lab) {
 
@@ -278,34 +257,20 @@ metricscols <- c("Valid.Barcodes", "Valid.UMIs",
                  "Q30.Bases.in.Barcode", "Q30.Bases.in.UMI", 
                  "Sequencing.Saturation")
 
-if (params$protocol == "FFPE"){
+if (params$protocol == "FFPE") {
 
   metricscols <- c(metricscols, "Q30.Bases.in.Probe.Read")
 
 } 
 
-if (params$protocol == "FF"){
-
+if (params$protocol == "FF") {
 
   metricscols <- c(metricscols, "Q30.Bases.in.RNA.Read")
 
 }
 
-custom_names <- c("Number.of.Reads", metricscols)
-
-if (length(params$custom_sample_names) > 0) {
-
-  custom_names <- c(params$custom_sample_names, custom_names)
-
-} else {
-
-  custom_names <- c(metrics$Sample.ID, custom_names)
-
-}
-
-names(custom_names) <- c(metrics$Sample.ID, metricscols)
-
-
+custom_names <- get_custom_names(custom_names = c("Number.of.Reads", metricscols), original_names = c("Number.of.Reads", metricscols), 
+                                 custom_sample_names = params$custom_sample_names, sample_ids = metrics$Sample.ID) 
 
 bars <- lapply(c("Number.of.Reads", metricscols), function(x, metrics, clean_label, custom_lab) {
   
@@ -400,17 +365,8 @@ if (params$protocol == "FF"){
 
 }
 
-if (length(params$custom_sample_names) > 0) {
-
-  custom_names <- c(params$custom_sample_names, custom_names)
-
-} else {
-
-  custom_names <- c(metrics$Sample.ID, custom_names)
-
-}
-
-names(custom_names) <- c(metrics$Sample.ID, metricscols)
+custom_names <- get_custom_names(custom_names = custom_names, original_names = metricscols, 
+                                 custom_sample_names = params$custom_sample_names, sample_ids = metrics$Sample.ID) 
 
 bars <- lapply(metricscols, function(x, metrics, clean_label, custom_lab) {
   
@@ -437,7 +393,8 @@ We can also summarise some of these values (those that are a %) into a violin pl
 ```{r}
 #| message: false
 #| warning: false
-clean_label <- c("Mapped.Genome", 
+custom_names <- c("Percentage",
+                 "Mapped.Genome", 
                  "Mapped.Confidently.Genome", 
                  "Mapped.Confidently.Intergenic", 
                  "Mapped.Confidently.Intronic", 
@@ -445,7 +402,7 @@ clean_label <- c("Mapped.Genome",
                  "Mapped.Confidently.Transcriptome", 
                  "Mapped.Antisense.to.Gene")
 
-names(custom_names) <- c(metricscols)
+names(custom_names) <- c("Percentage", metricscols)
 
 map_metr <- metrics[,c("Sample.ID", metricscols)]
 
@@ -461,11 +418,11 @@ One violin zooms into the values of each QC measurement, the other enforces a 0 
 ```{r}
 v1 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, clean = 20, 
-               custom_lab = custom_lab, clean_label = clean_label)
+               custom_lab = custom_names, clean_label = custom_label)
 
 v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC", 
                colour_by = "Sample.ID", show_median = T, ylim = c(0,1), 
-               clean = 20, custom_lab = custom_lab, clean_label = clean_label)
+               clean = 20, custom_lab = custom_names, clean_label = custom_label)
 ```
 
 @fig-qcmappingviol Summary Violin Plot
@@ -487,24 +444,13 @@ This set of QC values focuses on spot associated QC e.g. total number of spots u
 metricscols <- c("Number.of.Spots.Under.Tissue", "Mean.Reads.per.Spot", 
                  "Median.Genes.per.Spot")
 
-custom_names <- metricscols
-
-if (length(params$custom_sample_names) > 0) {
-
-  custom_names <- c(params$custom_sample_names, custom_names)
-
-} else {
-
-  custom_names <- c(metrics$Sample.ID, custom_names)
-
-}
-
-names(custom_names) <- c(metrics$Sample.ID, metricscols)
+custom_names <- get_custom_names(custom_names = metricscols, original_names = metricscols, 
+                                 custom_sample_names = params$custom_sample_names, sample_ids = metrics$Sample.ID) 
 
 bars <- lapply(metricscols, function(x, metrics, clean_label, custom_label) {
 
   barplotgg(metrics, ylab = x, xlab = "Sample.ID", colour_by = "Sample.ID",
-            clean = 11, delim = "_", xdelim = ".", ydelim = ".", custom_lab = custom_lab,
+            clean = 11, delim = "_", xdelim = ".", ydelim = ".", custom_lab = custom_label,
             clean_label = clean_label)
 
   }, metrics = metrics, clean_label = custom_label, custom_lab = custom_names)

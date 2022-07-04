@@ -81,8 +81,8 @@ violingg <- function(seurat, ylab, colour_by = NULL,
 
     plot_out <- plot_out +
                 labs(fill = colour_by,
-                     x = clean_label(xlab, width = clean, delim = xdelim, custom_lab = custom_lab),
-                     y = clean_label(ylab, width = clean, delim = ydelim)) +
+                     x = clean_label(xlab, width = clean, delim = xdelim),
+                     y = clean_label(ylab, width = clean, delim = ydelim, custom_lab = custom_lab)) +
                 scale_x_discrete(labels = function(x) clean_label(x, width = as.numeric(clean), delim = delim, custom_lab = custom_lab))
 
   }
@@ -152,8 +152,8 @@ barplotgg <- function(seurat, ylab, colour_by = NULL,
 
   plot_out <- plot_out +
               labs(fill = colour_by,
-                   x = clean_label(xlab, width = clean, delim = xdelim, custom_lab = custom_lab),
-                   y = clean_label(ylab, width = clean, delim = ydelim)) +
+                   x = clean_label(xlab, width = clean, delim = xdelim),
+                   y = clean_label(ylab, width = clean, delim = ydelim, custom_lab = custom_lab)) +
               scale_x_discrete(labels = function(x) clean_label(x, width = clean, delim = delim, custom_lab = custom_lab))
 
   }
@@ -173,7 +173,7 @@ custom_label <- function(lab, custom_lab = NULL, ...) {
 
     stopifnot((lab %in% names(custom_lab)))
 
-    new_labs <- custom_lab[[lab]]
+    new_labs <- as.character(custom_lab[lab])
 
     return(new_labs)
 
@@ -184,6 +184,36 @@ custom_label <- function(lab, custom_lab = NULL, ...) {
   }
 
 }
+
+#' Prepares custom label character vector prior to plotting.
+#'
+#' @param custom_names character vector names of plot y axis/ x axis ticks to change to.
+#' @param original_names character vector original names of plot y axis/ x axis ticks. 
+#' @param custom_sample_names character vector of custom sample names.
+#' @param sample_ids character vector of original sample ids.
+#' @return named character vector of custom names.
+get_custom_names <- function(custom_names, original_names,
+                             custom_sample_names = NULL, sample_ids = NULL) {
+
+  # if custom sample names supplied - add these to the named vector
+  # else supply original sample ids.
+  if (!is.null(custom_sample_names)) {
+
+    custom_names_samp <- c(custom_sample_names, custom_names)
+
+  } else {
+
+    custom_names_samp <- c(sample_ids, custom_names)
+
+  }
+
+  # name the vector as original names (original sample ids plus original labels)
+  names(custom_names_samp) <- c(sample_ids, original_names)
+
+  return(custom_names_samp)
+
+}
+
 
 #' Try and deal with long labels by trimming them
 #'

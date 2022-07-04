@@ -3,6 +3,7 @@ title: "Merge samples"
 params:
   elbow_range: 
     - "1:20"
+  elbow_plot: [10, 30]
   cluster:
     - "res.0.3"
   cluster.plot: ["res.0.2", "res.0.3"]
@@ -35,6 +36,11 @@ list(
 Parameter = "elbow_range",
 Value = params$elbow_range,
 Description = "Number of PCs used for reduced dimension analysis."
+),
+list(
+Parameter = "elbow_plot",
+Value = params$elbow_plot,
+Description = "Plot params for elbow plot - upper and lower bounds"
 ),
 list(
 Parameter = "cluster",
@@ -260,7 +266,7 @@ Below we plot the variance of the top components as an elbow plot.
 #| fig-cap: Elbow plot Merged.
 #| label: fig-elbow
 
-elbow(seurat, vline1 = 10, vline2 = 20, title = "Elbow-Merged")
+elbow(seurat, vline1 = params$elbow_plot[[1]], vline2 = params$elbow_plot[[2]], title = "Elbow-Merged")
 ```
 
 ::: callout-note

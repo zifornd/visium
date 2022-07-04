@@ -2,7 +2,6 @@
 title: "Clustering"
 params:
   cluster: "res.0.3"
-  cluster.plot: ["res.0.2", "res.0.3"]
   plot_width:
     - 8
   plot_height:
@@ -26,11 +25,6 @@ list(
 Parameter = "cluster",
 Value = params$cluster,
 Description = "Chosen res params for clustering."
-),
-list(
-Parameter = "cluster.plot",
-Value = params$cluster.plot,
-Description = "Chosen res params to complete spatial plot downstream."
 )
 )
 
@@ -499,48 +493,106 @@ wrap_plots(silhouette_plots_5, ncol = 2)
 
 Another important approach for clustering in the context of spatial transcriptomics is to see how this clustering looks when mapped onto our tissue images. By doing this we can see if our clusters relate to biology and whether a given parameter introduces noise (introduces a randomly distributed cluster) or finds a anatomically prescribed region of interest.
 
-Below we will plot two resolutions of interest across our H+E images.
-
-::: callout-note
-Please take the two resolution parameters of interest and define them as params for plotting as spatial dimension plots.
-:::
+Below we will plot across resolutions for our H+E images.
 
 SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some reason. Can get around this by setting identity of object prior to plotting. See plotSpatialCluster for more details.
 
 ```{r}
-spatial_dim1 <- lapply(seurat, plotSpatialCluster, 
-                       group = params$cluster.plot[[1]])
+#| message: false
+#| warning: false
 
-spatial_dim2 <- lapply(seurat, plotSpatialCluster, 
-                       group = params$cluster.plot[[2]])
+# spatial_dim1 <- lapply(seurat, plotSpatialCluster, 
+#                        group = params$cluster.plot[[1]])
+
+# spatial_dim2 <- lapply(seurat, plotSpatialCluster, 
+#                        group = params$cluster.plot[[2]])
+
+sdplot1 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
+                              group = "res.0.2")
+
+sdplot2 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
+                              group = "res.0.3")
+
+sdplot3 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
+                              group = "res.0.5")
+
+sdplot4 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
+                              group = "res.0.6")
+
+sdplot5 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
+                              group = "res.0.8")
 ```
 
 ::: {.panel-tabset}
 
-## `r params$cluster.plot[[1]]`
+## res 0.2
 
-@fig-spatial-res1 Plot spatial plot clusters for `r params$cluster.plot[[1]]`
+@fig-spatial-res1 Plot spatial plot clusters for res 0.2
 
 ```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 3)
-#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[1]])
+#| fig.width: 25
+#| fig.height: 10
+#| fig-cap: !expr paste0("Spatial plot ", "res 0.2")
 #| label: fig-spatial-res1
 
-wrap_plots(spatial_dim1, ncol = 2)
+#wrap_plots(sdplot1)
+# wrap_plots(sdplot1, sdplot2,
+#            sdplot3, sdplot4,
+#            sdplot5, ncol = 2)
+wrap_plots(sdplot1, ncol = 2)
+
 ```
 
-## `r params$cluster.plot[[2]]`
+## res 0.3
 
-@fig-spatial-res2 Plot spatial plot clusters for `r params$cluster.plot[[2]]`
+@fig-spatial-res2 Plot spatial plot clusters for res 0.3
 
 ```{r}
-#| fig.width: !expr params$plot_width
-#| fig.height: !expr (params$plot_height + 3)
-#| fig-cap: !expr paste0("Spatial plot ", params$cluster.plot[[2]])
+#| fig.width: 25
+#| fig.height: 10
+#| fig-cap: !expr paste0("Spatial plot ", "res 0.3")
 #| label: fig-spatial-res2
 
-wrap_plots(spatial_dim2, ncol = 2)
+wrap_plots(sdplot2, ncol = 2)
+```
+
+## res 0.5
+
+@fig-spatial-res3 Plot spatial plot clusters for res 0.5
+
+```{r}
+#| fig.width: 25
+#| fig.height: 10
+#| fig-cap: !expr paste0("Spatial plot ", "res 0.5")
+#| label: fig-spatial-res3
+
+wrap_plots(sdplot3, ncol = 2)
+```
+
+## res 0.6
+
+@fig-spatial-res4 Plot spatial plot clusters for res 0.6
+
+```{r}
+#| fig.width: 25
+#| fig.height: 10
+#| fig-cap: !expr paste0("Spatial plot ", "res 0.6")
+#| label: fig-spatial-res4
+
+wrap_plots(sdplot4, ncol = 2)
+```
+
+## res 0.8
+
+@fig-spatial-res5 Plot spatial plot clusters for res 0.8
+
+```{r}
+#| fig.width: 25
+#| fig.height: 10
+#| fig-cap: !expr paste0("Spatial plot ", "res 0.8")
+#| label: fig-spatial-res5
+
+wrap_plots(sdplot5, ncol = 2)
 ```
 :::
 

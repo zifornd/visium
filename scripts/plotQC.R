@@ -199,8 +199,18 @@ get_custom_names <- function(custom_names, original_names,
   # else supply original sample ids.
   if (!is.null(custom_sample_names)) {
 
-    custom_names_samp <- c(custom_sample_names, custom_names)
+    if (length(custom_sample_names) > 0) {
 
+      custom_names_samp <- c(custom_sample_names, custom_names)
+
+    # if custom_sample_names is empty list
+    } else {
+
+      custom_names_samp <- c(sample_ids, custom_names)
+
+    }
+    
+  # if no custom sample names supplied
   } else {
 
     custom_names_samp <- c(sample_ids, custom_names)

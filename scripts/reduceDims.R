@@ -260,7 +260,7 @@ featurevln <- function(seurat, features = "nCount_Spatial",
 #' @param vline2 second vertical line to plot
 #' @param title Title of plot
 #' @return Seurat::ElbowPlot
-elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
+elbow <- function(seurat, ndims = 40, reduction = "pca", vline1 = 5,
                   vline2 = 10, title = NULL, title_size = 12) {
 
   if (is.null(title)) {

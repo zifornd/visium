@@ -135,7 +135,7 @@ tsne <- function(seurat, reduction = "pca", dims = NULL,
 #' @return Seurat::DimPlot
 dimplot <- function(seurat, reduction = "umap", dims = c(1, 2), label = TRUE,
                     group.by = "orig.ident", cols = NULL,
-                    groups = NULL, split.by = NULL, title = NULL) {
+                    groups = NULL, split.by = NULL, title = NULL, title_size = 12) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
 
@@ -157,7 +157,9 @@ dimplot <- function(seurat, reduction = "umap", dims = c(1, 2), label = TRUE,
                                dims = dims, label = label,
                                group.by =  group.by, cols = cols,
                                split.by = split.by) +
-               labs(title = title)
+               labs(title = title) +
+               theme(plot.title = element_text(size = title_size))
+
 
   return(seuratdim)
 }
@@ -173,7 +175,7 @@ dimplot <- function(seurat, reduction = "umap", dims = c(1, 2), label = TRUE,
 #' @return Seurat::FeaturePlot
 featureplot <- function(seurat, reduction = "umap", dims = c(1, 2),
                         label = TRUE, features = "nCount_Spatial",
-                        title = NULL) {
+                        title = NULL, title_size = 12) {
 
   print(paste0("Computing for: ", paste(names(seurat), collapse = "-")))
 
@@ -187,7 +189,8 @@ featureplot <- function(seurat, reduction = "umap", dims = c(1, 2),
                                        dims = dims, label = label,
                                        features =  features) +
                    scale_color_viridis(option = "magma") +
-                   labs(title = title, colour = features)
+                   labs(title = title, colour = features) +
+                   theme(plot.title = element_text(size = title_size))
 
   return(seuratfeature)
 }
@@ -258,7 +261,7 @@ featurevln <- function(seurat, features = "nCount_Spatial",
 #' @param title Title of plot
 #' @return Seurat::ElbowPlot
 elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
-                  vline2 = 10, title = NULL) {
+                  vline2 = 10, title = NULL, title_size = 12) {
 
   if (is.null(title)) {
 
@@ -273,7 +276,8 @@ elbow <- function(seurat, ndims = 20, reduction = "pca", vline1 = 5,
                           color = "red", size = 0.5) +
                geom_rect(aes(xmin = vline1, xmax = vline2, ymin = -Inf, ymax = Inf),
                          alpha = 0.002) +
-               labs(title = title)
+               labs(title = title) +
+               theme(plot.title = element_text(size = title_size))
 
   return(elbowplot)
 }

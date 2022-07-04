@@ -182,7 +182,7 @@ We can read in the `output/06-merge-samples.rds` or `output/07-integrate-samples
 Alternatively you can run this step of the workflow on un-merged or un-integrated samples following clustering (`output/05-clustering.rds` and `05-clustering.qmd`) **if** it is only a **single sample**.
 
 ::: callout-note
-Please take the seurat object of choice and define them as `params$seurat`.
+Please take the seurat object of choice and define them as `params$seurat` in @tbl-params.
 :::
 
 Read experiment data:
@@ -287,7 +287,7 @@ featureplot(atlas1, reduction = "pca", label = FALSE,
 Using the PCA plots we may also wish to add in variables to regress into the normalisation process following visualisation of the initial PCA. To do this we go back to the original cell atlas object and normalise again using variables to regress.
 
 ::: callout-note
-Please leave `params$vars.to.regress` as `FALSE` if you do not wish to regress out any additional variables during SCT normalisation.
+Please leave `params$vars.to.regress` as `FALSE` if you do not wish to regress out any additional variables during SCT normalisation. See @tbl-params for more details.
 :::
 
 @fig-pca-vars-regress
@@ -342,7 +342,7 @@ elbow(atlas, vline1 = 10, vline2 = 20, title = "Elbow-Atlas")
 ```
 
 ::: callout-note
-Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. We advice to take a larger PC number than the exact elbow visualised.
+Please take the number of PCs (e.g. `1:20`) you want as inferred from inspecting the elbow plot and rerun this workflow with the `elbow_range` parameter reset for your needs. See @tbl-params for details. We advise to take a larger PC number than the exact elbow visualised.
 :::
 
 Below we take number of PCs from visual inspection defined by the parameter elbow vector:

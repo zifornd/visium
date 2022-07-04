@@ -26,9 +26,17 @@ Visium is a quarto workflow to process and analyse 10x Visium Spatial transcript
 
 ## Installation
 
-Visium and all of its dependencies can be installed via the [mamba](https://github.com/mamba-org/mamba) package manager:
+Visium and all of its dependencies can be installed via the [renv](https://rstudio.github.io/renv/articles/renv.html) package manager. In each workflow `renv::restore()` will restore the project state from the `renv.lock` file. 
 
-1. Install Dependencies
+Please ensure you also have access to `make`.
+
+1. Install quarto
+
+   ```console
+   $ 
+   ```
+
+2. Install Renv
 
    ```console
    $ 
@@ -36,7 +44,52 @@ Visium and all of its dependencies can be installed via the [mamba](https://gith
 
 ## Usage
 
-1. Run make file
+1. Creat sample table
+
+   ```console
+   $ vim data/sample_table.csv # containing sample meta data 
+   ```
+
+This table should have the following headers:
+
+
+
+2. Fill in paramaters 
+
+These can be filled in at the top of each workbook e.g. for `01-data-loading`:
+
+   ```console
+        ---
+        title: "Data loading"
+        params:
+            prefix:
+            - "data/"
+            marker:
+            - "ACTA2"
+            sample.sheet:
+            - "V1_Breast_Cancer.csv"
+        ---
+   ```
+or supplied upon render using the `-P` flag::
+
+   ```console
+   $ $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+	    quarto render -P prefix:data/ -P marker:ACTA2 -P sample.sheet:V1_Breast_Cancer.csv $<
+   ```
+
+3. Construct your make file
+
+   ```console
+   $ vim Makefile # Edit/Comment out .qmd files not in use.
+   ```
+
+4. Test make file
+
+   ```console
+   $ make -n
+   ```
+
+5. Run make file
 
    ```console
    $ make

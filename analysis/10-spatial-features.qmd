@@ -120,6 +120,7 @@ library(RColorBrewer)
 Source user-defined functions:
 
 ```{r}
+source("scripts/loadInSpatial.R")
 source("scripts/plotpHeatmap.R")
 source("scripts/findMarkers.R")
 source("scripts/createDT.R")
@@ -140,7 +141,7 @@ We can read in the `output/06-merge-samples.rds` or `output/07-integrate-samples
 Alternatively you can run this step of the workflow on un-merged or un-integrated samples following clustering (`output/05-clustering.rds` and `05-clustering.qmd`). In this case you will need to tweak plot sizes (see `params$plot_width` and `params$plot_height` for more details).
 
 ::: callout-note
-Please take the seurat object of choice and define them as `params$seurat`.
+Please take the seurat object of choice and define them as `params$seurat` in @tbl-params.
 :::
 
 ```{r}

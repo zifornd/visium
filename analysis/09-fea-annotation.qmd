@@ -123,7 +123,7 @@ You can supply these paramaters upon render.
 :::
 
 ::: callout-note
-The paramater `split.res` is important as it will split the results table further prior to running fea. This may be useful if you have run marker detection on clusters and have a results table which contains the results for many different clusters. In this case if `split.res` is set to `TRUE`, the table will be split into separate clusters based on the `param$group` name and the workflow will be run separately on each independent cluster.
+The paramater `split.res` is important as it will split the results table further prior to running fea. This may be useful if you have run marker detection on clusters and have a results table which contains the results for many different clusters. In this case if `split.res` is set to `TRUE`, the table will be split into separate clusters based on the `param$group` name and the workflow will be run separately on each independent cluster. Please see @tbl-params for more details.
 :::
 
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>

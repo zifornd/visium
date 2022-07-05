@@ -158,7 +158,7 @@ If you would like to be added to this list, please open a [pull request](https:/
 
 Visium is used by the following companies and institutes:
 
-- []()
+- [Zifornd](https://www.zifornd.com/)
 
 If you would like to be added to this list, please open a [pull request](https://github.com/zifornd/visium/pulls) with your information.
 
@@ -189,4 +189,4 @@ The documentation was informed by the following articles:
 ## License
 
 Visium is licensed under the [MIT](LICENSE.md) license.  
-Copyright &copy; 2020, Zifo rnd
+Copyright &copy; 2022, Zifo rnd

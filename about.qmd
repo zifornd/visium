@@ -32,7 +32,9 @@ Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) in
 
    Visium and all of its dependencies can be installed via the [renv](https://rstudio.github.io/renv/articles/renv.html) package manager. In each workflow `renv::restore()` will restore the project state from the `renv.lock` file. 
 
-   The first thing we install then is `renv`:
+   For more details on `renv` please follow this [link](https://rstudio.github.io/renv/articles/collaborating.html).
+
+   The first thing we install is `renv` which requires `yaml` to parse dependencies within Quarto Markdown files:
 
    ```console
    $ R
@@ -53,6 +55,7 @@ Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) in
    'help.start()' for an HTML browser interface to help.
    Type 'q()' to quit R.
 
+   > install.packages("yaml")
    > install.packages("renv")
    ```
 

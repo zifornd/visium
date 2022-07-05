@@ -62,6 +62,7 @@ Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) in
    $ sudo dpkg -i quarto-0.9.640-linux-amd64.deb
    $ quarto -V # Test version and install
    ```
+   See the following [link](https://quarto.org/docs/get-started/hello/text-editor.html) for more details on rendering quarto documents `.qmd`
 
 ## Usage
 
@@ -118,6 +119,8 @@ Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) in
    ```console
    $ make
    ```
+
+Alternatively this quarto workflow may be rendered in separate parts using [RStudio](https://quarto.org/docs/get-started/hello/rstudio.html)  
 
 ## Support
 

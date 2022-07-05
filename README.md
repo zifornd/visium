@@ -22,20 +22,45 @@ Visium is a quarto workflow to process and analyse 10x Visium Spatial transcript
 
 ## Installation
 
-Visium and all of its dependencies can be installed via the [renv](https://rstudio.github.io/renv/articles/renv.html) package manager. In each workflow `renv::restore()` will restore the project state from the `renv.lock` file. 
+Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) installed.
 
-Please ensure you also have access to `make`.
+1. Install Renv
 
-1. Install quarto
+   Visium and all of its dependencies can be installed via the [renv](https://rstudio.github.io/renv/articles/renv.html) package manager. In each workflow `renv::restore()` will restore the project state from the `renv.lock` file. 
+
+   The first thing we install then is `renv`:
 
    ```console
-   $ 
+   $ R
+
+   R version 4.1.3 (2022-03-10) -- "One Push-Up"
+   Copyright (C) 2022 The R Foundation for Statistical Computing
+   Platform: x86_64-conda-linux-gnu (64-bit)
+
+   R is free software and comes with ABSOLUTELY NO WARRANTY.
+   You are welcome to redistribute it under certain conditions.
+   Type 'license()' or 'licence()' for distribution details.
+
+   R is a collaborative project with many contributors.
+   Type 'contributors()' for more information and
+   'citation()' on how to cite R or R packages in publications.
+
+   Type 'demo()' for some demos, 'help()' for on-line help, or
+   'help.start()' for an HTML browser interface to help.
+   Type 'q()' to quit R.
+
+   > install.packages("renv")
    ```
 
-2. Install Renv
+2. Install quarto
 
+   As this workflow is written as a number of quarto documents we next we need to install Quarto by following the [link](https://quarto.org/docs/get-started/): 
+
+   We can then install the .deb file and test quarto install:
+   
    ```console
-   $ 
+   $ sudo dpkg -i quarto-0.9.640-linux-amd64.deb
+   $ quarto -V # Test version and install
    ```
 
 ## Usage
@@ -46,13 +71,16 @@ Please ensure you also have access to `make`.
    $ vim data/sample_table.csv # containing sample meta data 
    ```
 
-This table should have the following headers:
+   This table should look something like the following and must contain these headers:
 
-
+   | sample | image | slide | group | area | index | files | protocol |
+   |--------|-------|-------|-------|------|-------|-------|----------|
+   | V1_Breast_Cancer_Block_A_Section_1 | V1_Breast_Cancer_Block_A_Section_1_image | V19L29-097 | slide1 | B1	T1T2-F10 | V1_Breast_Cancer_Block_A_Section_1_filtered_feature_bc_matrix.h5 | FF |
+   | V1_Breast_Cancer_Block_A_Section_2 | V1_Breast_Cancer_Block_A_Section_2_image	V19L29-098 | slide2 | B1 | T1T2-H10 | V1_Breast_Cancer_Block_A_Section_2_filtered_feature_bc_matrix.h5 | FF |
 
 2. Fill in paramaters 
 
-These can be filled in at the top of each workbook e.g. for `01-data-loading`:
+   These can be filled in at the top of each workbook e.g. for `01-data-loading`:
 
    ```console
         ---
@@ -66,10 +94,10 @@ These can be filled in at the top of each workbook e.g. for `01-data-loading`:
             - "V1_Breast_Cancer.csv"
         ---
    ```
-or supplied upon render using the `-P` flag::
+   or supplied upon render using the `-P` flag::
 
    ```console
-   $ $(OUTPUT)/01-data-loading.html: $(WORKSPACE)/01-data-loading.qmd
+   $ project/01-data-loading.html: project/01-data-loading.qmd
 	    quarto render -P prefix:data/ -P marker:ACTA2 -P sample.sheet:V1_Breast_Cancer.csv $<
    ```
 

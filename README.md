@@ -65,7 +65,7 @@ Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) in
 
 ## Usage
 
-1. Creat sample table
+1. Create sample table
 
    ```console
    $ vim data/sample_table.csv # containing sample meta data 

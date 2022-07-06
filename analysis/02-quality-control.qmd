@@ -46,14 +46,10 @@ You can supply these paramaters upon render.
 
 ### Dependencies
 
-```{r, setup, include=TRUE}
-# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
-```
-
 Restore project dependencies:
 
 ```{r}
-#renv::restore()
+renv::restore()
 ```
 
 Load Bioconductor packages:

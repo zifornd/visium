@@ -129,22 +129,19 @@ The paramater `split.res` is important as it will split the results table furthe
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>
 
 <div id="BlockNamedep" class="collapse">  
+
 ### Dependencies
 
-```{r, setup, include=TRUE}
-# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
+Restore project dependencies:
+
+```{r}
+renv::restore()
 ```
 
 Add child documents
 
 ```{r}
 #| child = "analysis/big-data.qmd"
-```
-
-Restore project dependencies:
-
-```{r}
-#renv::restore()
 ```
 
 Load Bioconductor packages:

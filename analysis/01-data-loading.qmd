@@ -48,26 +48,22 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
-```{r, setup, include=FALSE}
-# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium")
-```
-
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
 
 <div id="BlockNamedep" class="collapse">  
 
 ### Dependencies
 
+Restore project dependencies:
+
+```{r}
+renv::restore()
+```
+
 Add child documents
 
 ```{r}
 #| child = "analysis/big-data.qmd"
-```
-
-Restore project dependencies:
-
-```{r}
-#renv::restore()
 ```
 
 Load Bioconductor packages:

@@ -70,16 +70,16 @@ You can supply these paramaters upon render.
 
 ### Dependencies
 
+Restore project dependencies:
+
+```{r}
+renv::restore()
+```
+
 Add child documents
 
 ```{r}
 #| child = "analysis/big-data.qmd"
-```
-
-Restore project dependencies:
-
-```{r}
-#renv::restore()
 ```
 
 Load Bioconductor packages:

@@ -22,7 +22,7 @@ Visium is a quarto workflow to process and analyse 10x Visium Spatial transcript
 
 ## Installation
 
-Please ensure you also have `make` and [`r`](https://cran.r-project.org/bin/) installed.
+Please ensure you also have `make` and [`R`](https://cran.r-project.org/bin/) version 4.0 or greater installed.
 
 1. Install Renv
 

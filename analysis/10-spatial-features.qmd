@@ -2,9 +2,9 @@
 title: "Spatially variable feature detection"
 params:
   seurat:
-    - "05-clustering.rds" # "07-integrate-samples.rds"
+    - "07-integrate-samples.rds" # "05-clustering.rds"
   nfeatures:
-    - 100
+    - 10
   spatial.method:
     - "markvariogram"
   top.features:

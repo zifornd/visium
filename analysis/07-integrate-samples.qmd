@@ -767,7 +767,7 @@ sdplot5 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3,
 # wrap_plots(sdplot1, sdplot2,
 #            sdplot3, sdplot4,
 #            sdplot5, ncol = 2)
-wrap_plots(sdplot1, ncol = 2)
+wrap_plots(sdplot1)
 
 ```
 
@@ -781,7 +781,7 @@ wrap_plots(sdplot1, ncol = 2)
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.3")
 #| label: fig-spatial-res2
 
-wrap_plots(sdplot2, ncol = 2)
+wrap_plots(sdplot2)
 ```
 
 ## res 0.5
@@ -794,7 +794,7 @@ wrap_plots(sdplot2, ncol = 2)
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.5")
 #| label: fig-spatial-res3
 
-wrap_plots(sdplot3, ncol = 2)
+wrap_plots(sdplot3)
 ```
 
 ## res 0.6
@@ -807,7 +807,7 @@ wrap_plots(sdplot3, ncol = 2)
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.6")
 #| label: fig-spatial-res4
 
-wrap_plots(sdplot4, ncol = 2)
+wrap_plots(sdplot4)
 ```
 
 ## res 0.8
@@ -820,7 +820,7 @@ wrap_plots(sdplot4, ncol = 2)
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.8")
 #| label: fig-spatial-res5
 
-wrap_plots(sdplot5, ncol = 2)
+wrap_plots(sdplot5)
 ```
 :::
 

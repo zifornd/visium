@@ -507,20 +507,20 @@ SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some r
 # spatial_dim2 <- lapply(seurat, plotSpatialCluster, 
 #                        group = params$cluster.plot[[2]])
 
-sdplot1 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
-                              group = "res.0.2")
+sdplot1 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
+                  group = "res.0.2")
 
-sdplot2 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
-                              group = "res.0.3")
+sdplot2 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
+                  group = "res.0.3")
 
-sdplot3 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
-                              group = "res.0.5")
+sdplot3 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
+                  group = "res.0.5")
 
-sdplot4 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
-                              group = "res.0.6")
+sdplot4 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
+                  group = "res.0.6")
 
-sdplot5 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
-                              group = "res.0.8")
+sdplot5 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
+                  group ="res.0.8")
 ```
 
 ::: {.panel-tabset}

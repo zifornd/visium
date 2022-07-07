@@ -233,7 +233,8 @@ get_custom_names <- function(custom_names, original_names,
 #' @return trimmed label.
 trim_label <- function(lab, width = 20, ...) {
 
-  if (nchar(lab) > width) {
+  # lab may be character vector with > 1 element
+  if (T %in% (nchar(lab) > width)) {
 
     lab <- paste0(substring(lab, 1, width), "...")
 

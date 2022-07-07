@@ -190,5 +190,5 @@ The documentation was informed by the following articles:
 
 ## License
 
-Visium is licensed under the [MIT](LICENSE.md) license.  
+Visium is licensed under the [MIT](LICENSE) license.  
 Copyright &copy; 2022, Zifo rnd

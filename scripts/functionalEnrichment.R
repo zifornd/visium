@@ -496,7 +496,7 @@ plot_barplot <- function(cp_df,
 #' @param width Width threshold for trimming
 #' @param delim Returns original where delim = NA
 #' @return label trimmed
-trim_label <- function(lab, width = 20, delim = NULL) {
+trim_label <- function(lab, width = 25, delim = NULL) {
 
   if (!is.null(delim)) {
 
@@ -506,8 +506,9 @@ trim_label <- function(lab, width = 20, delim = NULL) {
 
     }
   }
-
-  if (nchar(lab) > width) {
+  
+  # lab may be character vector with > 1 element
+  if (T %in% (nchar(lab) > width)) {
 
     lab <- paste0(substring(lab, 1, width), "...")
 

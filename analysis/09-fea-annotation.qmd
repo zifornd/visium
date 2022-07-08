@@ -4,7 +4,7 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Homo sapiens" # Mus musculus or Homo sapiens
+    - "Mus musculus" # Mus musculus or Homo sapiens
   feature:
     - "gene"
   split.res:
@@ -35,9 +35,7 @@ params:
 
 # Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -130,7 +128,7 @@ The paramater `split.res` is important as it will split the results table furthe
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -190,7 +188,7 @@ Much of the visium quarto workflow include Rscripts which are not part of a exte
 
 # Processing
 
-### Reading in experiment object
+## Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `09-marker-detection.qmd` for more details).
 
@@ -200,7 +198,7 @@ In theory this module could be used to process other results tables with genes a
 res <- readRDS(paste0("output/", params$res))
 ```
 
-### Reading in gene sets
+## Reading in gene sets
 
 Below we read in MSigDb gene sets using the R package `msigdbr`. As we understand individuals may require their own custom gene set we allow users to specify a separate table of genes in the same format as output by `msigdbr`.
 
@@ -273,9 +271,7 @@ vector_res_gsea <- lapply(res, parse_res, group = params$group,
 
 ```
 
-## Run FEA
-
-### Enricher
+## FEA Enricher
 
 After getting the results tables ready we can run the subsequent enrichment analyses. First we run the overrepresentation analysis with the function `enrichr` using the `clusterprofiler` package. There are many other approaches available and we may switch over to another if needs be.
 
@@ -347,6 +343,8 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
+### Parse Enricher results
+
 Finally we parse the output of `enrichr` so we can use it for downstream plotting and saving:
 
 For C8:
@@ -380,7 +378,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-#### Interactive results
+### Interactive results
 
 We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
 
@@ -409,18 +407,6 @@ if (params$combined_table == TRUE) {
 
   dt
 
-  # # Only take final level of results table from list
-  # res_overrep_cells <- unlist(res_overrep_cells, recursive = FALSE)
-
-  # # remove empty elements for clusters without any significant results
-  # resbind_overrep_cells <- res_overrep_cells[sapply(res_overrep_cells, nrow) > 0]
-
-  # # bind into single results table
-  # resbind_overrep_cells <- bind_rows(resbind_overrep_cells, .id = params$group)
-
-  # # Plot as interactive table
-  # plotFeaDT(resbind_overrep_cells, pageLength = 5, targets = c(8,10))
-
 } else {
 
   sample_names <- names(res_overrep_cells)
@@ -447,18 +433,6 @@ if (params$combined_table == TRUE) {
 
   dt
 
-  # # Only take final level of results table from list
-  # res_overrep_hallmarks <- unlist(res_overrep_hallmarks, recursive = FALSE)
-
-  # # remove empty elements for clusters without any significant results
-  # resbind_overrep_hallmarks <- res_overrep_hallmarks[sapply(res_overrep_hallmarks, nrow) > 0]
-
-  # # bind into single results table
-  # resbind_overrep_hallmarks <- bind_rows(resbind_overrep_hallmarks, .id = params$group)
-
-  # # Plot as interactive table
-  # plotFeaDT(resbind_overrep_hallmarks, pageLength = 5, targets = c(8,10))
-
 } else {
 
   sample_names <- names(res_overrep_hallmarks)
@@ -477,18 +451,6 @@ Results for Custom:
 
 if (!is.null(custom_genesets_t2g)) {
 
-  # # Only take final level of results table from list
-  # res_overrep_custom <- unlist(res_overrep_custom, recursive = FALSE)
-
-  # # remove empty elements for clusters without any significant results
-  # resbind_overrep_custom <- res_overrep_custom[sapply(res_overrep_custom, nrow) > 0]
-
-  # # bind into single results table
-  # resbind_overrep_custom <- bind_rows(resbind_overrep_custom, .id = params$group)
-
-  # # Plot as interactive table
-  # plotFeaDT(resbind_overrep_custom, pageLength = 5, targets = c(8,10))
-  
   if (params$combined_table == TRUE) {
 
     dt <- createDTFea(sample_name = NULL,
@@ -511,7 +473,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-#### Collapse Results for saving
+### Collapse Results for saving
 
 ```{r}
 #| message: false
@@ -528,7 +490,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-#### Save out as CSV
+### Save out as CSV
 
 Next we save these same results out as CSV files.
 
@@ -580,7 +542,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-### GSEA
+## FEA GSEA
 
 After completing overrepresentation analysis we then move to completing GSEA. We do this by using the function `GSEA` in the `clusterprofiler` package. There are other approaches available and we may switch over to another if needs be - however this GSEA function does come with some convenient plotting functions which allow us to plot some standard GSEA enrichment plots used commonly in publications.
 
@@ -637,6 +599,8 @@ if (!is.null(custom_genesets_t2g)) {
   }
 ```
 
+### Parse GSEA results
+
 Finally we parse the output of `GSEA` so we can use it for downstream plotting and saving:
 
 For C8:
@@ -681,7 +645,7 @@ if (!is.null(custom_genesets_t2g)) {
   }
 ```
 
-#### Interactive results
+### Interactive results
 
 We also present these results interactively using the DT package. The extra JS code just deals with the extra long ontology terms that make a normal interactive datatable hard to visualise.
 
@@ -691,17 +655,6 @@ Results for C8:
 #| code-fold: true
 
 if (params$combined_table == TRUE) {
-
-# # Only take final level of results table from list
-# res_gsea_cells <- unlist(res_gsea_cells, recursive = FALSE)
-
-# # remove empty elements for clusters without any significant results
-# resbind_gsea_cells <- res_gsea_cells[sapply(res_gsea_cells, nrow) > 0]
-
-# # bind into single results table
-# resbind_gsea_cells <- bind_rows(resbind_gsea_cells, .id = params$group)
-
-# plotFeaDT(resbind_gsea_cells, pageLength = 5, targets = c(11, 12))
 
   dt <- createDTFea(sample_name = NULL,
                     res = res_gsea_cells, 
@@ -731,17 +684,6 @@ Results for Hallmark:
 
 if (params$combined_table == TRUE) {
 
-# # Only take final level of results table from list
-# res_gsea_hallmarks <- unlist(res_gsea_hallmarks, recursive = FALSE)
-
-# # remove empty elements for clusters without any significant results
-# resbind_gsea_hallmarks <- res_gsea_hallmarks[sapply(res_gsea_hallmarks, nrow) > 0]
-
-# # bind into single results table
-# resbind_gsea_hallmarks <- bind_rows(resbind_gsea_hallmarks, .id = params$group)
-
-# plotFeaDT(resbind_gsea_hallmarks, pageLength = 5, targets = c(11, 12))
-
   dt <- createDTFea(sample_name = NULL,
                     res = res_gsea_hallmarks, 
                     group = params$group,  
@@ -770,18 +712,6 @@ if (!is.null(custom_genesets_t2g)) {
 
   if (params$combined_table == TRUE) {
 
-
-  # # Only take final level of results table from list
-  # res_gsea_custom <- unlist(res_gsea_custom, recursive = FALSE)
-
-  # # remove empty elements for clusters without any significant results
-  # resbind_gsea_custom <- res_gsea_custom[sapply(res_gsea_custom, nrow) > 0]
-
-  # # bind into single results table
-  # resbind_gsea_custom <- bind_rows(resbind_gsea_custom, .id = params$group)
-
-  # plotFeaDT(resbind_gsea_custom, pageLength = 5, targets = c(11, 12))
-
     dt <- createDTFea(sample_name = NULL,
                       res = res_gsea_custom, 
                       group = params$group,  
@@ -802,7 +732,7 @@ if (!is.null(custom_genesets_t2g)) {
   }
 ```
 
-#### Collapse Results for saving
+### Collapse Results for saving
 
 ```{r}
 #| message: false
@@ -819,7 +749,7 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-#### Save out as CSV
+### Save out as CSV
 
 Next we save these same results out as CSV files.
 
@@ -871,11 +801,11 @@ if (!is.null(custom_genesets_t2g)) {
 }
 ```
 
-### Plot output
+## Plot output
 
 Next we will plot some of the output of the enrichment analyses. We will only plot simple barplots and GSEA enrichment plots to keep things as readable as possible.
 
-#### Barplots
+### Barplots
 
 For Overrep C8:
 
@@ -888,10 +818,6 @@ For Overrep C8:
 #| fig-cap: Barplot Overrepresentation analysis Msigdb C8
 #| fig.width: !expr (params$plot_width + 5)
 #| fig.height: !expr (params$plot_height + 5)
-
-# just need to add a for loop here! Just as in the marker detection! 
-# Will need to keep wrap_plots as returns a list! Also need to NOT flatten the results table
-# Not flattening will mean will stay in a interesting list heirarchy so we can access it 
 
 sample_names <- names(res_overrep_cells)
 
@@ -1118,7 +1044,7 @@ if (!is.null(custom_genesets_t2g)) {
 ```
 :::
 
-#### GSEA enrichment
+### GSEA enrichment
 
 Finally we will plot the top enrichment plot per results table or group if the table has been split with `split.res`.
 
@@ -1260,9 +1186,7 @@ if (!is.null(custom_genesets_t2g)) {
 saveRDS(res_anno, file = "output/09-fea-annotation.rds")
 ```
 
-### Output Description
-
-@tbl-outputs
+## Output Description
 
 ```{r}
 #| code-fold: true
@@ -1283,7 +1207,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information
+## Session information
 
 Print session information:
 

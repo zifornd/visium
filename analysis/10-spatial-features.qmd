@@ -4,7 +4,7 @@ params:
   seurat:
     - "07-integrate-samples.rds" # "05-clustering.rds"
   nfeatures:
-    - 10
+    - 5
   spatial.method:
     - "markvariogram"
   top.features:
@@ -23,7 +23,7 @@ params:
 
 # Setup
 
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -77,7 +77,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -168,42 +168,7 @@ Please see vignette for further details: https://satijalab.org/seurat/articles/s
 #| message: false
 #| warning: false
 
-# If running on single seurat object or output from merged or integrated qmd
-
 seuratprep <- prepSeuratLoad(seurat)
-
-
-# if (class(seurat) == "Seurat") { 
-
-#   seuratList <- list(seurat)
-
-#   # If merged or combined will have multiple samples in meta data so save into list as combined seurat
-#   if (length(unique(seurat@meta.data$Sample)) > 1) {
-      
-#     names(seuratList) <- "Combined.Seurat"
-
-#     # Run PrepSCTFindMarkers
-#     seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
-
-#   }
-
-#   # If single sample save into list as sample name
-#   if (length(unique(seurat@meta.data$Sample)) == 1) {
-
-#     names(seuratList) <- unique(seurat@meta.data$Sample)
-
-#     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
-#     seuratprep <- seuratList
-
-#   }
-
-# } else {
-
-#     # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
-#     stopifnot(class(seurat) == "list")
-    
-#     seuratprep <- seurat
-# }
 ```
 
 ## Run Spatially variable features (Trendseek)
@@ -384,9 +349,7 @@ Save experiment object:
 saveRDS(seuratprep, file = "output/10-spatial-features.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -407,7 +370,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

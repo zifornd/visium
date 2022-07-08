@@ -25,9 +25,7 @@ params:
 
 # Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -87,15 +85,11 @@ knitr::kable(jsonlite::fromJSON(par))
 You can supply these paramaters upon render.
 :::
 
-```{r, setup, include=TRUE}
-# knitr::opts_knit$set(root.dir = "C:/Users/Ben/Documents/GitHub/visium/")
-```
-
 <button class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#BlockNamedep"> Show/Hide Dependencies</button>  
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -195,41 +189,7 @@ Please see vignette for further details: https://satijalab.org/seurat/articles/s
 #| message: false
 #| warning: false
 
-# If running on single seurat object or output from merged or integrated qmd
-
 seuratprep <- prepSeuratLoad(seurat)
-
-# if (class(seurat) == "Seurat") { 
-
-#   seuratList <- list(seurat)
-
-#   # If merged or combined will have multiple samples in meta data so save into list as combined seurat
-#   if (length(unique(seurat@meta.data$Sample)) > 1) {
-      
-#     names(seuratList) <- "Combined.Seurat"
-
-#     # Run PrepSCTFindMarkers
-#     seuratprep <- lapply(seuratList, PrepSCTFindMarkers)
-
-#   }
-
-#   # If single sample save into list as sample name
-#   if (length(unique(seurat@meta.data$Sample)) == 1) {
-
-#     names(seuratList) <- unique(seurat@meta.data$Sample)
-
-#     # If only a single un merged/combined experiment - do not need to run PrepSCTFindMarkers
-#     seuratprep <- seuratList
-
-#   }
-
-# } else {
-
-#     # If only list of un merged/combined experiments - do not need to run PrepSCTFindMarkers
-#     stopifnot(class(seurat) == "list")
-    
-#     seuratprep <- seurat
-# }
 ```
 
 ## ScaleData
@@ -436,13 +396,13 @@ Save experiment object:
 saveRDS(seuratprep, file = "output/08-marker-detection.rds")
 ```
 
+Save out results object:
+
 ```{r}
 saveRDS(res, file = "output/08-marker-detection-res.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -468,7 +428,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

@@ -3,14 +3,12 @@ title: "Quality control"
 params:
     protocol:
       - "FF" # Fresh frozen as FF, or FFPE
-    custom_sample_names: ["V1_Breast_Ca_1", "V1_Breast_Ca_2"]
+    custom_sample_names: [Sagittal_Anterior_1, Sagittal_Anterior_2, Sagittal_Posterior_1, Sagittal_Posterior_2] # Set as null if not wanted
 ---
 
-## Setup
+# Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -44,7 +42,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -87,11 +85,11 @@ Much of the visium quarto workflow include Rscripts which are not part of a exte
 
 </div>
 
-## Processing
+# Processing
 
-### Reading in
+## Reading in
 
-#### Reading in experiment object
+### Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `01-data-loading.qmd` for more details).
 
@@ -105,7 +103,7 @@ We also need to collect the QC metrics from the seurat objects ready for visuali
 combinedQC <- collectQC(seurat)
 ```
 
-#### Reading in QC metrics csv
+### Reading in QC metrics csv
 
 We can also read in the qc metrics that we collected from the 10x visium output in the same `01-data-loading.qmd` worksheet. Much of the plotting for this analysis will focus on these values.
 
@@ -113,9 +111,9 @@ We can also read in the qc metrics that we collected from the 10x visium output 
 metrics <- read.csv("output/metrics.csv")
 ```
 
-### QC Metrics
+## QC Metrics
 
-#### nCounts
+### nCounts
 
 Below we plot violin plots for `nCounts_Spatial` metric from 10x output and represents the number of total UMI barcodes counted per spot - the higher the count the more RNA content in each spot. If you are familiar with the OSCA single cell workflow this is equivalent to the `sum` of counts for a single cell experiment. For single cell Seurat workflow this is equivalent to `nCounts_RNA`.
 
@@ -175,7 +173,7 @@ spatialPlots <- lapply(names(seurat), function(x, seuratList) {
 wrap_plots(spatialPlots)
 ```
 
-#### nFeatures
+### nFeatures
 
 Another important QC measurement we use is the number of features sampled per spot or `nFeatures_Spatial`. In this case the features we are interested in are of course genes, so nFeatures really is the number of genes we have managed to sample per spot. In the OSCA workflow this is `detected` and in a Seurat single cell workflow this is `nFeatures_RNA`. Below we plot violin plots for nFeatures metric from 10x output.
 
@@ -238,11 +236,11 @@ spatialPlots <- lapply(names(seurat), function(x, seuratList) {
 wrap_plots(spatialPlots)
 ```
 
-### Additional QC Metrics
+## Additional QC Metrics
 
 Spaceranger also produces a set of QC values which we have parsed ready for plotting below. These are presented to the user normally within 10x html outputs and we plot these below under the headers specified by 10x - `Sequencing`, `Mapping`, and `Spots`.
 
-#### Sequencing
+### Sequencing
 
 This set of QC values focuses on sequencing QC e.g. total number of reads per sample (`Number.of.Reads`), percentage of valid UMIs (`Valid.UMIs`), the quality of reads and barcodes (`Q30.Bases.in.Barcode`, `Q30.Bases.in.UMI`) per sample.
 
@@ -321,7 +319,7 @@ v2 <- violingg(seq_metr, ylab = "Percentage", xlab = "QC",
 wrap_plots(v1, v2, nrow = 2)
 ```
 
-#### Mapping
+### Mapping
 
 This set of QC values focuses on mapping QC (mapping to the mouse or human probe set for FFPE protocol) e.g. total number of reads mapped to probe set (`Reads.Mapped.to.Probe.Set`), total number of reads mapped uniquely to probe set (`Reads.Mapped.Confidently.to.Probe.Set`), and total number of reads that mapped uniquely to filtered probe set (those with low predicted off-targets and are no DEPRECATED) (`Reads.Mapped.Confidently.to.the.Filtered.Probe.Set`) per sample if the run is following the FFPE protocol.
 
@@ -432,7 +430,7 @@ v2 <- violingg(map_metr, ylab = "Percentage", xlab = "QC",
 wrap_plots(v1, v2, nrow = 2)
 ```
 
-#### Spots
+### Spots
 
 This set of QC values focuses on spot associated QC e.g. total number of spots under the tissue sample (`Number.of.Spots.Under.Tissue`), the mean reads per spot (`Mean.Reads.per.Spot`) which is like mean nCounts, and the median genes per spot (`Median.Genes.per.Spot`) which is similar to median nFeatures.
 
@@ -463,9 +461,9 @@ bars <- lapply(metricscols, function(x, metrics, clean_label, custom_label) {
 wrap_plots(bars)
 ```
 
-### Spot Filtering
+## Spot Filtering
 
-#### Remove spots based on location
+### Remove spots based on location
 
 Sometimes there are regionally located clusters of low quality spots which may be filtered prior to downstream analysis. For example - the edges of slides which can be easily filtered as long as they are not clearly associated with a biological signal. This will need to be completed on a per sample basis - below is an example:
 
@@ -535,7 +533,7 @@ seurat[[1]] = NULL
 seurat[[1]] = seurat_1
 ```
 
-#### Remove spots with zero counts
+### Remove spots with zero counts
 
 Normalisation approaches that we use (e.g. SCT transform) require non zero counts for each spot and will complain when they attempt to log transform spots with zero counts - so we filter 0 count spots by default.
 
@@ -554,7 +552,7 @@ seurat <- lapply(seurat, filterBy, threshold = 0, by = "nCount_Spatial",
                  direction = "up")
 ```
 
-## Output
+# Output
 
 Save experiment object:
 
@@ -562,9 +560,7 @@ Save experiment object:
 saveRDS(seurat, file = "output/02-quality-control.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -586,7 +582,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

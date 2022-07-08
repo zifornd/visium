@@ -4,16 +4,14 @@ params:
     prefix:
       - "data/"
     marker:
-      - "ACTA2"
+      - "Foxg1"
     sample.sheet:
-      - "V1_Breast_Cancer.csv"
+      - "V1_Mouse_Brain.csv"
 ---
 
-## Setup
+# Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -52,7 +50,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -87,9 +85,9 @@ Much of the visium quarto workflow include Rscripts which are not part of a exte
 
 </div>
 
-## Processing
+# Processing
 
-### Reading in sample sheet
+## Reading in sample sheet
 
 Read in sample sheet which contains all meta data required for processing.
 
@@ -97,7 +95,7 @@ Read in sample sheet which contains all meta data required for processing.
 metadata <- read.csv(paste0(params$prefix, params$sample.sheet))
 ```
 
-### Reading in experiment object
+## Reading in experiment object
 
 Load in experiment object with all samples as a list.
 
@@ -124,10 +122,10 @@ seurat <- lapply(c(1:length(metadata$sample)), loadInSpatialList,
 names(seurat) <- metadata$sample
 ```
 
-### Filtering
+## Filtering
 
-#### Take only genes with non zero counts across all samples
-
+### Take only genes with non zero counts across all samples
+ 
 Spaceranger by default does some filtering where we take the "`filtered_feature_bc_matrix`" output which is recommended.
 
 1.  Spaceranger will only take spots which overlay tissue (non empty spots).
@@ -146,8 +144,8 @@ Some additional filtering is useful to us however - for example zero count genes
 seurat <- lapply(seurat, function(x) {x[rowSums(x) > 0, ]})
 ```
 
-#### Remove "DEPRECATED-" genes
-
+### Remove "DEPRECATED-" genes
+ 
 For FFPE analyses by default these genes are removed - however if an unfiltered feature barcode matrix is supplied DEPRECATED probes must be removed prior to downstream analysis.
 
 For more details on how probe filtering occurs for FFPE protocol upstream with spaceranger please see "**Probe Filtering For FFPE**" section:
@@ -164,8 +162,8 @@ And also If you need to change spaceranger filtering for FFPE probes:
 seurat <- lapply(seurat, function(x) {x[!grepl("DEPRECATED", rownames(x)), ]})
 ```
 
-#### Test genes of interest still in final expression matrix
-
+### Test genes of interest still in final expression matrix
+ 
 If a the experiment has been completed with a number of marker genes in mind - perform an early check to ensure this gene is expressed following filtering - e.g. Is this gene within the probe list if experiment following the FFPE protocol? Does this gene have a non deprecated probe? Is it expressed?
 
 Further discussion required if chosen marker genes are not expressed at this point.
@@ -177,7 +175,7 @@ Further discussion required if chosen marker genes are not expressed at this poi
 lapply(seurat, function(x) {stopifnot(colSums(FetchData(x, vars = params$marker)) > 0)})
 ```
 
-### Reading in QC metrics
+## Reading in QC metrics
 
 As standard spaceranger produced individual sample wise QC csv files. We can use these values to evaluate sample wise QC ourselves - however we need to combine them together before we can use them.
 
@@ -202,9 +200,9 @@ metrics[, "Sample.ID"] <- as.character(metrics[, "Sample.ID"])
 metrics[, 2:ncol(metrics)] <- as.numeric(unlist(metrics[, 2:ncol(metrics)]))
 ```
 
-## Output
+# Output
 
-### RDS Output
+## RDS Output
 
 Save out seurat experiment object
 
@@ -212,7 +210,7 @@ Save out seurat experiment object
 saveRDS(seurat, file = "output/01-data-loading.rds")
 ```
 
-### Metrics output
+## Metrics output
 
 Save out metrics output
 
@@ -220,9 +218,7 @@ Save out metrics output
 write.csv(metrics, file = "output/metrics.csv", quote = F, row.names = F)
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -249,7 +245,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

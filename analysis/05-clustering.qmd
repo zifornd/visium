@@ -10,9 +10,7 @@ params:
 
 # Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -41,7 +39,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -417,7 +415,7 @@ rm(silhouettes_1, silhouettes_2, silhouettes_3, silhouettes_4, silhouettes_5)
 gc()
 ```
 
-#### Plot silhouette scores
+### Plot silhouette scores
 
 Below we plot these scores as boxplots:
 
@@ -501,12 +499,6 @@ SpatialDimPlot group.by param not currently working with Seurat_4.1.1 for some r
 #| message: false
 #| warning: false
 
-# spatial_dim1 <- lapply(seurat, plotSpatialCluster, 
-#                        group = params$cluster.plot[[1]])
-
-# spatial_dim2 <- lapply(seurat, plotSpatialCluster, 
-#                        group = params$cluster.plot[[2]])
-
 sdplot1 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3, 
                   group = "res.0.2")
 
@@ -535,12 +527,7 @@ sdplot5 <- lapply(seurat, plotSpatialCluster, label = TRUE, label.size = 3,
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.2")
 #| label: fig-spatial-res1
 
-#wrap_plots(sdplot1)
-# wrap_plots(sdplot1, sdplot2,
-#            sdplot3, sdplot4,
-#            sdplot5, ncol = 2)
 wrap_plots(sdplot1, ncol = 2)
-
 ```
 
 ## res 0.3
@@ -656,9 +643,7 @@ Save experiment object:
 saveRDS(seurat, file = "output/05-clustering.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -680,7 +665,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

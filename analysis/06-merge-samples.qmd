@@ -20,9 +20,7 @@ params:
 
 # Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -81,7 +79,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -254,8 +252,6 @@ featureplot(seurat, reduction = "pca", label = FALSE,
 A simple way to decide how many PCs to use downstream is to generate an Elbow plot by ranking the PCs by % variance that each explains and finding the "elbow" in which variance ceases to decrease. At this elbow the majority true biological signal is captured.
 
 Below we plot the variance of the top components as an elbow plot.
-
-@fig-elbow Elbow plot merged
 
 ```{r}
 #| message: false
@@ -458,8 +454,6 @@ featureplot(seurat, reduction = "umap", label = FALSE,
 
 Due to restrictions on compute time we will only plot a chosen TSNE with `r params$perplexity`.
 
-### Plot TSNE
-
 Below we run TSNE with the paramaters of choice - `r params$perplexity`
 
 ```{r}
@@ -469,6 +463,8 @@ Below we run TSNE with the paramaters of choice - `r params$perplexity`
 
 seurat <- tsne(seurat, perplexity = params$perplexity)
 ```
+
+### Plot TSNE
 
 Below we plot the merged TSNE by `Group`, `nCount_Spatial`, and `nFeature_Spatial`.
 
@@ -644,8 +640,6 @@ Another way of deciding what resolution to choose is to look at the stability of
 
 We complete this process with `k.param = 20` (seurat default)
 
-@fig-clustree Plot clustree
-
 ```{r}
 #| warning: false
 #| message: false
@@ -697,8 +691,6 @@ silhouette_plots_4 <- plotSil(silhouettes_4, type = "boxplot", title = "res.0.6"
 silhouette_plots_5 <- plotSil(silhouettes_5, type = "boxplot", title = "res.0.8")
 ```
 
-@fig-sil-merged Plot silhouette
-
 ```{r}
 #| fig.width: 12
 #| fig.height: 10
@@ -731,12 +723,6 @@ Below we will plot resolutions of interest across our H+E images.
 #| warning: false
 #| message: false
 
-# sdplot1 <- plotSpatialCluster(seurat, label = TRUE, 
-#                               label.size = 3, group = params$cluster.plot[[1]])
-
-# sdplot2 <- plotSpatialCluster(seurat, label = TRUE, 
-#                               label.size = 3, group = params$cluster.plot[[2]])
-
 sdplot1 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3, 
                               group = "res.0.2")
 
@@ -765,12 +751,7 @@ sdplot5 <- plotSpatialCluster(seurat, label = TRUE, label.size = 3,
 #| fig-cap: !expr paste0("Spatial plot ", "res 0.2")
 #| label: fig-spatial-res1
 
-#wrap_plots(sdplot1)
-# wrap_plots(sdplot1, sdplot2,
-#            sdplot3, sdplot4,
-#            sdplot5, ncol = 2)
 wrap_plots(sdplot1)
-
 ```
 
 ## res 0.3
@@ -842,9 +823,7 @@ Save experiment object:
 saveRDS(seurat, file = "output/06-merge-samples.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -866,7 +845,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

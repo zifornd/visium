@@ -6,14 +6,12 @@ params:
   min_cells:
     - 2
   example:
-    - "ACTA2"
+    - "Foxg1"
 ---
 
-## Setup
+# Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -52,7 +50,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -99,9 +97,9 @@ Much of the visium quarto workflow include Rscripts which are not part of a exte
 
 </div>
 
-## Processing
+# Processing
 
-### Reading in experiment object
+## Reading in experiment object
 
 We can read in the seurat object that we loaded in from the previous worksheet (See quarto worksheet `02-quality-control.qmd` for more details).
 
@@ -109,12 +107,12 @@ We can read in the seurat object that we loaded in from the previous worksheet (
 seurat <- readRDS("output/02-quality-control.rds")
 ```
 
-### Feature selection
+## Feature selection
 
 Feature selection is a standard step for normalisation but in the Seurat SCT approach is wrapped up and automated within the `SCTransform` function. Research has found that this feature selection step
 helps to highlight biological signal (https://www.nature.com/articles/nmeth.2645). Below we show the VST approach prior to normalisation to show an example of highly variable features prior to normalisation. Highly variable genes chosen through SCT normalisation are shown at the end of this workflow.
 
-#### VST approach
+### VST approach
 
 Here we take the top n highly variable genes.
 
@@ -127,7 +125,7 @@ features_n <- bplapply(seurat, findFeatures, nfeatures = params$nfeatures,
                        BPPARAM = BPPARAM) 
 ```
 
-@fig-vsthvg Feature plot n highly variable features
+And plot them:
 
 ```{r}
 #| fig.width: 12
@@ -141,7 +139,7 @@ wrap_plots(lapply(features_n, plotVariableGenes, selection.method = "vst"),
            ncol = 2)
 ```
 
-### Normalisation
+## Normalisation
 
 Using SCT transform we apply normalisation to our samples. This creates a regularized negative binomial models of expression for each gene. It does this to account for technical artifacts while attempting to preserving biological variance.
 
@@ -166,6 +164,8 @@ We are following details of sct transform from sctransform::vst vignette
 
 -   See https://htmlpreview.github.io/?https://github.com/satijalab/sctransform/blob/supp_html/supplement/variance_stabilizing_transformation.html for more details
 
+Applying SCT normalisation:
+
 ```{r}
 #| warning: false
 #| message: false
@@ -173,7 +173,7 @@ We are following details of sct transform from sctransform::vst vignette
 vst_out <- lapply(seurat, normaliseSctransform) 
 ```
 
-@fig-modelparams Plot model params
+And plotting model params:
 
 ```{r}
 #| warning: false
@@ -193,13 +193,11 @@ We can also inspect the model fit on a gene of choice - where we are seeing the 
 #| message: false
 #| fig.show: hide
 
-print(params$example)
-
 modl <- lapply(seurat, plotModelSctransform, features = c(params$example), 
                vst_outlist = vst_out)
 ```
 
-@fig-model-ex Plot model for example gene
+Plot model for example gene `r params$example`
 
 ```{r}
 #| fig.width: 5
@@ -214,8 +212,6 @@ wrap_plots(modl)
 
 Finally after transformation where there is no relationship between mean and variance we can take the most variable genes by sorting by residual variance - as this plot shows.
 
-@fig-resvar-sct Feature plot as per SCT
-
 ```{r}
 #| fig.width: 12
 #| fig.height: 8
@@ -227,7 +223,7 @@ Finally after transformation where there is no relationship between mean and var
 wrap_plots(lapply(seurat, plotVariableGenes, selection.method = "sct"), ncol = 2)
 ```
 
-## Output
+# Output
 
 Save experiment object:
 
@@ -235,9 +231,7 @@ Save experiment object:
 saveRDS(seurat, file = "output/03-normalisation.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -259,7 +253,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

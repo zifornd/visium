@@ -1,7 +1,7 @@
 ---
 title: "Reduced Dimensions"
 params: 
-  elbow_range: ["1:20", "1:20"]
+  elbow_range: ["1:20", "1:20", "1:20", "1:20"]
   elbow_plot: [10, 30]
   n.neighbors:
     - 30
@@ -17,9 +17,7 @@ params:
 
 # Setup
 
-### Parameters
-
-@tbl-params Parameter description
+## Parameters
 
 ```{r}
 #| code-fold: true
@@ -68,7 +66,7 @@ You can supply these paramaters upon render.
 
 <div id="BlockNamedep" class="collapse">  
 
-### Dependencies
+## Dependencies
 
 Restore project dependencies:
 
@@ -697,9 +695,7 @@ Save experiment object:
 saveRDS(seurat, file = "output/04-reduced-dimensions.rds")
 ```
 
-### Output Description 
-
-@tbl-outputs
+## Output Description 
 
 ```{r}
 #| code-fold: true
@@ -721,7 +717,7 @@ par <- jsonlite::toJSON(par, pretty = TRUE)
 knitr::kable(jsonlite::fromJSON(par))
 ```
 
-### Session information 
+## Session information 
 
 Print session information:
 

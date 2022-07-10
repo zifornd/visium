@@ -83,8 +83,9 @@ Please ensure you also have `make` and [`R`](https://cran.r-project.org/bin/) ve
 
    | sample | image | slide | group | area | index | files | protocol |
    |--------|-------|-------|-------|------|-------|-------|----------|
-   | V1_Breast_Cancer_Block_A_Section_1 | V1_Breast_Cancer_Block_A_Section_1_image | V19L29-097 | slide1 | B1 | T1T2-F10 | V1_Breast_Cancer_Block_A_Section_1_filtered_feature_bc_matrix.h5 | FF |
-   | V1_Breast_Cancer_Block_A_Section_2 | V1_Breast_Cancer_Block_A_Section_2_image | V19L29-098 | slide2 | B1 | T1T2-H10 | V1_Breast_Cancer_Block_A_Section_2_filtered_feature_bc_matrix.h5 | FF |
+   | Sample-1 | Sample-1-image | V19L29-097 | slide1 | B1 | T1T2-F10 | Sample-1-filtered_feature_bc_matrix.h5 | FF |
+   | Sample-2 | Sample-2-image | V19L29-098 | slide2 | B1 | T1T2-H10 | Sample-2-filtered_feature_bc_matrix.h5 | FF |
+
 
 2. Fill in paramaters 
 

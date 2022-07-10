@@ -4,9 +4,9 @@ params:
     prefix:
       - "data/"
     marker:
-      - "Foxg1"
+      - "ACTA2"
     sample.sheet:
-      - "V1_Mouse_Brain.csv"
+      - "V1_Breast_Cancer.csv" # "V1_Mouse_Brain.csv"
 ---
 
 # Setup

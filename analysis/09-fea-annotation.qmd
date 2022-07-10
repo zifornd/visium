@@ -4,7 +4,7 @@ params:
   res:
     - "08-marker-detection-res.rds"
   species:
-    - "Mus musculus" # Mus musculus or Homo sapiens
+    - "Homo sapiens" # Mus musculus or Homo sapiens
   feature:
     - "gene"
   split.res:
@@ -1056,7 +1056,7 @@ For GSEA C8
 #| warning: false
 #| results: "asis"
 #| echo: false
-#| fig.width: !expr (params$plot_width + 5)
+#| fig.width: !expr (params$plot_width)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb C8
 
@@ -1092,7 +1092,7 @@ For GSEA Hallmark
 #| warning: false
 #| results: "asis"
 #| echo: false
-#| fig.width: !expr (params$plot_width + 5)
+#| fig.width: !expr (params$plot_width)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Msigdb Hallmarks
 
@@ -1127,7 +1127,7 @@ For GSEA Custom
 #| warning: false
 #| results: "asis"
 #| echo: false
-#| fig.width: !expr (params$plot_width + 5)
+#| fig.width: !expr (params$plot_width)
 #| fig.height: !expr (params$plot_height + 5)
 #| fig-cap: Enrichment plots GSEA Custom geneset
 

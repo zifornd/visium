@@ -6,7 +6,7 @@ params:
   min_cells:
     - 2
   example:
-    - "Foxg1"
+    - "ACTA2"
 ---
 
 # Setup
@@ -129,7 +129,7 @@ And plot them:
 
 ```{r}
 #| fig.width: 12
-#| fig.height: 8
+#| fig.height: 5
 #| fig-cap: Feature plot for variable features with VST method.
 #| warning: false
 #| message: false
@@ -201,7 +201,7 @@ Plot model for example gene `r params$example`
 
 ```{r}
 #| fig.width: 5
-#| fig.height: 10
+#| fig.height: 6
 #| warning: false
 #| message: false
 #| fig-cap: Plot SCT model for example gene alongisde pearsons residuals.
@@ -214,7 +214,7 @@ Finally after transformation where there is no relationship between mean and var
 
 ```{r}
 #| fig.width: 12
-#| fig.height: 8
+#| fig.height: 5
 #| warning: false
 #| message: false
 #| fig-cap: Variable feature plot as per SCT normalisation.

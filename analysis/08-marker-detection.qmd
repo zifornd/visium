@@ -2,11 +2,11 @@
 title: "Marker gene detection"
 params:
   seurat:
-    - "07-integrate-samples.rds" # "05-clustering.rds"
+    - "07-integrate-samples.rds" # "06-merge-samples.rds" # "05-clustering.rds"
   regress:
     - FALSE
   min.pct:
-    - 0.5
+    - 0.25
   logfc.threshold:
     - 0.25
   only.pos:
@@ -231,7 +231,8 @@ And where testing following intergration is being considered please see:
 #| message: false
 #| warning: false
 
-res <- lapply(seuratprep, findAllMarkers, params = params)
+res <- lapply(seuratprep, findAllMarkers, only.pos = params$only.pos, min.pct = params$min.pct, 
+              logfc.threshold = params$logfc.threshold, pval.adj.thres = params$pval.adj.thres)
 ```
 
 ### Write csv to file

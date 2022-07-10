@@ -6,16 +6,18 @@
 #' @return Seurat object
 scaleData <- function(seuratprep, regress) {
 
+    feature_names <- rownames(seuratprep@assays$SCT)
+
     if (regress != FALSE) {
 
         seuratscale <- Seurat::ScaleData(seuratprep@assays$SCT,
-                                         features = rownames(seuratprep),
+                                         features = feature_names,
                                          vars.to.regress = regress)
 
     } else {
 
         seuratscale <- Seurat::ScaleData(seuratprep@assays$SCT,
-                                         features = rownames(seuratprep))
+                                         features = feature_names)
 
     }
 
@@ -30,18 +32,19 @@ scaleData <- function(seuratprep, regress) {
 #' @param params full params from 08-marker-detection.qmd (only.pos, min.pct, logfc.threshold, pval.adj.thres).
 #' @param sample_name User defined sample name will be used where multiple samples are saved within seurat object (merged/integrated)
 #' @return Result table containing markers per cluster.
-findAllMarkers <- function(seuratprep, params,
+findAllMarkers <- function(seuratprep, only.pos = T, min.pct = 0.1, logfc.threshold = 0.25, pval.adj.thres = 0.1,
                            sample_name = "Combined.Seurat") {
 
     Seurat::Idents(seuratprep) <- seuratprep$Cluster
 
-    res <- Seurat::FindAllMarkers(seuratprep, only.pos = params$only.pos,
-                                  min.pct = params$min.pct,
-                                  logfc.threshold = params$logfc.threshold)
+    res <- Seurat::FindAllMarkers(seuratprep, only.pos = only.pos,
+                                  min.pct = min.pct,
+                                  logfc.threshold = logfc.threshold,
+                                  assay = "SCT")
 
     rownames(res) <- NULL
 
-    res <- res[res$p_val_adj < params$pval.adj.thres, ]
+    res <- res[res$p_val_adj < pval.adj.thres, ]
 
     # If combined will have multiple sample names - so need to check
 

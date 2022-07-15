@@ -4,6 +4,10 @@ params:
     protocol:
       - "FF" # Fresh frozen as FF, or FFPE
     custom_sample_names: ["V1_Breast_Cancer_1", "V1_Breast_Cancer_2"] # [Sagittal_Anterior_1, Sagittal_Anterior_2, Sagittal_Posterior_1, Sagittal_Posterior_2] or Set as null if not wanted
+    ncounts_thres:
+      - null
+    nfeatures_thres:
+      - null
 ---
 
 # Setup
@@ -26,6 +30,16 @@ list(
 Parameter = "custom_sample_names",
 Value = params$custom_sample_names,
 Description = "Custom names of samples for plotting."
+),
+list(
+Parameter = "ncounts_thres",
+Value = params$ncounts_thres,
+Description = "nCounts Threshold for QC filtering."
+),
+list(
+Parameter = "nfeatures_thres",
+Value = params$nfeatures_thres,
+Description = "nFeatures Threshold for QC filtering."
 )
 )
 
@@ -551,6 +565,61 @@ We can then remove these spots:
 seurat <- lapply(seurat, filterBy, threshold = 0, by = "nCount_Spatial", 
                  direction = "up")
 ```
+
+### Remove spots with custom ncounts threshold
+
+We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
+
+We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
+
+```{r}
+if (!is.null(params$ncounts_thres)){
+
+  # Plot filtered spots
+  wrap_plots(lapply(seurat, filterByPlot, threshold = params$ncounts_thres, by = "nCount_Spatial", 
+                    direction = "up"))
+                    
+}
+```
+
+We can then remove these spots:
+
+```{r}
+if (!is.null(params$ncounts_thres)){
+
+  seurat <- lapply(seurat, filterBy, threshold = params$ncounts_thres, by = "nCount_Spatial", 
+                  direction = "up")
+
+}
+```
+
+### Remove spots with custom nfeatures threshold
+
+We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
+
+We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
+
+```{r}
+if (!is.null(params$nfeatures_thres)){
+
+  # Plot filtered spots
+  wrap_plots(lapply(seurat, filterByPlot, threshold = params$nfeatures_thres, by = "nFeatures_Spatial", 
+                    direction = "up"))
+                    
+}
+```
+
+We can then remove these spots:
+
+```{r}
+if (!is.null(params$nfeatures_thres)){
+
+  seurat <- lapply(seurat, filterBy, threshold = params$nfeatures_thres, by = "nFeatures_Spatial", 
+                  direction = "up")
+
+}
+```
+
 
 # Output
 

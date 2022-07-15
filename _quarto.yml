@@ -78,6 +78,7 @@ website:
         menu:
           - text: "Report an Issue"
             icon: "bug"
+            href: https://github.com/zifornd/
           - text: "FAQ"
             icon: "question-circle"
     right:

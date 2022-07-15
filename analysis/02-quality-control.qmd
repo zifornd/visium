@@ -4,10 +4,8 @@ params:
     protocol:
       - "FF" # Fresh frozen as FF, or FFPE
     custom_sample_names: ["V1_Breast_Cancer_1", "V1_Breast_Cancer_2"] # [Sagittal_Anterior_1, Sagittal_Anterior_2, Sagittal_Posterior_1, Sagittal_Posterior_2] or Set as null if not wanted
-    ncounts_thres:
-      - null
-    nfeature_thres:
-      - null
+    ncounts_thres: null
+    nfeature_thres: null
 ---
 
 # Setup

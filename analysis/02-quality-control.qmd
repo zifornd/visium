@@ -6,7 +6,7 @@ params:
     custom_sample_names: ["V1_Breast_Cancer_1", "V1_Breast_Cancer_2"] # [Sagittal_Anterior_1, Sagittal_Anterior_2, Sagittal_Posterior_1, Sagittal_Posterior_2] or Set as null if not wanted
     ncounts_thres:
       - null
-    nfeatures_thres:
+    nfeature_thres:
       - null
 ---
 
@@ -37,9 +37,9 @@ Value = params$ncounts_thres,
 Description = "nCounts Threshold for QC filtering."
 ),
 list(
-Parameter = "nfeatures_thres",
-Value = params$nfeatures_thres,
-Description = "nFeatures Threshold for QC filtering."
+Parameter = "nfeature_thres",
+Value = params$nfeature_thres,
+Description = "nFeature Threshold for QC filtering."
 )
 )
 
@@ -477,7 +477,84 @@ wrap_plots(bars)
 
 ## Spot Filtering
 
+### Remove spots with zero counts
+
+Normalisation approaches that we use (e.g. SCT transform) require non zero counts for each spot and will complain when they attempt to log transform spots with zero counts - so we filter 0 count spots by default.
+
+We can plot those spots with zero counts first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
+
+```{r}
+# Plot filtered spots
+wrap_plots(lapply(seurat, filterByPlot, threshold = 0, by = "nCount_Spatial", 
+                  direction = "up"))
+```
+
+We can then remove these spots:
+
+```{r}
+seurat <- lapply(seurat, filterBy, threshold = 0, by = "nCount_Spatial", 
+                 direction = "up")
+```
+
+### Remove spots with custom ncounts threshold
+
+We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
+
+We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
+
+```{r}
+if (!is.null(params$ncounts_thres)){
+
+  # Plot filtered spots
+  wrap_plots(lapply(seurat, filterByPlot, threshold = params$ncounts_thres, by = "nCount_Spatial", 
+                    direction = "up"))
+                    
+}
+```
+
+We can then remove these spots:
+
+```{r}
+if (!is.null(params$ncounts_thres)){
+
+  seurat <- lapply(seurat, filterBy, threshold = params$ncounts_thres, by = "nCount_Spatial", 
+                  direction = "up")
+
+}
+```
+
+### Remove spots with custom nfeatures threshold
+
+We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
+
+We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
+
+```{r}
+if (!is.null(params$nfeatures_thres)){
+
+  # Plot filtered spots
+  wrap_plots(lapply(seurat, filterByPlot, threshold = params$nfeature_thres, by = "nFeature_Spatial", 
+                    direction = "up"))
+                    
+}
+```
+
+We can then remove these spots:
+
+```{r}
+if (!is.null(params$nfeatures_thres)){
+
+  seurat <- lapply(seurat, filterBy, threshold = params$nfeature_thres, by = "nFeature_Spatial", 
+                  direction = "up")
+
+}
+```
+
 ### Remove spots based on location
+
+::: callout-note
+This step is not run by default and code blocks are set to `eval: false`. Please run on a case by case basis.
+:::
 
 Sometimes there are regionally located clusters of low quality spots which may be filtered prior to downstream analysis. For example - the edges of slides which can be easily filtered as long as they are not clearly associated with a biological signal. This will need to be completed on a per sample basis - below is an example:
 
@@ -546,80 +623,6 @@ seurat[[1]] = NULL
 
 seurat[[1]] = seurat_1
 ```
-
-### Remove spots with zero counts
-
-Normalisation approaches that we use (e.g. SCT transform) require non zero counts for each spot and will complain when they attempt to log transform spots with zero counts - so we filter 0 count spots by default.
-
-We can plot those spots with zero counts first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
-
-```{r}
-# Plot filtered spots
-wrap_plots(lapply(seurat, filterByPlot, threshold = 0, by = "nCount_Spatial", 
-                  direction = "up"))
-```
-
-We can then remove these spots:
-
-```{r}
-seurat <- lapply(seurat, filterBy, threshold = 0, by = "nCount_Spatial", 
-                 direction = "up")
-```
-
-### Remove spots with custom ncounts threshold
-
-We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
-
-We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
-
-```{r}
-if (!is.null(params$ncounts_thres)){
-
-  # Plot filtered spots
-  wrap_plots(lapply(seurat, filterByPlot, threshold = params$ncounts_thres, by = "nCount_Spatial", 
-                    direction = "up"))
-                    
-}
-```
-
-We can then remove these spots:
-
-```{r}
-if (!is.null(params$ncounts_thres)){
-
-  seurat <- lapply(seurat, filterBy, threshold = params$ncounts_thres, by = "nCount_Spatial", 
-                  direction = "up")
-
-}
-```
-
-### Remove spots with custom nfeatures threshold
-
-We can also remove spots based on visual inspection of violin plots and remove outliers based on a custom threshold
-
-We can plot those spots which satisify this threshold first to see how removing them will change what available spots we will have and how they are spatially distributed (Grey = 0, Red \> 0):
-
-```{r}
-if (!is.null(params$nfeatures_thres)){
-
-  # Plot filtered spots
-  wrap_plots(lapply(seurat, filterByPlot, threshold = params$nfeatures_thres, by = "nFeatures_Spatial", 
-                    direction = "up"))
-                    
-}
-```
-
-We can then remove these spots:
-
-```{r}
-if (!is.null(params$nfeatures_thres)){
-
-  seurat <- lapply(seurat, filterBy, threshold = params$nfeatures_thres, by = "nFeatures_Spatial", 
-                  direction = "up")
-
-}
-```
-
 
 # Output
 

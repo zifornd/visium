@@ -35,9 +35,9 @@ Please ensure you also have `make` and [`R`](https://cran.r-project.org/bin/) ve
    ```console
    $ R
 
-   R version 4.1.3 (2022-03-10) -- "One Push-Up"
+   R version 4.2.0 (2022-04-22) -- "Vigorous Calisthenics"
    Copyright (C) 2022 The R Foundation for Statistical Computing
-   Platform: x86_64-conda-linux-gnu (64-bit)
+   Platform: x86_64-pc-linux-gnu (64-bit)
 
    R is free software and comes with ABSOLUTELY NO WARRANTY.
    You are welcome to redistribute it under certain conditions.

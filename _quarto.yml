@@ -3,6 +3,7 @@ project:
   output-dir: docs
   execute-dir: project
   render:
+    - index.qmd
     - about.qmd
     - analysis/01-data-loading.qmd
     - analysis/02-quality-control.qmd

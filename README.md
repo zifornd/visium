@@ -98,12 +98,7 @@ Please ensure you also have `make` and [`R`](https://cran.r-project.org/bin/) ve
             - "V1_Breast_Cancer.csv"
         ---
    ```
-   or supplied upon render using the `-P` flag::
-
-   ```console
-   $ project/01-data-loading.html: project/01-data-loading.qmd
-	    quarto render -P prefix:data/ -P marker:ACTA2 -P sample.sheet:V1_Breast_Cancer.csv $<
-   ```
+   or supplied upon render using the `-P` flag:
 
 3. Construct your make file
 
